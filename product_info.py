@@ -1,3 +1,5 @@
+import calendar
+import datetime
 import os
 import json
 from datetime import datetime as dt
@@ -110,10 +112,40 @@ class ProductInfo:
             return None
         return file_path
 
+    def get_file_path_orig_monthly(self, path, datehere):
+        if path is None:
+            path = self.get_path_orig(datehere.year)
+        if path is None:
+            return None
+        # path_jday = os.path.join(path, datehere.strftime('%j'))
+        # if not os.path.exists(path_jday):
+        #     print(f'[ERROR] Expected jday path {path_jday} does not exist')
+        #     return None
+        name_file = self.dinfo['name_origin']
+        #date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
+        yearstr = datehere.strftime('%Y')
+        dateinimonth = datehere.replace(day=1).strftime('%j')
+        last_day = calendar.monthrange(datehere.year,datehere.month)[1]
+        datefinmonth = datehere.replace(day = last_day).strftime('%j')
+        date_file_str = f'{yearstr}{dateinimonth}{datefinmonth}'
+        file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
+        if not os.path.exists(file_path):
+            print(f'[ERROR] Expected file orig path {file_path} does not exist')
+            return None
+        return file_path
+
+
+
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
+        return rpath, sdir
+
+    def get_remote_path_monthly(self, year):
+        dtref = dt(year, 1, 1)
+        rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
+        sdir = os.path.join(dtref.strftime('%Y'))
         return rpath, sdir
 
     def get_tagged_dataset(self):
@@ -135,6 +167,17 @@ class ProductInfo:
         name_file_base = self.dinfo['remote_file_name']
         date_file_str = datehere.strftime(self.dinfo['remote_date_format'])
         name = name_file_base.replace('DATE', date_file_str)
+        return name
+
+    def get_remote_file_name_monthly(self,datehere):
+        name_file_base = self.dinfo['remote_file_name']
+        dateinimonth = datehere.replace(day=1)
+        last_day = calendar.monthrange(datehere.year, datehere.month)[1]
+        datefinmonth = datehere.replace(day=last_day)
+        date_file_ini_str = dateinimonth.strftime(self.dinfo['remote_date_format'])
+        date_file_fin_str = datefinmonth.strftime(self.dinfo['remote_date_format'])
+        name = name_file_base.replace('DATE1', date_file_ini_str)
+        name = name.replace('DATE2', date_file_fin_str)
         return name
 
     def start_nrt_dictionary(self):

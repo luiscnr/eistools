@@ -19,8 +19,8 @@ parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
                     choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
-parser.add_argument("-pname","--name_product", help="Product name")
-parser.add_argument("-dname","--name_dataset", help="Product name")
+parser.add_argument("-pname", "--name_product", help="Product name")
+parser.add_argument("-dname", "--name_dataset", help="Product name")
 args = parser.parse_args()
 
 
@@ -32,12 +32,17 @@ def main():
         # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
         pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
     elif args.mode and args.name_product and args.name_dataset:
-        pinfo.set_dataset_info(args.name_product,args.name_dataset)
+        pinfo.set_dataset_info(args.name_product, args.name_dataset)
 
     if args.start_date and args.end_date:
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
-        upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+
+        if pinfo.dinfo['frequency'] == 'd':
+            upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+        if pinfo.dinfo['frequency'] == 'm':
+            upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+
     # b = pinfo.check_dataset_namesin_dict()
     # print(b)
     # pinfo.get_product_info()
@@ -67,6 +72,15 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date):
             if year == year_fin and month == month_fin:
                 day_fin = end_date.day
             upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin)
+
+
+def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date):
+    year_ini = start_date.year
+    month_ini = start_date.month
+    year_fin = end_date.year
+    month_fin = end_date.month
+    for year in range(year_ini, year_fin + 1):
+        upload_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin)
 
 
 # important: pinfo is a ProductInfo object already containing the information of the product and dataset
@@ -125,6 +139,60 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     ftpdu.close()
 
 
+def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month):
+    ftpdu = FTPUpload(mode)
+    deliveries = Deliveries()
+    path_orig = pinfo.get_path_orig(year)
+    rpath, sdir = pinfo.get_remote_path_monthly(year)
+
+    print(path_orig)
+    print(rpath)
+    print(sdir)
+
+    ftpdu.go_year_subdir(rpath,year)
+    ndelivered = 0
+    for month in range(start_month, end_month + 1):
+        date_here = dt(year, month, 15)
+        pfile = pinfo.get_file_path_orig_monthly(path_orig, date_here)
+        print(pfile, os.path.exists(pfile))
+        print(pinfo.check_file(pfile))
+        remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
+        print(remote_file_name)
+        status = ''
+        count = 0
+        print(pfile)
+        print(remote_file_name)
+
+        while status != 'Delivered' and count < 10:
+            status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
+            tagged_dataset = pinfo.get_tagged_dataset()
+            # tagged_dataset = os.path.join(sdir,pinfo.get_tagged_dataset())
+            sdir_remote_file_name = os.path.join(sdir, remote_file_name)
+            datafile_se = deliveries.add_datafile(pinfo.product_name, tagged_dataset, pfile, sdir_remote_file_name,
+                                                  start_upload_TS, stop_upload_TS, status)
+            if count > 0:
+                deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
+            count = count + 1
+            if status == "Delivered" and mode == 'DT':
+                deliveries.add_delete_NRT_from_datafile_se(datafile_se)
+
+        if status == 'Failed':
+            print(f'[WARNING] {pfile} could not be uploaded to DU')
+        elif status == 'Delivered':
+            ndelivered = ndelivered + 1
+
+    if ndelivered > 0:
+        dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
+        ftpdu.go_dnt(pinfo.product_name)
+        status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
+        if status == 'Delivered':
+            print(f'DNT file {dnt_file_name} transfer to DU succeeded')
+        else:
+            print(f'DNT file {dnt_file_name} transfer to DU failed')
+
+    ftpdu.close()
+
+
 class FTPUpload():
     def __init__(self, mode):
         sdir = os.path.abspath(os.path.dirname(__file__))
@@ -140,6 +208,14 @@ class FTPUpload():
         du_passwd = credentials.get('cnr', 'passwd')
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
+    def go_year_subdir(self, rpath, year):
+        dateref = dt(year, 1, 1)
+        yearstr = dateref.strftime('%Y')
+        print(rpath)
+        self.ftpdu.cwd(rpath)
+        if not (yearstr in self.ftpdu.nlst()):
+            self.ftpdu.mkd(yearstr)
+        self.ftpdu.cwd(yearstr)
     def go_month_subdir(self, rpath, year, month):
         dateref = dt(year, month, 1)
         yearstr = dateref.strftime('%Y')  # dt.strptime(str(year), '%Y')
