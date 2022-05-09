@@ -77,7 +77,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
             status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
             tagged_dataset = pinfo.get_tagged_dataset()
             #tagged_dataset = os.path.join(sdir,pinfo.get_tagged_dataset())
-            sdir_remote_file_name = os.path(sdir,remote_file_name)
+            sdir_remote_file_name = os.path.join(sdir,remote_file_name)
             datafile_se = deliveries.add_datafile(pinfo.product_name, tagged_dataset, pfile, sdir_remote_file_name,
                                                   start_upload_TS, stop_upload_TS, status)
             if count > 0:
