@@ -51,16 +51,21 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     deliveries = Deliveries()
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
-    ftpdu.go_month_subdir(rpath, year, month)
-    ndelivered = 0
-    for day in range(start_day, end_day + 1):
-        date_here = dt(year, month, day)
-        pfile = pinfo.get_file_path_orig(path_orig, date_here)
-        remote_file_name = pinfo.get_remote_file_name(date_here)
-        status = ''
-        count = 0
-        print(pfile)
-        print(remote_file_name)
+
+    print(path_orig)
+    print(rpath)
+    print(sdir)
+
+    # ftpdu.go_month_subdir(rpath, year, month)
+    # ndelivered = 0
+    # for day in range(start_day, end_day + 1):
+    #     date_here = dt(year, month, day)
+    #     pfile = pinfo.get_file_path_orig(path_orig, date_here)
+    #     remote_file_name = pinfo.get_remote_file_name(date_here)
+    #     status = ''
+    #     count = 0
+    #     print(pfile)
+    #     print(remote_file_name)
     #     while status != 'Delivered' and count < 10:
     #         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
     #         datafile_se = deliveries.add_datafile(pinfo.product_name, pinfo.dataset_name, remote_file_name, pfile,

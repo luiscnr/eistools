@@ -8,6 +8,7 @@ class ProductInfo:
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
+
         self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         self.product_name = ''
         self.dataset_name = ''
@@ -101,7 +102,7 @@ class ProductInfo:
 
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)
-        rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'])
+        rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset']+self.dinfo['remote_dataset_tag'])
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
         return rpath, sdir
 
