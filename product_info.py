@@ -1,7 +1,7 @@
 import os
 import json
 from datetime import datetime as dt
-
+from netCDF4 import Dataset
 
 class ProductInfo:
     def __init__(self):
@@ -113,6 +113,17 @@ class ProductInfo:
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset']+self.dinfo['remote_dataset_tag'])
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
         return rpath, sdir
+
+    def check_file(self,file):
+        try:
+            nc = Dataset(file)
+            if nc.title==self.dataset_name and nc.cmems_product_id==self.product_name:
+                return True
+            else:
+                return False
+        except:
+            return False
+
 
     def get_remote_file_name(self, datehere):
         name_file_base = self.dinfo['remote_file_name']

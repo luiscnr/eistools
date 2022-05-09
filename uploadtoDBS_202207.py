@@ -62,6 +62,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
         date_here = dt(year, month, day)
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
         print(pfile,os.path.exists(pfile))
+        print(pinfo.check_file(pfile))
     #     remote_file_name = pinfo.get_remote_file_name(date_here)
     #     status = ''
     #     count = 0
