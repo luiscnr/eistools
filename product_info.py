@@ -10,6 +10,7 @@ class ProductInfo:
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
         if self.path2info=='/home/lois/PycharmProjects/PRODUCT_INFO':
             self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
+        print(self.path2info)
         self.product_name = ''
         self.dataset_name = ''
         self.pinfo = {}
@@ -66,6 +67,7 @@ class ProductInfo:
         self.product_name = product_name
         self.dataset_name = dataset_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
+        print(fproduct)
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             pinfo = json.load(f)
