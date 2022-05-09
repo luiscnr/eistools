@@ -75,7 +75,9 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
 
         while status != 'Delivered' and count < 10:
             status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
-            datafile_se = deliveries.add_datafile(pinfo.product_name, pinfo.get_tagged_dataset(), pfile, remote_file_name,
+            tagged_dataset = pinfo.get_tagged_dataset()
+            print('.------------------------------------------------------',tagged_dataset)
+            datafile_se = deliveries.add_datafile(pinfo.product_name, tagged_dataset, pfile, remote_file_name,
                                                   start_upload_TS, stop_upload_TS, status)
             if count > 0:
                 deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
@@ -205,6 +207,7 @@ class Deliveries():
             self.add_product(product, start_upload_TS)
         dataset_se = self.get_dataset_subelement(product, dataset)
         if dataset_se is None:
+            print('AQUI ADD EL DATASET: ',dataset)
             dataset_se = ET.SubElement(self.deliveries[product], "dataset", DatasetName=dataset)
         return dataset_se
 
@@ -213,6 +216,7 @@ class Deliveries():
         dataset_se = self.get_dataset_subelement(product, dataset)
         datafile_se = None
         if dataset_se is None:
+            print('ME LLEGA AQUI, ADD THE DATASET')
             dataset_se = self.add_dataset(product, dataset, start_upload_TS)
         else:
             datafile_se = self.get_datafile_subelement(product, dataset, remote_file_name)
