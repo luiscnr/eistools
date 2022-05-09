@@ -211,7 +211,7 @@ class FTPUpload():
     def go_year_subdir(self, rpath, year):
         dateref = dt(year, 1, 1)
         yearstr = dateref.strftime('%Y')
-        print(rpath)
+        print('Changing directory to: ',rpath)
         self.ftpdu.cwd(rpath)
         if not (yearstr in self.ftpdu.nlst()):
             self.ftpdu.mkd(yearstr)
