@@ -7,28 +7,49 @@ import os, hashlib
 import lxml.etree as ET
 from product_info import ProductInfo
 from calendar import monthrange
+import argparse
+
+parser = argparse.ArgumentParser(description='Upload 2DBS')
+parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
+parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
+parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
+parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
+                    choices=['reflectance', 'plankton', 'optics', 'transp'])
+parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
+                    choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology'])
+parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
+parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
+args = parser.parse_args()
 
 
 def main():
     print('STARTED')
     pinfo = ProductInfo()
 
-    pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
+    if args.mode and args.region and args.level and args.dataset_type and args.sensor:
+        # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
+        pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
 
-
-
-    #b = pinfo.check_dataset_namesin_dict()
-    #print(b)
-    #pinfo.get_product_info()
+    if args.start_date and args.end_date:
+        start_date = dt.strptime(args.start_date, '%Y-%m-%d')
+        end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+        upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+    # b = pinfo.check_dataset_namesin_dict()
+    # print(b)
+    # pinfo.get_product_info()
     # pinfo.set_dataset_info('OCEANCOLOUR_BAL_BGC_L3_MY_009_133', "cmems_obs-oc_bal_bgc-plankton_my_l3-multi-1km_P1D")
-    upload_daily_dataset_impl(pinfo, "MY", 2020, 1, 1, 1)
+    # upload_daily_dataset_impl(pinfo, "MY", 2020, 1, 1, 1)
     # ftpdu = FTPUpload('MY')
     # ftpdu.close()
 
 
 def upload_daily_dataset(product, dataset, mode, start_date, end_date):
     pinfo = ProductInfo()
-    pinfo.set_dataset_info(product,dataset)
+    pinfo.set_dataset_info(product, dataset)
+    upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date)
+
+
+def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date):
     year_ini = start_date.year
     month_ini = start_date.month
     year_fin = end_date.year
@@ -38,10 +59,10 @@ def upload_daily_dataset(product, dataset, mode, start_date, end_date):
             day_ini = 1
             if year == year_ini and month == month_ini:
                 day_ini = start_date.day
-            day_fin = monthrange(year,month)[1]
+            day_fin = monthrange(year, month)[1]
             if year == year_fin and month == month_fin:
                 day_fin = end_date.day
-            upload_daily_dataset_impl(pinfo,mode,year,month,day_ini,day_fin)
+            upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin)
 
 
 # important: pinfo is a ProductInfo object already containing the information of the product and dataset
@@ -52,7 +73,6 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
 
-
     print(path_orig)
     print(rpath)
     print(sdir)
@@ -62,7 +82,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     for day in range(start_day, end_day + 1):
         date_here = dt(year, month, day)
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
-        print(pfile,os.path.exists(pfile))
+        print(pfile, os.path.exists(pfile))
         print(pinfo.check_file(pfile))
         remote_file_name = pinfo.get_remote_file_name(date_here)
         print(remote_file_name)
@@ -71,13 +91,11 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
         print(pfile)
         print(remote_file_name)
 
-
-
         while status != 'Delivered' and count < 10:
             status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
             tagged_dataset = pinfo.get_tagged_dataset()
-            #tagged_dataset = os.path.join(sdir,pinfo.get_tagged_dataset())
-            sdir_remote_file_name = os.path.join(sdir,remote_file_name)
+            # tagged_dataset = os.path.join(sdir,pinfo.get_tagged_dataset())
+            sdir_remote_file_name = os.path.join(sdir, remote_file_name)
             datafile_se = deliveries.add_datafile(pinfo.product_name, tagged_dataset, pfile, sdir_remote_file_name,
                                                   start_upload_TS, stop_upload_TS, status)
             if count > 0:
@@ -102,6 +120,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
 
     ftpdu.close()
 
+
 class FTPUpload():
     def __init__(self, mode):
         sdir = os.path.abspath(os.path.dirname(__file__))
@@ -118,9 +137,9 @@ class FTPUpload():
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
     def go_month_subdir(self, rpath, year, month):
-        dateref = dt(year,month,1)
-        yearstr = dateref.strftime('%Y')#dt.strptime(str(year), '%Y')
-        monthstr = dateref.strftime('%m')#dt.strptime(month, '%m')
+        dateref = dt(year, month, 1)
+        yearstr = dateref.strftime('%Y')  # dt.strptime(str(year), '%Y')
+        monthstr = dateref.strftime('%m')  # dt.strptime(month, '%m')
         print(rpath)
         self.ftpdu.cwd(rpath)
 
@@ -208,7 +227,7 @@ class Deliveries():
             self.add_product(product, start_upload_TS)
         dataset_se = self.get_dataset_subelement(product, dataset)
         if dataset_se is None:
-            print('AQUI ADD EL DATASET: ',dataset)
+            print('AQUI ADD EL DATASET: ', dataset)
             dataset_se = ET.SubElement(self.deliveries[product], "dataset", DatasetName=dataset)
         return dataset_se
 
@@ -253,7 +272,7 @@ class Deliveries():
                                            FileType="")
         ET.SubElement(datafile_delete_se, "KeyWord").text = 'Delete'
 
-    def md5(self,fname):
+    def md5(self, fname):
         hash_md5 = hashlib.md5()
         with open(fname, "rb") as f:
             for chunk in iter(lambda: f.read(4096), b""):

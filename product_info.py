@@ -80,6 +80,7 @@ class ProductInfo:
 
     def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
+        print(product_name,dataset_name)
         self.set_dataset_info(product_name, dataset_name)
 
     def get_path_orig(self, year):
