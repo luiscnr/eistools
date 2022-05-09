@@ -88,6 +88,7 @@ class ProductInfo:
         if os.path.exists(path_orig):
             return path_orig
         else:
+            print(f'[ERROR] Expected year path {path_orig} does not exist')
             return None
 
     def get_file_path_orig(self, path, datehere):
@@ -95,10 +96,15 @@ class ProductInfo:
             path = self.get_path_orig(datehere.year)
         if path is None:
             return None
+        path_jday = os.path.join(path,datehere.strftime('%j'))
+        if not os.path.exists(path_jday):
+            print(f'[ERROR] Expected jday path {path_jday} does not exist')
+            return None
         name_file = self.dinfo['name_origin']
         date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
-        file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
-        if os.path.exists(file_path) is None:
+        file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
+        if not os.path.exists(file_path):
+            print(f'[ERROR] Expected file orig path {file_path} does not exist')
             return None
         return file_path
 
