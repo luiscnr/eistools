@@ -7,9 +7,9 @@ class ProductInfo:
     def __init__(self):
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
-        path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
-
-        self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
+        self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
+        if self.path2info=='/home/lois/PycharmProjects/PRODUCT_INFO':
+            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         self.product_name = ''
         self.dataset_name = ''
         self.pinfo = {}
