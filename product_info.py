@@ -3,12 +3,13 @@ import json
 from datetime import datetime as dt
 from netCDF4 import Dataset
 
+
 class ProductInfo:
     def __init__(self):
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
-        if self.path2info=='/home/lois/PycharmProjects/PRODUCT_INFO':
+        if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
             self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         print(self.path2info)
         self.product_name = ''
@@ -77,8 +78,8 @@ class ProductInfo:
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
 
-    def set_dataset_info_fromparam(self,mode, basin, level, dtype, sensor):
-        product_name, dataset_name = self.get_dataset_name(mode,basin,level,dtype, sensor)
+    def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
+        product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
         self.set_dataset_info(product_name, dataset_name)
 
     def get_path_orig(self, year):
@@ -96,7 +97,7 @@ class ProductInfo:
             path = self.get_path_orig(datehere.year)
         if path is None:
             return None
-        path_jday = os.path.join(path,datehere.strftime('%j'))
+        path_jday = os.path.join(path, datehere.strftime('%j'))
         if not os.path.exists(path_jday):
             print(f'[ERROR] Expected jday path {path_jday} does not exist')
             return None
@@ -110,20 +111,20 @@ class ProductInfo:
 
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)
-        rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset']+self.dinfo['remote_dataset_tag'])
+        rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
         return rpath, sdir
 
-    def check_file(self,file):
+    def check_file(self, file):
         try:
             nc = Dataset(file)
-            if nc.title==self.dataset_name and nc.cmems_product_id==self.product_name:
-                return True
-            else:
-                return False
+            check = False
+            if nc.title == self.dataset_name and nc.cmems_product_id == self.product_name:
+               check = True
+            nc.close()
+            return check
         except:
             return False
-
 
     def get_remote_file_name(self, datehere):
         name_file_base = self.dinfo['remote_file_name']

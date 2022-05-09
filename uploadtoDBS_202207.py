@@ -56,14 +56,15 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     print(rpath)
     print(sdir)
 
-    # ftpdu.go_month_subdir(rpath, year, month)
+    ftpdu.go_month_subdir(rpath, year, month)
     # ndelivered = 0
     for day in range(start_day, end_day + 1):
         date_here = dt(year, month, day)
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
         print(pfile,os.path.exists(pfile))
         print(pinfo.check_file(pfile))
-    #     remote_file_name = pinfo.get_remote_file_name(date_here)
+        remote_file_name = pinfo.get_remote_file_name(date_here)
+        print(remote_file_name)
     #     status = ''
     #     count = 0
     #     print(pfile)
@@ -92,6 +93,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     #     else:
     #         print(f'DNT file {dnt_file_name} transfer to DU failed')
 
+    ftpdu.close()
 
 class FTPUpload():
     def __init__(self, mode):
@@ -113,9 +115,11 @@ class FTPUpload():
         yearstr = dateref.strftime('%Y')#dt.strptime(str(year), '%Y')
         monthstr = dateref.strftime('%m')#dt.strptime(month, '%m')
         self.ftpdu.cwd(rpath)
+
         if not (yearstr in self.ftpdu.nlst()):
             self.ftpdu.mkd(yearstr)
         self.ftpdu.cwd(yearstr)
+
         if not (monthstr in self.ftpdu.nlst()):
             self.ftpdu.mkd(monthstr)
         self.ftpdu.cwd(monthstr)
