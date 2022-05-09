@@ -52,6 +52,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
 
+
     print(path_orig)
     print(rpath)
     print(sdir)
@@ -65,33 +66,36 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
         print(pinfo.check_file(pfile))
         remote_file_name = pinfo.get_remote_file_name(date_here)
         print(remote_file_name)
-    #     status = ''
-    #     count = 0
-    #     print(pfile)
-    #     print(remote_file_name)
-    #     while status != 'Delivered' and count < 10:
-    #         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
-    #         datafile_se = deliveries.add_datafile(pinfo.product_name, pinfo.dataset_name, remote_file_name, pfile,
-    #                                               start_upload_TS, stop_upload_TS, status)
-    #         if count > 0:
-    #             deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
-    #         count = count + 1
-    #         if status == "Delivered" and mode == 'DT':
-    #             deliveries.add_delete_NRT_from_datafile_se(datafile_se)
-    #
-    #     if status == 'Failed':
-    #         print(f'[WARNING] {pfile} could not be uploaded to DU')
-    #     elif status == 'Delivered':
-    #         ndelivered = ndelivered + 1
-    #
-    # if ndelivered > 0:
-    #     dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
-    #     ftpdu.go_dnt(pinfo.product_name)
-    #     status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
-    #     if status == 'Delivered':
-    #         print(f'DNT file {dnt_file_name} transfer to DU succeeded')
-    #     else:
-    #         print(f'DNT file {dnt_file_name} transfer to DU failed')
+        status = ''
+        count = 0
+        print(pfile)
+        print(remote_file_name)
+
+
+
+        while status != 'Delivered' and count < 10:
+            status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
+            datafile_se = deliveries.add_datafile(pinfo.product_name, pinfo.dataset_name, remote_file_name, pfile,
+                                                  start_upload_TS, stop_upload_TS, status)
+            if count > 0:
+                deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
+            count = count + 1
+            if status == "Delivered" and mode == 'DT':
+                deliveries.add_delete_NRT_from_datafile_se(datafile_se)
+
+        if status == 'Failed':
+            print(f'[WARNING] {pfile} could not be uploaded to DU')
+        elif status == 'Delivered':
+            ndelivered = ndelivered + 1
+
+    if ndelivered > 0:
+        dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
+        ftpdu.go_dnt(pinfo.product_name)
+        status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
+        if status == 'Delivered':
+            print(f'DNT file {dnt_file_name} transfer to DU succeeded')
+        else:
+            print(f'DNT file {dnt_file_name} transfer to DU failed')
 
     ftpdu.close()
 
@@ -114,6 +118,7 @@ class FTPUpload():
         dateref = dt(year,month,1)
         yearstr = dateref.strftime('%Y')#dt.strptime(str(year), '%Y')
         monthstr = dateref.strftime('%m')#dt.strptime(month, '%m')
+        print(rpath)
         self.ftpdu.cwd(rpath)
 
         if not (yearstr in self.ftpdu.nlst()):
