@@ -24,7 +24,7 @@ class ProductInfo:
         self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
         self.dict_info = {}
         self.start_my_dictionary()
-        # self.start_nrt_dictionary()
+        #self.start_nrt_dictionary()
 
     def get_dataset_name(self, mode, basin, level, dtype, sensor):
         res = '1km'
@@ -138,7 +138,6 @@ class ProductInfo:
         return name
 
     def start_nrt_dictionary(self):
-        # BAL
         self.dict_info['nrt']['bal']['l3']['plackton']['olci'] = {
             'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
             'dataset': 'cmems_obs-oc_bal_bgc-plankton_nrt_l3-olci-300m_P1D',

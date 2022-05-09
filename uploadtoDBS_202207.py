@@ -19,6 +19,8 @@ parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
                     choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
+parser.add_argument("-pname","--name_product", help="Product name")
+parser.add_argument("-dname","--name_dataset", help="Product name")
 args = parser.parse_args()
 
 
@@ -29,6 +31,8 @@ def main():
     if args.mode and args.region and args.level and args.dataset_type and args.sensor:
         # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
         pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
+    elif args.mode and args.name_product and args.name_dataset:
+        pinfo.set_dataset_info(args.name_product,args.name_dataset)
 
     if args.start_date and args.end_date:
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
