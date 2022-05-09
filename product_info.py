@@ -115,6 +115,10 @@ class ProductInfo:
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
         return rpath, sdir
 
+    def get_tagged_dataset(self):
+        tagged_dataset = self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag']
+        return tagged_dataset
+
     def check_file(self, file):
         try:
             nc = Dataset(file)
