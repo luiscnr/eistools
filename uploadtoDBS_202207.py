@@ -21,7 +21,7 @@ def main():
     #print(b)
     #pinfo.get_product_info()
     # pinfo.set_dataset_info('OCEANCOLOUR_BAL_BGC_L3_MY_009_133', "cmems_obs-oc_bal_bgc-plankton_my_l3-multi-1km_P1D")
-    upload_daily_dataset_impl(pinfo, "MY", 2000, 1, 1, 1)
+    upload_daily_dataset_impl(pinfo, "MY", 2020, 1, 1, 1)
     # ftpdu = FTPUpload('MY')
     # ftpdu.close()
 
