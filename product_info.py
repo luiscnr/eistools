@@ -88,7 +88,10 @@ class ProductInfo:
     def get_path_orig(self, year):
         if len(self.dinfo) == 0:
             return None
-        path_orig = os.path.join(self.dinfo['path_origin'], dt(year, 1, 1).strftime('%Y'))
+        if year>0:
+            path_orig = os.path.join(self.dinfo['path_origin'], dt(year, 1, 1).strftime('%Y'))
+        else:
+            path_orig = self.dinfo['path_origin']
         if os.path.exists(path_orig):
             return path_orig
         else:
@@ -117,12 +120,7 @@ class ProductInfo:
             path = self.get_path_orig(datehere.year)
         if path is None:
             return None
-        # path_jday = os.path.join(path, datehere.strftime('%j'))
-        # if not os.path.exists(path_jday):
-        #     print(f'[ERROR] Expected jday path {path_jday} does not exist')
-        #     return None
         name_file = self.dinfo['name_origin']
-        #date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
         yearstr = datehere.strftime('%Y')
         dateinimonth = datehere.replace(day=1).strftime('%j')
         last_day = calendar.monthrange(datehere.year,datehere.month)[1]
@@ -134,7 +132,16 @@ class ProductInfo:
             return None
         return file_path
 
-
+    def get_file_path_orig_climatology(self, path, datehere):
+        if path is None:
+            return None
+        name_file = self.dinfo['name_origin']
+        date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
+        file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
+        if not os.path.exists(file_path):
+            print(f'[ERROR] Expected file orig path {file_path} does not exist')
+            return None
+        return file_path
 
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)
@@ -146,6 +153,11 @@ class ProductInfo:
         dtref = dt(year, 1, 1)
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
         sdir = os.path.join(dtref.strftime('%Y'))
+        return rpath, sdir
+
+    def get_remote_path_climatology(self):
+        rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
+        sdir = ''
         return rpath, sdir
 
     def get_tagged_dataset(self):
@@ -178,6 +190,12 @@ class ProductInfo:
         date_file_fin_str = datefinmonth.strftime(self.dinfo['remote_date_format'])
         name = name_file_base.replace('DATE1', date_file_ini_str)
         name = name.replace('DATE2', date_file_fin_str)
+        return name
+
+    def get_remote_file_name_climatology(self, datehere):
+        name_file_base = self.dinfo['remote_file_name']
+        date_file_str = datehere.strftime(self.dinfo['remote_date_format'])
+        name = name_file_base.replace('DATE', date_file_str)
         return name
 
     def start_nrt_dictionary(self):

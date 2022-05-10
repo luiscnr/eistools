@@ -42,6 +42,8 @@ def main():
             upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
         if pinfo.dinfo['frequency'] == 'm':
             upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+        if pinfo.dinfo['frequency'] == 'c':
+            upload_climatology_dataset_pinfo(pinfo.args.mode,start_date,end_date)
 
     # b = pinfo.check_dataset_namesin_dict()
     # print(b)
@@ -72,6 +74,20 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date):
             if year == year_fin and month == month_fin:
                 day_fin = end_date.day
             upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin)
+
+
+def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
+    month_ini = start_date.month
+    month_fin = end_date.month
+
+    for month in range(month_ini, month_fin + 1):
+        day_ini = 1
+        if month == month_ini:
+            day_ini = start_date.day
+        day_fin = monthrange(2001, month)[1]
+        if month == month_fin:
+            day_fin = end_date.day
+        upload_climatology_dataset_impl(pinfo, mode, month, day_ini, day_fin)
 
 
 def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date):
@@ -139,6 +155,60 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     ftpdu.close()
 
 
+def upload_climatology_dataset_impl(pinfo, mode, month, start_day, end_day):
+    ftpdu = FTPUpload(mode)
+    deliveries = Deliveries()
+    path_orig = pinfo.get_path_orig(-1)
+    rpath, sdir = pinfo.get_remote_path_climatology()
+
+    print(path_orig)
+    print(rpath)
+    print(sdir)
+
+    ftpdu.go_subdir(rpath)
+    ndelivered = 0
+    for day in range(start_day, end_day + 1):
+        date_here = dt(2000, month, day)
+        pfile = pinfo.get_file_path_orig_climatology(path_orig, date_here)
+        print(pfile, os.path.exists(pfile))
+        print(pinfo.check_file(pfile))
+        remote_file_name = pinfo.get_remote_file_name_climatology(date_here)
+        print(remote_file_name)
+        status = ''
+        count = 0
+        print(pfile)
+        print(remote_file_name)
+
+        while status != 'Delivered' and count < 10:
+            status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
+            tagged_dataset = pinfo.get_tagged_dataset()
+            # tagged_dataset = os.path.join(sdir,pinfo.get_tagged_dataset())
+            sdir_remote_file_name = os.path.join(sdir, remote_file_name)
+            datafile_se = deliveries.add_datafile(pinfo.product_name, tagged_dataset, pfile, sdir_remote_file_name,
+                                                  start_upload_TS, stop_upload_TS, status)
+            if count > 0:
+                deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
+            count = count + 1
+            if status == "Delivered" and mode == 'DT':
+                deliveries.add_delete_NRT_from_datafile_se(datafile_se)
+
+        if status == 'Failed':
+            print(f'[WARNING] {pfile} could not be uploaded to DU')
+        elif status == 'Delivered':
+            ndelivered = ndelivered + 1
+
+    if ndelivered > 0:
+        dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
+        ftpdu.go_dnt(pinfo.product_name)
+        status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
+        if status == 'Delivered':
+            print(f'DNT file {dnt_file_name} transfer to DU succeeded')
+        else:
+            print(f'DNT file {dnt_file_name} transfer to DU failed')
+
+    ftpdu.close()
+
+
 def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month):
     ftpdu = FTPUpload(mode)
     deliveries = Deliveries()
@@ -149,7 +219,7 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month):
     print(rpath)
     print(sdir)
 
-    ftpdu.go_year_subdir(rpath,year)
+    ftpdu.go_year_subdir(rpath, year)
     ndelivered = 0
     for month in range(start_month, end_month + 1):
         date_here = dt(year, month, 15)
@@ -208,14 +278,19 @@ class FTPUpload():
         du_passwd = credentials.get('cnr', 'passwd')
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
+    def go_subdir(self, rpath):
+        print('Changing directory to: ', rpath)
+        self.ftpdu.cwd(rpath)
+
     def go_year_subdir(self, rpath, year):
         dateref = dt(year, 1, 1)
         yearstr = dateref.strftime('%Y')
-        print('Changing directory to: ',rpath)
+        print('Changing directory to: ', rpath)
         self.ftpdu.cwd(rpath)
         if not (yearstr in self.ftpdu.nlst()):
             self.ftpdu.mkd(yearstr)
         self.ftpdu.cwd(yearstr)
+
     def go_month_subdir(self, rpath, year, month):
         dateref = dt(year, month, 1)
         yearstr = dateref.strftime('%Y')  # dt.strptime(str(year), '%Y')
