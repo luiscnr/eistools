@@ -27,23 +27,38 @@ args = parser.parse_args()
 def main():
     print('STARTED')
     pinfo = ProductInfo()
-
+    do_multiple_datasets = False
     if args.mode and args.region and args.level and args.dataset_type and args.sensor:
         # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
         pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
     elif args.mode and args.name_product and args.name_dataset:
         pinfo.set_dataset_info(args.name_product, args.name_dataset)
+    elif args.mode and args.name_product and not args.name_dataset:
+        pinfo.set_product_info(args.name_product)
+        do_multiple_datasets = True
 
-    if args.start_date and args.end_date:
+    if args.start_date and args.end_date and not do_multiple_datasets:
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
-
         if pinfo.dinfo['frequency'] == 'd':
             upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
         if pinfo.dinfo['frequency'] == 'm':
             upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date)
         if pinfo.dinfo['frequency'] == 'c':
-            upload_climatology_dataset_pinfo(pinfo, args.mode,start_date,end_date)
+            upload_climatology_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+
+    if args.start_date and args.end_date and do_multiple_datasets:
+        start_date = dt.strptime(args.start_date, '%Y-%m-%d')
+        end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+        for dname in pinfo.pinfo:
+            pinfo_here = ProductInfo()
+            pinfo_here.set_dataset_info(args.name_product,dname)
+            if pinfo_here.dinfo['frequency'] == 'd':
+                upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+            if pinfo_here.dinfo['frequency'] == 'm':
+                upload_monthly_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+            if pinfo_here.dinfo['frequency'] == 'c':
+                upload_climatology_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
 
     # b = pinfo.check_dataset_namesin_dict()
     # print(b)
