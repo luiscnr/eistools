@@ -43,7 +43,7 @@ def main():
         if pinfo.dinfo['frequency'] == 'm':
             upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date)
         if pinfo.dinfo['frequency'] == 'c':
-            upload_climatology_dataset_pinfo(pinfo.args.mode,start_date,end_date)
+            upload_climatology_dataset_pinfo(pinfo, args.mode,start_date,end_date)
 
     # b = pinfo.check_dataset_namesin_dict()
     # print(b)
