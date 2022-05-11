@@ -136,8 +136,11 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
     for day in range(start_day, end_day + 1):
         date_here = dt(year, month, day)
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
-        print(pfile, os.path.exists(pfile))
-        print(pinfo.check_file(pfile))
+        CHECK = pinfo.check_file(pfile)
+        print(f'[INFO] Checking file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
+        if not CHECK:
+            print(f'[ERROR] Error with the file: {pfile}')
+            continue
         remote_file_name = pinfo.get_remote_file_name(date_here)
         print(remote_file_name)
         status = ''
@@ -190,8 +193,11 @@ def upload_climatology_dataset_impl(pinfo, mode, month, start_day, end_day):
     for day in range(start_day, end_day + 1):
         date_here = dt(2000, month, day)
         pfile = pinfo.get_file_path_orig_climatology(path_orig, date_here)
-        print(pfile, os.path.exists(pfile))
-        print(pinfo.check_file(pfile))
+        CHECK = pinfo.check_file(pfile)
+        print(f'[INFO] Checking file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
+        if not CHECK:
+            print(f'[ERROR] Error with the file: {pfile}')
+            continue
         remote_file_name = pinfo.get_remote_file_name_climatology(date_here)
         print(remote_file_name)
         status = ''
@@ -244,8 +250,11 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month):
     for month in range(start_month, end_month + 1):
         date_here = dt(year, month, 15)
         pfile = pinfo.get_file_path_orig_monthly(path_orig, date_here)
-        print(pfile, os.path.exists(pfile))
-        print(pinfo.check_file(pfile))
+        CHECK = pinfo.check_file(pfile)
+        print(f'[INFO] Checking file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
+        if not CHECK:
+            print(f'[ERROR] Error with the file: {pfile}')
+            continue
         remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
         print(remote_file_name)
         status = ''
