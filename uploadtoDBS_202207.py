@@ -20,6 +20,8 @@ parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pname", "--name_product", help="Product name")
+parser.add_argument("-pfreq", "--frequency_product",
+                    help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
 args = parser.parse_args()
 
@@ -53,11 +55,14 @@ def main():
         for dname in pinfo.pinfo:
             pinfo_here = ProductInfo()
             pinfo_here.set_dataset_info(args.name_product,dname)
-            if pinfo_here.dinfo['frequency'] == 'd':
+            make = True
+            if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
+                make = False
+            if pinfo_here.dinfo['frequency'] == 'd' and make:
                 upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
-            if pinfo_here.dinfo['frequency'] == 'm':
+            if pinfo_here.dinfo['frequency'] == 'm' and make:
                 upload_monthly_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
-            if pinfo_here.dinfo['frequency'] == 'c':
+            if pinfo_here.dinfo['frequency'] == 'c' and make:
                 upload_climatology_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
 
     # b = pinfo.check_dataset_namesin_dict()

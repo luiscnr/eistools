@@ -13,7 +13,9 @@ class ProductInfo:
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
             self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
-        print(self.path2info)
+
+        self.path_reformat_script = '/store3/simone/tmp/reformatting_file_cmems2.sh'
+
         self.product_name = ''
         self.dataset_name = ''
         self.pinfo = {}
@@ -26,7 +28,7 @@ class ProductInfo:
         self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
         self.dict_info = {}
         self.start_my_dictionary()
-        #self.start_nrt_dictionary()
+        # self.start_nrt_dictionary()
 
     def get_dataset_name(self, mode, basin, level, dtype, sensor):
         res = '1km'
@@ -82,13 +84,13 @@ class ProductInfo:
 
     def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
-        print(product_name,dataset_name)
+        print(product_name, dataset_name)
         self.set_dataset_info(product_name, dataset_name)
 
     def get_path_orig(self, year):
         if len(self.dinfo) == 0:
             return None
-        if year>0:
+        if year > 0:
             path_orig = os.path.join(self.dinfo['path_origin'], dt(year, 1, 1).strftime('%Y'))
         else:
             path_orig = self.dinfo['path_origin']
@@ -123,8 +125,8 @@ class ProductInfo:
         name_file = self.dinfo['name_origin']
         yearstr = datehere.strftime('%Y')
         dateinimonth = datehere.replace(day=1).strftime('%j')
-        last_day = calendar.monthrange(datehere.year,datehere.month)[1]
-        datefinmonth = datehere.replace(day = last_day).strftime('%j')
+        last_day = calendar.monthrange(datehere.year, datehere.month)[1]
+        datefinmonth = datehere.replace(day=last_day).strftime('%j')
         date_file_str = f'{yearstr}{dateinimonth}{datefinmonth}'
         file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
         if not os.path.exists(file_path):
@@ -169,7 +171,7 @@ class ProductInfo:
             nc = Dataset(file)
             check = False
             if nc.title == self.dataset_name and nc.cmems_product_id == self.product_name:
-               check = True
+                check = True
             nc.close()
             return check
         except:
@@ -181,7 +183,7 @@ class ProductInfo:
         name = name_file_base.replace('DATE', date_file_str)
         return name
 
-    def get_remote_file_name_monthly(self,datehere):
+    def get_remote_file_name_monthly(self, datehere):
         name_file_base = self.dinfo['remote_file_name']
         dateinimonth = datehere.replace(day=1)
         last_day = calendar.monthrange(datehere.year, datehere.month)[1]
@@ -197,6 +199,33 @@ class ProductInfo:
         date_file_str = datehere.strftime(self.dinfo['remote_date_format'])
         name = name_file_base.replace('DATE', date_file_str)
         return name
+
+    def get_reformat_cmd(self, datehere):
+        cmd = None
+        if self.dinfo['dataset'] == 'climatology':
+            print(f'[WARNING] Reformat code for climatology is not implemented...')
+            return cmd
+        regions_dict = {
+            'BAL': 'BAL',
+            'BLK': 'BS',
+            'MED': 'MED'
+        }
+        res = self.dinfo['res']
+        m = self.dinfo['mode']
+        r = regions_dict[self.dinfo['region']]
+        f = self.dinfo['f-option']
+        p = self.dinfo['dataset']
+
+        if f == 'D' or f == 'INTERP':
+            path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
+            cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
+
+        if f == 'M':
+            path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
+            d = datehere.strftime('%Y-%m')
+            cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path} -d {d}'
+
+        return cmd
 
     def start_nrt_dictionary(self):
         self.dict_info['nrt']['bal']['l3']['plackton']['olci'] = {
