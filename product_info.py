@@ -84,7 +84,6 @@ class ProductInfo:
 
     def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
-        print(product_name, dataset_name)
         self.set_dataset_info(product_name, dataset_name)
 
     def get_path_orig(self, year):
@@ -117,6 +116,17 @@ class ProductInfo:
             return None
         return file_path
 
+    def get_list_file_path_orig(self, start_date, end_date):
+        filelist = []
+        for y in range(start_date.year, end_date.year + 1):
+            path_ref = self.get_path_orig(y)
+            for m in range(start_date.month, end_date.month + 1):
+                for d in range(start_date.day, end_date.day + 1):
+                    datehere = dt(y, m, d)
+                    file = self.get_file_path_orig(path_ref, datehere)
+                    filelist.append(file)
+        return filelist
+
     def get_file_path_orig_monthly(self, path, datehere):
         if path is None:
             path = self.get_path_orig(datehere.year)
@@ -133,6 +143,16 @@ class ProductInfo:
             print(f'[ERROR] Expected file orig path {file_path} does not exist')
             return None
         return file_path
+
+    def get_list_file_path_orig_monthly(self,start_date,end_date):
+        filelist = []
+        for y in range(start_date.year,end_date.year+1):
+            path_ref = self.get_path_orig(y)
+            for m in range(start_date.month,end_date.month+1):
+                datehere = dt(y,m,15)
+                file = self.get_file_path_orig_monthly(path_ref,datehere)
+                filelist.append(file)
+        return filelist
 
     def get_file_path_orig_climatology(self, path, datehere):
         if path is None:
