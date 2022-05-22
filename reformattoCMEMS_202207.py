@@ -67,7 +67,7 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date):
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
         if err:
-            print(f'[ERROR]{err}')
+            print(f'[WARNING]{err}')
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date):
     year_ini = start_date.year

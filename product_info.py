@@ -240,6 +240,7 @@ class ProductInfo:
 
         if f == 'D' or f == 'INTERP':
             path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
+            print(f' PATH: ',path,os.path.exists(path),'----------------------------------------------------------------')
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
 
         if f == 'M':
