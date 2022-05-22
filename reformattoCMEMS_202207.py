@@ -69,7 +69,7 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date):
         if out:
             print('***************************************************',out)
         if err:
-            if err.find('ncks: unrecognized option'):
+            if err.find('ncks: unrecognized option')>0:
                 pass
             else:
                 print(f'[CMD ERROR]{err}')
