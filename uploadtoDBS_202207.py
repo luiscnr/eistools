@@ -11,6 +11,7 @@ import argparse
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
+parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
@@ -140,7 +141,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
         date_here = dt(year, month, day)
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
         CHECK = pinfo.check_file(pfile)
-        if args.verbose:
+        if verbose:
             print(f'[INFO] Date: {date_here}')
             print(f'[INFO] Checking origin (local) file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
         if not CHECK:
