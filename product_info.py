@@ -32,6 +32,16 @@ class ProductInfo:
 
         self.MODE = 'UPLOAD' # UPLOAD O REFORMAT
 
+    def get_dataset_summary(self):
+        if self.dataset_name is not None:
+            path_summary = os.path.join(self.path2info,'SUMMARY')
+            if not os.path.exists(path_summary):
+                os.mkdir(path_summary)
+            fsummary = os.path.join(path_summary,self.dataset_name+'_summary.json')
+            finvalid = os.path.join(path_summary,self.dataset_name+'_invalid.csv')
+            return fsummary, finvalid
+        return None
+
     def get_dataset_name(self, mode, basin, level, dtype, sensor):
         res = '1km'
         if sensor.lower() == 'olci':
@@ -132,7 +142,14 @@ class ProductInfo:
         for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
             for m in range(start_date.month, end_date.month + 1):
-                for d in range(start_date.day, end_date.day + 1):
+                day_ini = 1
+                day_fin = calendar.monthrange(y, m)[1]
+                if m==start_date.month:
+                    day_ini = start_date.day
+                if m==end_date.month:
+                    day_fin = end_date.day
+
+                for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
                     file = self.get_file_path_orig(path_ref, datehere)
                     filelist.append(file)
@@ -142,9 +159,13 @@ class ProductInfo:
         for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
             for m in range(start_date.month, end_date.month + 1):
-                for d in range(start_date.day, end_date.day + 1):
-                    if d>calendar.monthrange(y, m)[1]:
-                        continue
+                day_ini = 1
+                day_fin = calendar.monthrange(y, m)[1]
+                if m == start_date.month:
+                    day_ini = start_date.day
+                if m == end_date.month:
+                    day_fin = end_date.day
+                for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
                     if verbose:
                         print('----------------------------------------------------')
