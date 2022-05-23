@@ -52,8 +52,16 @@ def main():
                   print(f'[INFO] Reformating files: Completed')
                   print('***********************************************************')
                   print(f'[INFO] Uploading files to DU: Started')
+            pinfo.MODE = 'UPLOAD'
             upload.upload_daily_dataset_pinfo(pinfo, args.mode,start_date,end_date, args.verbose)
-
+            if args.verbose:
+                print(f'[INFO] Uploading files to DU: Completed')
+                print('***********************************************************')
+                print(f'[INFO] Deleting files: Started')
+            pinfo.MODE = 'REFORMAT'
+            pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
+            if args.verbose:
+                print(f'[INFO] Deleting files: Completed')
 
         if pinfo.dinfo['frequency'] == 'm':
             reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)
