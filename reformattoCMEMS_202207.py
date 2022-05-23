@@ -69,10 +69,12 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date):
         if out:
             print('***************************************************',out)
         if err:
-            if err.decode("utf-8").find('ncks: unrecognized option')>0:
-                pass
-            else:
-                print(f'[CMD ERROR]{err}')
+            errstr = err.decode('utf-0')
+            print(errstr)
+            # if err.decode("utf-8").find('ncks: unrecognized option')>0:
+            #     pass
+            # else:
+            #     print(f'[CMD ERROR]{err}')
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date):
     year_ini = start_date.year
