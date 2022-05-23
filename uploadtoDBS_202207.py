@@ -130,6 +130,8 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
     deliveries = Deliveries()
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
+    if verbose:
+        print(f'[INFO] Remote path: {rpath} {sdir}')
 
     # print(path_orig)
     # print(rpath)
@@ -139,10 +141,12 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
     ndelivered = 0
     for day in range(start_day, end_day + 1):
         date_here = dt(year, month, day)
+        if args.verbose:
+            print('-------------------------')
+            print(f'[INFO] Date: {date_here}')
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
         CHECK = pinfo.check_file(pfile)
         if verbose:
-            print(f'[INFO] Date: {date_here}')
             print(f'[INFO] Checking origin (local) file: {pfile} --> {CHECK}')
         if not CHECK:
             print(f'[ERROR] Error with the file: {pfile}')
@@ -172,6 +176,8 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             ndelivered = ndelivered + 1
 
     if ndelivered > 0:
+        if args.verbose:
+            print(f'[INFO] Number of files to be delivered: {ndelivered}')
         dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
         ftpdu.go_dnt(pinfo.product_name)
         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
@@ -180,6 +186,9 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
                 print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
         else:
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
+    else:
+        if args.verbose:
+            print(f'[INFO] No files to be delivered')
 
     ftpdu.close()
 
@@ -330,7 +339,6 @@ class FTPUpload():
         dateref = dt(year, month, 1)
         yearstr = dateref.strftime('%Y')  # dt.strptime(str(year), '%Y')
         monthstr = dateref.strftime('%m')  # dt.strptime(month, '%m')
-        print(rpath)
         self.ftpdu.cwd(rpath)
 
         if not (yearstr in self.ftpdu.nlst()):
