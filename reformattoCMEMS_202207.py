@@ -70,7 +70,8 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date):
             print('***************************************************',out)
         if err:
             errstr = err.decode('utf-8')
-            print(errstr)
+            ifind = errstr.find('ncks: unrecognized option')
+            print(errstr, ifind)
             # if err.decode("utf-8").find('ncks: unrecognized option')>0:
             #     pass
             # else:
