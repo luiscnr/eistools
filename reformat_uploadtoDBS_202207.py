@@ -38,7 +38,13 @@ def main():
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
             pinfo.MODE = 'REFORMAT'
+            if args.verbose:
+                print('***********************************************************')
+                print(f'[INFO] Deleting previous files...')
             pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
+            if args.verbose:
+                print('***********************************************************')
+                print(f'[INFO] Reformatting files...')
             reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
             # file_list = pinfo.get_list_file_path_orig(start_date,end_date)
             # for f in file_list:

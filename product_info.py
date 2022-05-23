@@ -140,7 +140,8 @@ class ProductInfo:
                     file = self.get_file_path_orig(path_ref, datehere)
                     if not file is None and os.path.exists(file):
                         if verbose:
-                            print(f'[INFO] Removing file: {file}')
+                            print('----------------------------------------------------')
+                            print(f'[INFO] Removing file {file} for date: {datehere}')
                         os.remove(file)
 
     def get_file_path_orig_monthly(self, path, datehere):
