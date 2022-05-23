@@ -4,6 +4,7 @@ from product_info import ProductInfo
 import reformattoCMEMS_202207 as reformat
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
+parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
@@ -17,7 +18,8 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
-parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+
+
 args = parser.parse_args()
 
 def main():
