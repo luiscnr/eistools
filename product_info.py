@@ -88,6 +88,13 @@ class ProductInfo:
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
         self.set_dataset_info(product_name, dataset_name)
 
+    def get_tag_print(self):
+        if self.MODE == 'REFORMAT':
+            tagprint = '[WARNING]'
+        else:
+            tagprint = '[ERROR]'
+        return tagprint
+
     def get_path_orig(self, year):
         if len(self.dinfo) == 0:
             return None
@@ -98,14 +105,12 @@ class ProductInfo:
         if os.path.exists(path_orig):
             return path_orig
         else:
-            if self.MODE=='REFORMAT':
-                tagprint = '[WARNING]'
+            tagprint = self.get_tag_print()
             print(f'{tagprint} Expected year path {path_orig} does not exist')
             return None
 
     def get_file_path_orig(self, path, datehere):
-        if self.MODE == 'REFORMAT':
-            tagprint = '[WARNING]'
+        tagprint = self.get_tag_print()
         if path is None:
             path = self.get_path_orig(datehere.year)
         if path is None:
