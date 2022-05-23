@@ -64,18 +64,15 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date):
         cmd = pinfo.get_reformat_cmd(date_work)
         print(f'CMD: {cmd}')
         date_work = date_work + timedelta(hours=24)
-        prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
+        prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE,stdout=subprocess.STDOUT)
         out, err = prog.communicate()
         if out:
             print('***************************************************',out)
         if err:
-            errstr = err.decode('utf-8')
-            ifind = errstr.find('ncks: unrecognized option')
-            print(errstr, ifind)
-            # if err.decode("utf-8").find('ncks: unrecognized option')>0:
-            #     pass
-            # else:
-            #     print(f'[CMD ERROR]{err}')
+            if err.decode("utf-8").find('ncks: unrecognized option')>=0:
+                pass
+            else:
+                print(f'[CMD ERROR]{err}')
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date):
     year_ini = start_date.year
