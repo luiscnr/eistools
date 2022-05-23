@@ -102,7 +102,7 @@ class ProductInfo:
         if self.MODE == 'REFORMAT':
             tagprint = '[WARNING]'
         elif self.MODE == 'NONE':
-            tagpring = None
+            tagprint = None
         else:
             tagprint = '[ERROR]'
         return tagprint
