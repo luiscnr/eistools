@@ -98,6 +98,7 @@ def check_daily(pinfo, start_date, end_date, verbose):
                 print(f'[INFO] Deleting potential original files...')
             dateini_here = dt(y, m, day_ini)
             datefin_here = dt(y, m, day_fin)
+            pinfo.MODE = 'NONE'
             pinfo.delete_list_file_path_orig(dateini_here, datefin_here, False)
             ftpcheck = FTPCheck(args.mode)
             rpath = ftpcheck.go_month_subdir(pinfo, y, m)
