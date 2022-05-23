@@ -131,7 +131,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
     if verbose:
-        print(f'[INFO] Remote path: {rpath} {sdir}')
+        print(f'[INFO] Remote path: {rpath}/{sdir}')
 
     # print(path_orig)
     # print(rpath)

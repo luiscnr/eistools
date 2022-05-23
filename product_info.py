@@ -143,6 +143,8 @@ class ProductInfo:
             path_ref = self.get_path_orig(y)
             for m in range(start_date.month, end_date.month + 1):
                 for d in range(start_date.day, end_date.day + 1):
+                    if d>calendar.monthrange(y, m)[1]:
+                        continue
                     datehere = dt(y, m, d)
                     if verbose:
                         print('----------------------------------------------------')
