@@ -64,7 +64,7 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date):
         cmd = pinfo.get_reformat_cmd(date_work)
         print(f'CMD: {cmd}')
         date_work = date_work + timedelta(hours=24)
-        prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE,stdout=subprocess.STDOUT)
+        prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE,stdout=subprocess.PIPE)
         out, err = prog.communicate()
         if out:
             print('***************************************************',out)
