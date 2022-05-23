@@ -62,6 +62,8 @@ def main():
 def make_reformat_daily_dataset(pinfo, start_date, end_date,verbose):
     date_work = start_date
     while date_work <= end_date:
+        if verbose:
+            print(f'[INFO] Reformating file for date: {date_work}')
         cmd = pinfo.get_reformat_cmd(date_work)
         if cmd is None:
             date_work = date_work + timedelta(hours=24)

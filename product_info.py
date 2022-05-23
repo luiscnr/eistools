@@ -131,6 +131,18 @@ class ProductInfo:
                     filelist.append(file)
         return filelist
 
+    def delete_list_file_path_orig(self, start_date, end_date, verbose):
+        for y in range(start_date.year, end_date.year + 1):
+            path_ref = self.get_path_orig(y)
+            for m in range(start_date.month, end_date.month + 1):
+                for d in range(start_date.day, end_date.day + 1):
+                    datehere = dt(y, m, d)
+                    file = self.get_file_path_orig(path_ref, datehere)
+                    if not file is None and os.path.exists(file):
+                        if verbose:
+                            print(f'[INFO] Removing file: {file}')
+                        os.remove(file)
+
     def get_file_path_orig_monthly(self, path, datehere):
         if path is None:
             path = self.get_path_orig(datehere.year)
