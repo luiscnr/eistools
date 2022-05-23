@@ -5,6 +5,7 @@ from product_info import ProductInfo
 import subprocess
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
+parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
@@ -53,9 +54,9 @@ def main():
             if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
                 make = False
             if pinfo_here.dinfo['frequency'] == 'd' and make:
-                make_reformat_daily_dataset(pinfo_here, start_date, end_date)
+                make_reformat_daily_dataset(pinfo_here, start_date, end_date,args.verbose)
             if pinfo_here.dinfo['frequency'] == 'm' and make:
-                make_reformat_monthly_dataset(pinfo_here, start_date, end_date)
+                make_reformat_monthly_dataset(pinfo_here, start_date, end_date, args.verbose)
 
 
 def make_reformat_daily_dataset(pinfo, start_date, end_date,verbose):
