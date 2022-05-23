@@ -53,7 +53,6 @@ def main():
                   print('***********************************************************')
                   print(f'[INFO] Uploading files to DU: Started')
             upload.upload_daily_dataset_pinfo(pinfo, args.mode,start_date,end_date, args.verbose)
-            
 
 
         if pinfo.dinfo['frequency'] == 'm':
