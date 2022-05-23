@@ -137,11 +137,13 @@ class ProductInfo:
             for m in range(start_date.month, end_date.month + 1):
                 for d in range(start_date.day, end_date.day + 1):
                     datehere = dt(y, m, d)
+                    if verbose:
+                        print('----------------------------------------------------')
+                        print(f'[INFO] Checking date: {datehere}')
                     file = self.get_file_path_orig(path_ref, datehere)
                     if not file is None and os.path.exists(file):
                         if verbose:
-                            print('----------------------------------------------------')
-                            print(f'[INFO] Removing file {file} for date: {datehere}')
+                            print(f'[INFO] Removing file {file}')
                         os.remove(file)
 
     def get_file_path_orig_monthly(self, path, datehere):

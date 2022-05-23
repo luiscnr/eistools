@@ -40,15 +40,18 @@ def main():
             pinfo.MODE = 'REFORMAT'
             if args.verbose:
                 print('***********************************************************')
-                print(f'[INFO] Deleting previous files...')
+                print(f'[INFO] Deleting previous files: Started')
             pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
             if args.verbose:
+                print(f'[INFO] Deleting previous files: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Reformatting files...')
             reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
-            # file_list = pinfo.get_list_file_path_orig(start_date,end_date)
-            # for f in file_list:
-            #     print(f)
+            if args.verbose:
+                  print(f'[INFO] Reformating files: Completed')
+            
+
+
         if pinfo.dinfo['frequency'] == 'm':
             reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)
             file_list = pinfo.get_list_file_path_orig_monthly(start_date, end_date)
