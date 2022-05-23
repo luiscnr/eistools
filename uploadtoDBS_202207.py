@@ -74,13 +74,13 @@ def main():
     # ftpdu.close()
 
 
-def upload_daily_dataset(product, dataset, mode, start_date, end_date):
+def upload_daily_dataset(product, dataset, mode, start_date, end_date,verbose):
     pinfo = ProductInfo()
     pinfo.set_dataset_info(product, dataset)
-    upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date)
+    upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose)
 
 
-def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date):
+def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date,verbose):
     year_ini = start_date.year
     month_ini = start_date.month
     year_fin = end_date.year
@@ -93,7 +93,10 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date):
             day_fin = monthrange(year, month)[1]
             if year == year_fin and month == month_fin:
                 day_fin = end_date.day
-            upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin)
+            if verbose:
+                print('-------------------------------------------------------------------')
+                print(f'[INFO] Launching upload to DU for year: {year} and month: {month}')
+            upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin,verbose)
 
 
 def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
@@ -121,15 +124,15 @@ def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date):
 
 # important: pinfo is a ProductInfo object already containing the information of the product and dataset
 # mode: MY, NRT, DT
-def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
+def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verbose):
     ftpdu = FTPUpload(mode)
     deliveries = Deliveries()
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
 
-    print(path_orig)
-    print(rpath)
-    print(sdir)
+    # print(path_orig)
+    # print(rpath)
+    # print(sdir)
 
     ftpdu.go_month_subdir(rpath, year, month)
     ndelivered = 0
@@ -137,16 +140,17 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
         date_here = dt(year, month, day)
         pfile = pinfo.get_file_path_orig(path_orig, date_here)
         CHECK = pinfo.check_file(pfile)
-        print(f'[INFO] Checking file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
+        if args.verbose:
+            print(f'[INFO] Date: {date_here}')
+            print(f'[INFO] Checking origin (local) file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
         if not CHECK:
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name(date_here)
-        print(remote_file_name)
         status = ''
         count = 0
-        print(pfile)
-        print(remote_file_name)
+        if args.verbose:
+            print(f'[INFO] Remote_file_name: {remote_file_name}')
 
         while status != 'Delivered' and count < 10:
             status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(remote_file_name, pfile)
@@ -171,9 +175,10 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day):
         ftpdu.go_dnt(pinfo.product_name)
         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
         if status == 'Delivered':
-            print(f'DNT file {dnt_file_name} transfer to DU succeeded')
+            if args.verbose:
+                print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
         else:
-            print(f'DNT file {dnt_file_name} transfer to DU failed')
+            print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
 
     ftpdu.close()
 

@@ -2,6 +2,7 @@ import argparse
 from datetime import datetime as dt
 from product_info import ProductInfo
 import reformattoCMEMS_202207 as reformat
+import uploadtoDBS_202207 as upload
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -45,10 +46,13 @@ def main():
             if args.verbose:
                 print(f'[INFO] Deleting previous files: Completed')
                 print('***********************************************************')
-                print(f'[INFO] Reformatting files...')
+                print(f'[INFO] Reformatting files: Started')
             reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
             if args.verbose:
                   print(f'[INFO] Reformating files: Completed')
+                  print('***********************************************************')
+                  print(f'[INFO] Uploading files to DU: Started')
+            upload.upload_daily_dataset_pinfo(pinfo, args.mode,start_date,end_date, args.verbose)
             
 
 
