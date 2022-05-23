@@ -17,6 +17,7 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
+parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 args = parser.parse_args()
 
 def main():
@@ -34,12 +35,13 @@ def main():
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
-            reformat.make_reformat_daily_dataset(pinfo, start_date, end_date)
+            pinfo.MODE = 'REFORMAT'
+            reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
             file_list = pinfo.get_list_file_path_orig(start_date,end_date)
             for f in file_list:
                 print(f)
         if pinfo.dinfo['frequency'] == 'm':
-            reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date)
+            reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)
             file_list = pinfo.get_list_file_path_orig_monthly(start_date, end_date)
 
 # Press the green button in the gutter to run the script.

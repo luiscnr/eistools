@@ -30,6 +30,8 @@ class ProductInfo:
         self.start_my_dictionary()
         # self.start_nrt_dictionary()
 
+        self.MODE = 'UPLOAD' # UPLOAD O REFORMAT
+
     def get_dataset_name(self, mode, basin, level, dtype, sensor):
         res = '1km'
         if sensor.lower() == 'olci':
@@ -72,7 +74,7 @@ class ProductInfo:
         self.product_name = product_name
         self.dataset_name = dataset_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
-        print(fproduct)
+        #print(fproduct)
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             pinfo = json.load(f)
@@ -96,7 +98,9 @@ class ProductInfo:
         if os.path.exists(path_orig):
             return path_orig
         else:
-            print(f'[ERROR] Expected year path {path_orig} does not exist')
+            if self.MODE=='REFORMAT':
+                tagprint = '[WARNING]'
+            print(f'{tagprint} Expected year path {path_orig} does not exist')
             return None
 
     def get_file_path_orig(self, path, datehere):
@@ -240,11 +244,16 @@ class ProductInfo:
 
         if f == 'D' or f == 'INTERP':
             path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
-            print(f' PATH: ',path,os.path.exists(path),'----------------------------------------------------------------')
+            if not os.path.exists(path):
+                print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
+                return None
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
 
         if f == 'M':
             path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
+            if not os.path.exists(path):
+                print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
+                return None
             d = datehere.strftime('%Y-%m')
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path} -d {d}'
 
