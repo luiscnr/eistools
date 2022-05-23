@@ -208,6 +208,8 @@ class ProductInfo:
         return tagged_dataset
 
     def check_file(self, file):
+        if file is None:
+            return False
         if not os.path.exists(file):
             return False
         try:

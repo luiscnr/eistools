@@ -143,7 +143,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
         CHECK = pinfo.check_file(pfile)
         if verbose:
             print(f'[INFO] Date: {date_here}')
-            print(f'[INFO] Checking origin (local) file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
+            print(f'[INFO] Checking origin (local) file: {pfile} --> {CHECK}')
         if not CHECK:
             print(f'[ERROR] Error with the file: {pfile}')
             continue
@@ -417,7 +417,6 @@ class Deliveries():
             self.add_product(product, start_upload_TS)
         dataset_se = self.get_dataset_subelement(product, dataset)
         if dataset_se is None:
-            print('AQUI ADD EL DATASET: ', dataset)
             dataset_se = ET.SubElement(self.deliveries[product], "dataset", DatasetName=dataset)
         return dataset_se
 
@@ -426,7 +425,6 @@ class Deliveries():
         dataset_se = self.get_dataset_subelement(product, dataset)
         datafile_se = None
         if dataset_se is None:
-            print('ME LLEGA AQUI, ADD THE DATASET')
             dataset_se = self.add_dataset(product, dataset, start_upload_TS)
         else:
             datafile_se = self.get_datafile_subelement(product, dataset, remote_file_name)
