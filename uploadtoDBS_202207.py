@@ -45,7 +45,7 @@ def main():
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
-            upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+            upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date,args.verbose)
             if args.delete_orig:
                 pinfo.MODE = 'REFORMAT'
                 pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
@@ -66,7 +66,12 @@ def main():
             if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
                 make = False
             if pinfo_here.dinfo['frequency'] == 'd' and make:
-                upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+                upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date,args.verbose)
+                if args.delete_orig:
+                    pinfo.MODE = 'REFORMAT'
+                    pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+                    if args.verbose:
+                        print(f'[INFO] Deleting files: Completed')
             if pinfo_here.dinfo['frequency'] == 'm' and make:
                 upload_monthly_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
             if pinfo_here.dinfo['frequency'] == 'c' and make:
