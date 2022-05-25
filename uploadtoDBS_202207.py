@@ -24,6 +24,7 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
+parser.add_argument("-del", "--delete_orig", help="Delete original files after uploading them",action="store_true")
 args = parser.parse_args()
 
 
@@ -45,6 +46,11 @@ def main():
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
             upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+            if args.delete_orig:
+                pinfo.MODE = 'REFORMAT'
+                pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+                if args.verbose:
+                    print(f'[INFO] Deleting files: Completed')
         if pinfo.dinfo['frequency'] == 'm':
             upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date)
         if pinfo.dinfo['frequency'] == 'c':

@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from product_info import ProductInfo
 import reformattoCMEMS_202207 as reformat
 import uploadtoDBS_202207 as upload
+import check_202207 as checkf
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -62,6 +63,8 @@ def main():
             pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
             if args.verbose:
                 print(f'[INFO] Deleting files: Completed')
+
+
 
         if pinfo.dinfo['frequency'] == 'm':
             reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)

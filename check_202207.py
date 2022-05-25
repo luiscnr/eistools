@@ -51,11 +51,6 @@ def check_daily(pinfo, start_date, end_date, verbose):
     if verbose:
         print('[INFO] Starting checking...')
 
-    # if start_date.year == end_date.year:
-    #     nmonths = (end_date.month - start_date.month) + 1
-    # else:
-    #     nmonths = ((12 - start_date.month) + 1) + end_date.month + (12 * ((end_date.year - start_date.year) - 1))
-
     fsummary, finvalid = pinfo.get_dataset_summary()
 
     values = {}
@@ -71,18 +66,16 @@ def check_daily(pinfo, start_date, end_date, verbose):
         fp = open(finvalid, 'r')
         for line in fp:
             fname = line.strip().split('/')[-1]
-            date = dt.strptime(fname[0:8],'%Y%m%d')
+            date = dt.strptime(fname[0:8], '%Y%m%d')
             if sdate_nan is None and edate_nan is None:
                 sdate_nan = date
                 edate_nan = date
             else:
-                if date<sdate_nan:
+                if date < sdate_nan:
                     sdate_nan = date
-                if date>edate_nan:
+                if date > edate_nan:
                     edate_nan = date
         fp.close()
-
-
 
     for y in range(start_date.year, end_date.year + 1):
         for m in range(start_date.month, end_date.month + 1):
@@ -159,7 +152,6 @@ def check_daily(pinfo, start_date, end_date, verbose):
         for line in listnan:
             fp.write(line)
             fp.write('\n')
-
 
     print(f'[INFO] Completed')
 
