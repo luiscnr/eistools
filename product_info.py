@@ -183,12 +183,13 @@ class ProductInfo:
                 for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
                     file = self.get_file_path_orig(path_ref, datehere)
-                    df.loc[m,'N'] = df.loc[m,'N']+1
-                    tbytes = os.path.getsize(file)
-                    tkb =  tbytes/1024
-                    tmb = tkb/1024
-                    tgb = tmb/1024
-                    df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
+                    if not file is None and os.path.exists(file):
+                        df.loc[m,'N'] = df.loc[m,'N']+1
+                        tbytes = os.path.getsize(file)
+                        tkb =  tbytes/1024
+                        tmb = tkb/1024
+                        tgb = tmb/1024
+                        df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
         return df
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
