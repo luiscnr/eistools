@@ -204,7 +204,7 @@ class ProductInfo:
                 for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
                     if verbose:
-                        print('----------------------------------------------------')
+                        print('----------------------------------------------------------------------------------')
                         print(f'[INFO] Checking date: {datehere}')
                     file = self.get_file_path_orig(path_ref, datehere)
                     if not file is None and os.path.exists(file):
