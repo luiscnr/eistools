@@ -19,6 +19,8 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
+parser.add_argument("-csize", "---size_file", help="Output file with size information. Files are deleted ")
+
 args = parser.parse_args()
 
 
@@ -39,6 +41,17 @@ def main():
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
             make_reformat_daily_dataset(pinfo, start_date, end_date)
+            if args.size_file:
+                file_size = args.size_file
+                if args.verbose:
+                    print(f'[INFO] Checking size...')
+                df = pinfo.check_size_file_orig(start_date,end_date,args.verbose)
+                df.to_csv(file_size,sep=';')
+                if args.verbose:
+                    print(f'[INFO] Deleting...')
+                pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
+
+
         if pinfo.dinfo['frequency'] == 'm':
             make_reformat_monthly_dataset(pinfo, start_date, end_date)
 
@@ -55,6 +68,8 @@ def main():
                 make = False
             if pinfo_here.dinfo['frequency'] == 'd' and make:
                 make_reformat_daily_dataset(pinfo_here, start_date, end_date,args.verbose)
+
+
             if pinfo_here.dinfo['frequency'] == 'm' and make:
                 make_reformat_monthly_dataset(pinfo_here, start_date, end_date, args.verbose)
 

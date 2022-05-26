@@ -3,6 +3,8 @@ import datetime
 import os
 import json
 from datetime import datetime as dt
+
+import pandas as pd
 from netCDF4 import Dataset
 
 
@@ -159,6 +161,35 @@ class ProductInfo:
                     file = self.get_file_path_orig(path_ref, datehere)
                     filelist.append(file)
         return filelist
+
+    def check_size_file_orig(self, start_date, end_date,verbose):
+        df = pd.DataFrame(columns=['N','Size'],index=list(range(1,13)))
+        for m in list(range(1,13)):
+            df.loc[m, 'N'] = 0
+            df.loc[m, 'Size'] = 0
+
+        for y in range(start_date.year, end_date.year + 1):
+            path_ref = self.get_path_orig(y)
+            for m in range(start_date.month, end_date.month + 1):
+                if verbose:
+                    print(f'[INFO] Checking size for year: {y} Month: {m}')
+                day_ini = 1
+                day_fin = calendar.monthrange(y, m)[1]
+                if m==start_date.month:
+                    day_ini = start_date.day
+                if m==end_date.month:
+                    day_fin = end_date.day
+
+                for d in range(day_ini, day_fin + 1):
+                    datehere = dt(y, m, d)
+                    file = self.get_file_path_orig(path_ref, datehere)
+                    df.loc[m,'N'] = df.loc[m,'N']+1
+                    tbytes = os.path.getsize(file)
+                    tkb =  tbytes/1024
+                    tmb = tkb/1024
+                    tgb = tmb/1024
+                    df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
+        return df
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
         for y in range(start_date.year, end_date.year + 1):
