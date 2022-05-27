@@ -217,7 +217,7 @@ class ProductInfo:
 
                 for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
-                    print(datehere, opt)
+
                     if opt is None:
                         file = self.get_file_path_orig(path_ref, datehere)
                         if not file is None and os.path.exists(file):
@@ -227,12 +227,11 @@ class ProductInfo:
                             tmb = tkb/1024
                             tgb = tmb/1024
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
-                        elif opt=='olci_rrs':
-                            print('me llega aqui..')
-                            tgb = self.get_size_file_path_orig_olcirrs(path_ref,datehere)
-                            if tgb>0:
-                                df.loc[m, 'N'] = df.loc[m, 'N'] + 1
-                                df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
+                    elif opt=='olci_rrs':
+                        tgb = self.get_size_file_path_orig_olcirrs(path_ref,datehere)
+                        if tgb>0:
+                            df.loc[m, 'N'] = df.loc[m, 'N'] + 1
+                            df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
 
 
         return df
