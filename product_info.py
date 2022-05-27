@@ -240,7 +240,7 @@ class ProductInfo:
                         if opt=='olci_rrs':
                             tgb = self.get_size_file_path_orig_olci(path_ref,datehere,'rrs')
                         elif opt=='olci_plankton':
-                            tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'plackton')
+                            tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'plankton')
                         elif opt=='olci_transp':
                             tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'transp')
                         if tgb>0:
