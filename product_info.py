@@ -156,7 +156,7 @@ class ProductInfo:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
             return None
 
-        rrslist = ['400','412_5','442_5','490','510','560','620','665','673_75','681_21','708_75']
+        rrslist = ['400','412_5','442_5','490','510','560','620','665','673_75','681_25','708_75']
         datestr = datehere.strftime('%Y%j')
         area = self.dinfo['region'].lower()
         if area=='blk':
@@ -166,9 +166,10 @@ class ProductInfo:
         for rrs in rrslist:
             fname = f'O{datestr}-rrs{rrs}-{area}-fr.nc'
             fpath = os.path.join(path_jday,fname)
-
+            #print(fpath,'->',os.path.exists(fpath))
             if os.path.exists(fpath):
                 tam = tam + os.path.getsize(fpath)
+                #print(tam)
             else:
                 tam = -1
                 break
@@ -176,6 +177,7 @@ class ProductInfo:
             tamkb = tam/1024
             tammb = tamkb/1024
             tamgb = tammb(1024)
+            print('final: ',tamgb)
 
         return tamgb
 
