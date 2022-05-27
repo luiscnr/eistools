@@ -176,7 +176,7 @@ class ProductInfo:
         if tam>0:
             tamkb = tam/1024
             tammb = tamkb/1024
-            tamgb = tammb(1024)
+            tamgb = tammb/1024
             print('final: ',tamgb)
 
         return tamgb
