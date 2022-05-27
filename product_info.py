@@ -145,10 +145,11 @@ class ProductInfo:
         return file_path
 
     def get_size_file_path_orig_olci_monthly(self, path, datehere, dtype):
+        tamgb = -1
         if path is None:
             path = self.get_path_orig(datehere.year)
         if path is None:
-            return None
+            return tamgb
         y = datehere.year
         m = datehere.month
         day_ini = 1
@@ -170,7 +171,7 @@ class ProductInfo:
         if area == 'blk':
             area = 'bs'
         tam = 0
-        tamgb = -1
+
         for var in varlist:
             fname = f'O{datestr}-{var}_monthly-{area}-fr.nc'
             fpath = os.path.join(path, fname)
@@ -189,15 +190,16 @@ class ProductInfo:
 
     def get_size_file_path_orig_olci(self, path, datehere, dtype):
         tagprint = self.get_tag_print()
+        tamgb = -1
         if path is None:
             path = self.get_path_orig(datehere.year)
         if path is None:
-            return None
+            return tamgb
         path_jday = os.path.join(path, datehere.strftime('%j'))
         if not os.path.exists(path_jday):
             if tagprint is not None:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
-            return None
+            return tamgb
 
         if dtype == 'rrs':
             varlist = ['rrs400', 'rrs412_5', 'rrs442_5', 'rrs490', 'rrs510', 'rrs560', 'rrs620', 'rrs665', 'rrs673_75',
@@ -211,7 +213,7 @@ class ProductInfo:
         if area == 'blk':
             area = 'bs'
         tam = 0
-        tamgb = -1
+
         for var in varlist:
             fname = f'O{datestr}-{var}-{area}-fr.nc'
             fpath = os.path.join(path_jday, fname)
