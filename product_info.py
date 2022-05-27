@@ -144,7 +144,7 @@ class ProductInfo:
             return None
         return file_path
 
-    def get_size_file_path_orig_olcirrs(self,path,datehere):
+    def get_size_file_path_orig_olci(self,path,datehere,dtype):
         tagprint = self.get_tag_print()
         if path is None:
             path = self.get_path_orig(datehere.year)
@@ -156,15 +156,20 @@ class ProductInfo:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
             return None
 
-        rrslist = ['400','412_5','442_5','490','510','560','620','665','673_75','681_25','708_75']
+        if dtype=='rrs':
+            varlist = ['rrs400','rrs412_5','rrs442_5','rrs490','rrs510','rrs560','rrs620','rrs665','rrs673_75','rrs681_25','rrs708_75']
+        if dtype=='plankton':
+            varlist = ['chl']
+        if dtype=='transp':
+            varlist = ['kd490']
         datestr = datehere.strftime('%Y%j')
         area = self.dinfo['region'].lower()
         if area=='blk':
             area = 'bs'
         tam = 0
         tamgb = -1
-        for rrs in rrslist:
-            fname = f'O{datestr}-rrs{rrs}-{area}-fr.nc'
+        for var in varlist:
+            fname = f'O{datestr}-{var}-{area}-fr.nc'
             fpath = os.path.join(path_jday,fname)
             #print(fpath,'->',os.path.exists(fpath))
             if os.path.exists(fpath):
@@ -180,6 +185,8 @@ class ProductInfo:
             print('final: ',tamgb)
 
         return tamgb
+
+
 
     def get_list_file_path_orig(self, start_date, end_date):
         filelist = []
@@ -229,8 +236,13 @@ class ProductInfo:
                             tmb = tkb/1024
                             tgb = tmb/1024
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
-                    elif opt=='olci_rrs':
-                        tgb = self.get_size_file_path_orig_olcirrs(path_ref,datehere)
+                    else:
+                        if opt=='olci_rrs':
+                            tgb = self.get_size_file_path_orig_olci(path_ref,datehere,'rrs')
+                        elif opt=='olci_plankton':
+                            tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'plackton')
+                        elif opt=='olci_transp':
+                            tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'transp')
                         if tgb>0:
                             df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb

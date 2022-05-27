@@ -20,7 +20,7 @@ parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
 parser.add_argument("-csize", "--size_file", help="Output file with size information. Files are deleted ")
-parser.add_argument("-csizeopt","--size_opt", help="Options to check file size without reformat", choices=['olci_rrs'])
+parser.add_argument("-csizeopt","--size_opt", help="Options to check file size without reformat", choices=['olci_rrs','olci_plankton','olci_transp'])
 
 args = parser.parse_args()
 
