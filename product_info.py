@@ -269,9 +269,9 @@ class ProductInfo:
                     print(f'[INFO] Checking size for year: {y} Month: {m}')
                 day_ini = 1
                 day_fin = calendar.monthrange(y, m)[1]
-                if m == start_date.month:
+                if m == start_date.month and y == start_date.year:
                     day_ini = start_date.day
-                if m == end_date.month:
+                if m == end_date.month and y == end_date.year:
                     day_fin = end_date.day
 
                 for d in range(day_ini, day_fin + 1):
