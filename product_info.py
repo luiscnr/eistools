@@ -32,15 +32,15 @@ class ProductInfo:
         self.start_my_dictionary()
         # self.start_nrt_dictionary()
 
-        self.MODE = 'UPLOAD' # UPLOAD O REFORMAT
+        self.MODE = 'UPLOAD'  # UPLOAD O REFORMAT
 
     def get_dataset_summary(self):
         if self.dataset_name is not None:
-            path_summary = os.path.join(self.path2info,'SUMMARY')
+            path_summary = os.path.join(self.path2info, 'SUMMARY')
             if not os.path.exists(path_summary):
                 os.mkdir(path_summary)
-            fsummary = os.path.join(path_summary,self.dataset_name+'_summary.json')
-            finvalid = os.path.join(path_summary,self.dataset_name+'_invalid.csv')
+            fsummary = os.path.join(path_summary, self.dataset_name + '_summary.json')
+            finvalid = os.path.join(path_summary, self.dataset_name + '_invalid.csv')
             return fsummary, finvalid
         return None
 
@@ -86,7 +86,7 @@ class ProductInfo:
         self.product_name = product_name
         self.dataset_name = dataset_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
-        #print(fproduct)
+        # print(fproduct)
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             pinfo = json.load(f)
@@ -144,7 +144,7 @@ class ProductInfo:
             return None
         return file_path
 
-    def get_size_file_path_orig_olci_monthly(self,path,datehere,dtype):
+    def get_size_file_path_orig_olci_monthly(self, path, datehere, dtype):
         if path is None:
             path = self.get_path_orig(datehere.year)
         if path is None:
@@ -159,11 +159,12 @@ class ProductInfo:
         dini = date_here_ini.strftime('%j')
         dfin = date_here_fin.strftime('%j')
         datestr = f'{ystr}{dini}{dfin}'
-        if dtype=='rrs':
-            varlist = ['rrs400','rrs412_5','rrs442_5','rrs490','rrs510','rrs560','rrs620','rrs665','rrs673_75','rrs681_25','rrs708_75']
-        if dtype=='plankton':
+        if dtype == 'rrs':
+            varlist = ['rrs400', 'rrs412_5', 'rrs442_5', 'rrs490', 'rrs510', 'rrs560', 'rrs620', 'rrs665', 'rrs673_75',
+                       'rrs681_25', 'rrs708_75']
+        if dtype == 'plankton':
             varlist = ['chl']
-        if dtype=='transp':
+        if dtype == 'transp':
             varlist = ['kd490']
         area = self.dinfo['region'].lower()
         if area == 'blk':
@@ -186,8 +187,7 @@ class ProductInfo:
 
         return tamgb
 
-
-    def get_size_file_path_orig_olci(self,path,datehere,dtype):
+    def get_size_file_path_orig_olci(self, path, datehere, dtype):
         tagprint = self.get_tag_print()
         if path is None:
             path = self.get_path_orig(datehere.year)
@@ -199,37 +199,36 @@ class ProductInfo:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
             return None
 
-        if dtype=='rrs':
-            varlist = ['rrs400','rrs412_5','rrs442_5','rrs490','rrs510','rrs560','rrs620','rrs665','rrs673_75','rrs681_25','rrs708_75']
-        if dtype=='plankton':
+        if dtype == 'rrs':
+            varlist = ['rrs400', 'rrs412_5', 'rrs442_5', 'rrs490', 'rrs510', 'rrs560', 'rrs620', 'rrs665', 'rrs673_75',
+                       'rrs681_25', 'rrs708_75']
+        if dtype == 'plankton':
             varlist = ['chl']
-        if dtype=='transp':
+        if dtype == 'transp':
             varlist = ['kd490']
         datestr = datehere.strftime('%Y%j')
         area = self.dinfo['region'].lower()
-        if area=='blk':
+        if area == 'blk':
             area = 'bs'
         tam = 0
         tamgb = -1
         for var in varlist:
             fname = f'O{datestr}-{var}-{area}-fr.nc'
-            fpath = os.path.join(path_jday,fname)
-            #print(fpath,'->',os.path.exists(fpath))
+            fpath = os.path.join(path_jday, fname)
+            # print(fpath,'->',os.path.exists(fpath))
             if os.path.exists(fpath):
                 tam = tam + os.path.getsize(fpath)
-                #print(tam)
+                # print(tam)
             else:
                 tam = -1
                 break
-        if tam>0:
-            tamkb = tam/1024
-            tammb = tamkb/1024
-            tamgb = tammb/1024
-            print('final: ',tamgb)
+        if tam > 0:
+            tamkb = tam / 1024
+            tammb = tamkb / 1024
+            tamgb = tammb / 1024
+            print('final: ', tamgb)
 
         return tamgb
-
-
 
     def get_list_file_path_orig(self, start_date, end_date):
         filelist = []
@@ -238,9 +237,9 @@ class ProductInfo:
             for m in range(start_date.month, end_date.month + 1):
                 day_ini = 1
                 day_fin = calendar.monthrange(y, m)[1]
-                if m==start_date.month:
+                if m == start_date.month:
                     day_ini = start_date.day
-                if m==end_date.month:
+                if m == end_date.month:
                     day_fin = end_date.day
 
                 for d in range(day_ini, day_fin + 1):
@@ -250,8 +249,8 @@ class ProductInfo:
         return filelist
 
     def check_size_file_orig(self, start_date, end_date, opt, verbose):
-        df = pd.DataFrame(columns=['N','Size'],index=list(range(1,13)))
-        for m in list(range(1,13)):
+        df = pd.DataFrame(columns=['N', 'Size'], index=list(range(1, 13)))
+        for m in list(range(1, 13)):
             df.loc[m, 'N'] = 0
             df.loc[m, 'Size'] = 0
 
@@ -262,9 +261,9 @@ class ProductInfo:
                     print(f'[INFO] Checking size for year: {y} Month: {m}')
                 day_ini = 1
                 day_fin = calendar.monthrange(y, m)[1]
-                if m==start_date.month:
+                if m == start_date.month:
                     day_ini = start_date.day
-                if m==end_date.month:
+                if m == end_date.month:
                     day_fin = end_date.day
 
                 for d in range(day_ini, day_fin + 1):
@@ -273,25 +272,25 @@ class ProductInfo:
                     if opt is None:
                         file = self.get_file_path_orig(path_ref, datehere)
                         if not file is None and os.path.exists(file):
-                            df.loc[m,'N'] = df.loc[m,'N']+1
+                            df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                             tbytes = os.path.getsize(file)
-                            tkb =  tbytes/1024
-                            tmb = tkb/1024
-                            tgb = tmb/1024
+                            tkb = tbytes / 1024
+                            tmb = tkb / 1024
+                            tgb = tmb / 1024
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
                     else:
-                        if opt=='olci_rrs':
-                            tgb = self.get_size_file_path_orig_olci(path_ref,datehere,'rrs')
-                        elif opt=='olci_plankton':
+                        if opt == 'olci_rrs':
+                            tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'rrs')
+                        elif opt == 'olci_plankton':
                             tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'plankton')
-                        elif opt=='olci_transp':
+                        elif opt == 'olci_transp':
                             tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'transp')
-                        if tgb>0:
+                        if tgb > 0:
                             df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
         return df
 
-    def check_size_file_orig_monthly(self,start_date, end_date, opt, verbose):
+    def check_size_file_orig_monthly(self, start_date, end_date, opt, verbose):
         df = pd.DataFrame(columns=['N', 'Size'], index=list(range(1, 13)))
         for m in list(range(1, 13)):
             df.loc[m, 'N'] = 0
@@ -299,7 +298,13 @@ class ProductInfo:
 
         for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
-            for m in range(start_date.month, end_date.month + 1):
+            mini = 1
+            mfin = 12
+            if y == start_date.year:
+                mini = start_date.month
+            if y == end_date.month:
+                mfin = end_date.month
+            for m in range(mini, mfin + 1):
                 if verbose:
                     print(f'[INFO] Checking size for year: {y} Month: {m}')
                 datehere = dt(y, m, 15)
@@ -313,7 +318,7 @@ class ProductInfo:
                     df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                     df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
         return df
-    
+
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
         for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
@@ -352,13 +357,13 @@ class ProductInfo:
             return None
         return file_path
 
-    def get_list_file_path_orig_monthly(self,start_date,end_date):
+    def get_list_file_path_orig_monthly(self, start_date, end_date):
         filelist = []
-        for y in range(start_date.year,end_date.year+1):
+        for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
-            for m in range(start_date.month,end_date.month+1):
-                datehere = dt(y,m,15)
-                file = self.get_file_path_orig_monthly(path_ref,datehere)
+            for m in range(start_date.month, end_date.month + 1):
+                datehere = dt(y, m, 15)
+                file = self.get_file_path_orig_monthly(path_ref, datehere)
                 filelist.append(file)
         return filelist
 
