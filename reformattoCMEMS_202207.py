@@ -41,7 +41,8 @@ def main():
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
-            make_reformat_daily_dataset(pinfo, start_date, end_date,args.verbose)
+            if not args.size_opt:
+                make_reformat_daily_dataset(pinfo, start_date, end_date,args.verbose)
             if args.size_file:
                 file_size = args.size_file
                 opt = None
