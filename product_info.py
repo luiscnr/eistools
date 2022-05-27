@@ -256,7 +256,13 @@ class ProductInfo:
 
         for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
-            for m in range(start_date.month, end_date.month + 1):
+            mini = 1
+            mfin = 12
+            if y == start_date.year:
+                mini = start_date.month
+            if y == end_date.month:
+                mfin = end_date.month
+            for m in range(mini, mfin + 1):
                 if verbose:
                     print(f'[INFO] Checking size for year: {y} Month: {m}')
                 day_ini = 1
