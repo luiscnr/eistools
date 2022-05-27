@@ -177,7 +177,7 @@ class ProductInfo:
             if os.path.exists(fpath):
                 tam = tam + os.path.getsize(fpath)
             else:
-                tam = -1
+                tamgb = -1
                 break
         if tam > 0:
             tamkb = tam / 1024
@@ -220,7 +220,7 @@ class ProductInfo:
                 tam = tam + os.path.getsize(fpath)
                 # print(tam)
             else:
-                tam = -1
+                tamgb = -1
                 break
         if tam > 0:
             tamkb = tam / 1024
