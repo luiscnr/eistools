@@ -20,7 +20,7 @@ parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
 parser.add_argument("-csize", "--size_file", help="Output file with size information. Files are deleted ")
-parser.add_argument("-csizeopt","--size_opt", help="Options to check file size without reformat", choices=['olci_rrs','olci_plankton','olci_transp'])
+parser.add_argument("-csizeopt","--size_opt", help="Options to check file size without reformat", choices=['olci_rrs','olci_plankton','olci_transp','olci_m_rrs','olci_m_plankton','olci_m_transp'])
 
 args = parser.parse_args()
 
@@ -50,7 +50,10 @@ def main():
                     opt = args.size_opt
                 if args.verbose:
                     print(f'[INFO] Checking size...')
-                df = pinfo.check_size_file_orig(start_date,end_date,opt,args.verbose)
+                if opt is not None and opt.startswith('olci_m'):
+                    df = pinfo.check_size_file_orig_monthly(start_date,end_date,opt,args.verbose)
+                else:
+                    df = pinfo.check_size_file_orig(start_date,end_date,opt,args.verbose)
                 df.to_csv(file_size,sep=';')
                 if not args.size_opt:
                     if args.verbose:
