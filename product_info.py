@@ -155,6 +155,7 @@ class ProductInfo:
             if tagprint is not None:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
             return None
+        print('iniciamos aqui..')
         rrslist = ['400','412_5','442_5','490','510','560','620','665','673_75','681_21','708_75']
         datestr = datehere.strftime('%Y%j')
         area = self.dinfo['format_date_origin'].lower()
@@ -216,6 +217,7 @@ class ProductInfo:
 
                 for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
+                    print(datehere, opt)
                     if opt is None:
                         file = self.get_file_path_orig(path_ref, datehere)
                         if not file is None and os.path.exists(file):
@@ -226,6 +228,7 @@ class ProductInfo:
                             tgb = tmb/1024
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
                         elif opt=='olci_rrs':
+                            print('me llega aqui..')
                             tgb = self.get_size_file_path_orig_olcirrs(path_ref,datehere)
                             if tgb>0:
                                 df.loc[m, 'N'] = df.loc[m, 'N'] + 1
