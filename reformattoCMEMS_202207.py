@@ -52,9 +52,10 @@ def main():
                     print(f'[INFO] Checking size...')
                 df = pinfo.check_size_file_orig(start_date,end_date,opt,args.verbose)
                 df.to_csv(file_size,sep=';')
-                if args.verbose:
-                    print(f'[INFO] Deleting...')
-                pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
+                if not args.size_opt:
+                    if args.verbose:
+                        print(f'[INFO] Deleting...')
+                    pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
 
 
         if pinfo.dinfo['frequency'] == 'm':

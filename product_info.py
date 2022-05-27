@@ -165,6 +165,7 @@ class ProductInfo:
         for rrs in rrslist:
             fname = f'O{datestr}-rrs{rrs}-{area}-fr.nc'
             fpath = os.path.join(path_jday,fname)
+            print(fpath)
             if os.path.exists(fpath):
                 tam = tam + os.path.getsize(fpath)
             else:
