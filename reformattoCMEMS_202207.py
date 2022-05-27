@@ -19,7 +19,8 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
-parser.add_argument("-csize", "---size_file", help="Output file with size information. Files are deleted ")
+parser.add_argument("-csize", "--size_file", help="Output file with size information. Files are deleted ")
+parser.add_argument("-csizeopt","--size_opt", help="Options to check file size without reformat", choices=['olci_rrs'])
 
 args = parser.parse_args()
 
@@ -43,9 +44,12 @@ def main():
             make_reformat_daily_dataset(pinfo, start_date, end_date,args.verbose)
             if args.size_file:
                 file_size = args.size_file
+                opt = None
+                if args.size_opt:
+                    opt = args.size_opt
                 if args.verbose:
                     print(f'[INFO] Checking size...')
-                df = pinfo.check_size_file_orig(start_date,end_date,args.verbose)
+                df = pinfo.check_size_file_orig(start_date,end_date,opt,args.verbose)
                 df.to_csv(file_size,sep=';')
                 if args.verbose:
                     print(f'[INFO] Deleting...')

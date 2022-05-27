@@ -144,6 +144,39 @@ class ProductInfo:
             return None
         return file_path
 
+    def get_size_file_path_orig_olcirrs(self,path,datehere):
+        tagprint = self.get_tag_print()
+        if path is None:
+            path = self.get_path_orig(datehere.year)
+        if path is None:
+            return None
+        path_jday = os.path.join(path, datehere.strftime('%j'))
+        if not os.path.exists(path_jday):
+            if tagprint is not None:
+                print(f'{tagprint} Expected jday path {path_jday} does not exist')
+            return None
+        rrslist = ['400','412_5','442_5','490','510','560','620','665','673_75','681_21','708_75']
+        datestr = datehere.strftime('%Y%j')
+        area = self.dinfo['format_date_origin'].lower()
+        if area=='blk':
+            area = 'bs'
+        tam = 0
+        tamgb = -1
+        for rrs in rrslist:
+            fname = f'O{datestr}-rrs{rrs}-{area}-fr.nc'
+            fpath = os.path.join(path_jday,fname)
+            if os.path.exists(fpath):
+                tam = tam + os.path.getsize(fpath)
+            else:
+                tam = -1
+                break
+        if tam>0:
+            tamkb = tam/1024
+            tammb = tamkb/1024
+            tamgb = tammb(1024)
+
+        return tamgb
+
     def get_list_file_path_orig(self, start_date, end_date):
         filelist = []
         for y in range(start_date.year, end_date.year + 1):
@@ -162,7 +195,7 @@ class ProductInfo:
                     filelist.append(file)
         return filelist
 
-    def check_size_file_orig(self, start_date, end_date,verbose):
+    def check_size_file_orig(self, start_date, end_date, opt, verbose):
         df = pd.DataFrame(columns=['N','Size'],index=list(range(1,13)))
         for m in list(range(1,13)):
             df.loc[m, 'N'] = 0
@@ -182,14 +215,22 @@ class ProductInfo:
 
                 for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
-                    file = self.get_file_path_orig(path_ref, datehere)
-                    if not file is None and os.path.exists(file):
-                        df.loc[m,'N'] = df.loc[m,'N']+1
-                        tbytes = os.path.getsize(file)
-                        tkb =  tbytes/1024
-                        tmb = tkb/1024
-                        tgb = tmb/1024
-                        df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
+                    if opt is None:
+                        file = self.get_file_path_orig(path_ref, datehere)
+                        if not file is None and os.path.exists(file):
+                            df.loc[m,'N'] = df.loc[m,'N']+1
+                            tbytes = os.path.getsize(file)
+                            tkb =  tbytes/1024
+                            tmb = tkb/1024
+                            tgb = tmb/1024
+                            df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
+                        elif opt=='olci_rrs':
+                            tgb = self.get_size_file_path_orig_olcirrs(path_ref,datehere)
+                            if tgb>0:
+                                df.loc[m, 'N'] = df.loc[m, 'N'] + 1
+                                df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
+
+
         return df
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
