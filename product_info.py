@@ -312,7 +312,8 @@ class ProductInfo:
                 if tgb > 0:
                     df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                     df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
-
+        return df
+    
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
         for y in range(start_date.year, end_date.year + 1):
             path_ref = self.get_path_orig(y)
