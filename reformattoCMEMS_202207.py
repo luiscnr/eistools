@@ -118,13 +118,14 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
             if ierror >= 0:
                 print(f'[CMD ERROR] {outstr[ierror:]}')
         if err:
-            if err.decode("utf-8").find('ncks: unrecognized option') >= 0:
-                pass
-            else:
-                print(f'[CMD ERROR]{err}')
+            print(f'[CMD ERROR]{err}')
+            # if err.decode("utf-8").find('ncks: unrecognized option') >= 0:
+            #     pass
+            # else:
+            #     print(f'[CMD ERROR]{err}')
 
 
-def make_reformat_monthly_dataset(pinfo, start_date, end_date):
+def make_reformat_monthly_dataset(pinfo, start_date, end_date, verbose):
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -136,12 +137,21 @@ def make_reformat_monthly_dataset(pinfo, start_date, end_date):
             mfin = end_date.month
         for month in range(mini, mfin + 1):
             date_here = dt(year, month, 15)
+            if verbose:
+                print('----------------------------------------------------')
+                print(f'[INFO] Reformating file for year: {year} month: {month}')
             cmd = pinfo.get_reformat_cmd(date_here)
-            print(f'CMD: {cmd}')
+            if verbose:
+                print(f'[INFO] CMD: {cmd}')
             prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
             out, err = prog.communicate()
+            if out:
+                outstr = out.decode(("utf-8"))
+                ierror = outstr.find('ERROR')
+                if ierror >= 0:
+                    print(f'[CMD ERROR] {outstr[ierror:]}')
             if err:
-                print(f'[ERROR]{err}')
+                print(f'[CMD ERROR]{err}')
 
 
 # Press the green button in the gutter to run the script.
