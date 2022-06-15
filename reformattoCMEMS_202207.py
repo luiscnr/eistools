@@ -126,11 +126,15 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date):
     year_ini = start_date.year
-    month_ini = start_date.month
     year_fin = end_date.year
-    month_fin = end_date.month
     for year in range(year_ini, year_fin + 1):
-        for month in range(month_ini, month_fin + 1):
+        mini = 1
+        mfin = 12
+        if year == start_date.year:
+            mini = start_date.month
+        if year == end_date.month:
+            mfin = end_date.month
+        for month in range(mini, mfin + 1):
             date_here = dt(year, month, 15)
             cmd = pinfo.get_reformat_cmd(date_here)
             print(f'CMD: {cmd}')

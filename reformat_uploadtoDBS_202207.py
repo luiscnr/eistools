@@ -21,8 +21,8 @@ parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
 
-
 args = parser.parse_args()
+
 
 def main():
     pinfo = ProductInfo()
@@ -43,32 +43,56 @@ def main():
             if args.verbose:
                 print('***********************************************************')
                 print(f'[INFO] Deleting previous files: Started')
-            pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
+            pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Deleting previous files: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Reformatting files: Started')
             reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
             if args.verbose:
-                  print(f'[INFO] Reformating files: Completed')
-                  print('***********************************************************')
-                  print(f'[INFO] Uploading files to DU: Started')
+                print(f'[INFO] Reformating files: Completed')
+                print('***********************************************************')
+                print(f'[INFO] Uploading files to DU: Started')
             pinfo.MODE = 'UPLOAD'
-            upload.upload_daily_dataset_pinfo(pinfo, args.mode,start_date,end_date, args.verbose)
+            upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Deleting files: Started')
             pinfo.MODE = 'REFORMAT'
-            pinfo.delete_list_file_path_orig(start_date,end_date,args.verbose)
+            pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Deleting files: Completed')
 
-
-
         if pinfo.dinfo['frequency'] == 'm':
-            reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)
-            file_list = pinfo.get_list_file_path_orig_monthly(start_date, end_date)
+            pinfo.MODE = 'REFORMAT'
+            if args.verbose:
+                print('***********************************************************')
+                print(f'[INFO] Deleting previous files: Started')
+            pinfo.delete_list_file_path_orig_monthly(start_date, end_date, args.verbose)
+            if args.verbose:
+                print(f'[INFO] Deleting previous files: Completed')
+                print('***********************************************************')
+                print(f'[INFO] Reformatting files: Started')
+            reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date, args.verbose)
+            if args.verbose:
+                print(f'[INFO] Reformating files: Completed')
+                print('***********************************************************')
+                print(f'[INFO] Uploading files to DU: Started')
+            pinfo.MODE = 'UPLOAD'
+            upload.upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+            if args.verbose:
+                print(f'[INFO] Uploading files to DU: Completed')
+                print('***********************************************************')
+                print(f'[INFO] Deleting files: Started')
+            pinfo.MODE = 'REFORMAT'
+            pinfo.delete_list_file_path_orig_monthly(start_date, end_date, args.verbose)
+            if args.verbose:
+                print(f'[INFO] Deleting files: Completed')
+
+            # reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date, args.verbose)
+            # file_list = pinfo.get_list_file_path_orig_monthly(start_date, end_date)
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':

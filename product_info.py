@@ -329,8 +329,14 @@ class ProductInfo:
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
         for y in range(start_date.year, end_date.year + 1):
+            mini = 1
+            mfin = 12
+            if y == start_date.year:
+                mini = start_date.month
+            if y == end_date.month:
+                mfin = end_date.month
             path_ref = self.get_path_orig(y)
-            for m in range(start_date.month, end_date.month + 1):
+            for m in range(mini, mfin + 1):
                 day_ini = 1
                 day_fin = calendar.monthrange(y, m)[1]
                 if m == start_date.month:
@@ -347,6 +353,26 @@ class ProductInfo:
                         if verbose:
                             print(f'[INFO] Removing file {file}')
                         os.remove(file)
+
+    def delete_list_file_path_orig_monthly(self, start_date, end_date, verbose):
+        for y in range(start_date.year, end_date.year + 1):
+            path_ref = self.get_path_orig(y)
+            mini = 1
+            mfin = 12
+            if y == start_date.year:
+                mini = start_date.month
+            if y == end_date.month:
+                mfin = end_date.month
+            for m in range(mini, mfin + 1):
+                datehere = dt(y, m, 15)
+                if verbose:
+                    print('----------------------------------------------------------------------------------')
+                    print(f'[INFO] Checking date: {datehere}')
+                file = self.get_file_path_orig_monthly(path_ref, datehere)
+                if not file is None and os.path.exists(file):
+                    if verbose:
+                        print(f'[INFO] Removing file {file}')
+                    os.remove(file)
 
     def get_file_path_orig_monthly(self, path, datehere):
         if path is None:
