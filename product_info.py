@@ -92,6 +92,8 @@ class ProductInfo:
             pinfo = json.load(f)
             if dataset_name in pinfo.keys():
                 self.dinfo = pinfo[dataset_name]
+            else:
+                print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
             f.close()
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
@@ -262,7 +264,7 @@ class ProductInfo:
             mfin = 12
             if y == start_date.year:
                 mini = start_date.month
-            if y == end_date.month:
+            if y == end_date.year:
                 mfin = end_date.month
             for m in range(mini, mfin + 1):
                 if verbose:
@@ -310,7 +312,7 @@ class ProductInfo:
             mfin = 12
             if y == start_date.year:
                 mini = start_date.month
-            if y == end_date.month:
+            if y == end_date.year:
                 mfin = end_date.month
             for m in range(mini, mfin + 1):
                 if verbose:
@@ -333,9 +335,11 @@ class ProductInfo:
             mfin = 12
             if y == start_date.year:
                 mini = start_date.month
-            if y == end_date.month:
+            if y == end_date.year:
                 mfin = end_date.month
             path_ref = self.get_path_orig(y)
+
+
             for m in range(mini, mfin + 1):
                 day_ini = 1
                 day_fin = calendar.monthrange(y, m)[1]
@@ -361,7 +365,7 @@ class ProductInfo:
             mfin = 12
             if y == start_date.year:
                 mini = start_date.month
-            if y == end_date.month:
+            if y == end_date.year:
                 mfin = end_date.month
             for m in range(mini, mfin + 1):
                 datehere = dt(y, m, 15)
