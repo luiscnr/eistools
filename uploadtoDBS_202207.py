@@ -167,6 +167,9 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name(date_here)
+        if mode=='DT':
+            remote_file_name = remote_file_name.replace('nrt','dt')
+
         status = ''
         count = 0
         if args.verbose:
