@@ -24,7 +24,7 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
-parser.add_argument("-del", "--delete_orig", help="Delete original files after uploading them",action="store_true")
+parser.add_argument("-del", "--delete_orig", help="Delete original files after uploading them", action="store_true")
 args = parser.parse_args()
 
 
@@ -45,7 +45,7 @@ def main():
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         if pinfo.dinfo['frequency'] == 'd':
-            upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date,args.verbose)
+            upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
             if args.delete_orig:
                 pinfo.MODE = 'REFORMAT'
                 pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
@@ -61,12 +61,12 @@ def main():
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
         for dname in pinfo.pinfo:
             pinfo_here = ProductInfo()
-            pinfo_here.set_dataset_info(args.name_product,dname)
+            pinfo_here.set_dataset_info(args.name_product, dname)
             make = True
             if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
                 make = False
             if pinfo_here.dinfo['frequency'] == 'd' and make:
-                upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date,args.verbose)
+                upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date, args.verbose)
                 if args.delete_orig:
                     pinfo.MODE = 'REFORMAT'
                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
@@ -86,13 +86,13 @@ def main():
     # ftpdu.close()
 
 
-def upload_daily_dataset(product, dataset, mode, start_date, end_date,verbose):
+def upload_daily_dataset(product, dataset, mode, start_date, end_date, verbose):
     pinfo = ProductInfo()
     pinfo.set_dataset_info(product, dataset)
     upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose)
 
 
-def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date,verbose):
+def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
     year_ini = start_date.year
     month_ini = start_date.month
     year_fin = end_date.year
@@ -108,7 +108,7 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date,verbose):
             if verbose:
                 print('-------------------------------------------------------------------')
                 print(f'[INFO] Launching upload to DU for year: {year} and month: {month}')
-            upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin,verbose)
+            upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
 
 
 def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
@@ -167,9 +167,13 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name(date_here)
-        if mode=='DT':
-            remote_file_name = remote_file_name.replace('nrt','dt')
+        if mode == 'DT':
+            remote_file_name = remote_file_name.replace('nrt', 'dt')
 
+        if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
+            datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
+            if dt.now() >= datemyintref:
+                remote_file_name = remote_file_name.replace('my', 'myint')
 
         status = ''
         count = 0
@@ -184,7 +188,6 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             sdir_remote_file_name = os.path.join(sdir, remote_file_name)
             datafile_se = deliveries.add_datafile(pinfo.product_name, tagged_dataset, pfile, sdir_remote_file_name,
                                                   start_upload_TS, stop_upload_TS, status)
-
 
             if count > 0:
                 deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
@@ -355,13 +358,13 @@ class FTPUpload():
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
     def go_subdir(self, rpath):
-        #print('Changing directory to: ', rpath)
+        # print('Changing directory to: ', rpath)
         self.ftpdu.cwd(rpath)
 
     def go_year_subdir(self, rpath, year):
         dateref = dt(year, 1, 1)
         yearstr = dateref.strftime('%Y')
-        #print('Changing directory to: ', rpath)
+        # print('Changing directory to: ', rpath)
         self.ftpdu.cwd(rpath)
         if not (yearstr in self.ftpdu.nlst()):
             self.ftpdu.mkd(yearstr)
