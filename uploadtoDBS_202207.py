@@ -374,6 +374,7 @@ class FTPUpload():
         dateref = dt(year, month, 1)
         yearstr = dateref.strftime('%Y')  # dt.strptime(str(year), '%Y')
         monthstr = dateref.strftime('%m')  # dt.strptime(month, '%m')
+
         self.ftpdu.cwd(rpath)
 
         if not (yearstr in self.ftpdu.nlst()):
