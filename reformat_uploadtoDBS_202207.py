@@ -48,13 +48,28 @@ def main():
                 print(f'[INFO] Deleting previous files: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Reformatting files: Started')
-            reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
+            pinfomy = None
+            if args.mode == 'DT':
+                pinfomy = pinfo.get_pinfomy_equivalent()
+            if pinfomy is not None:
+                if args.verbose:
+                    print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+                pinfomy.MODE = 'REFORMAT'
+                reformat.make_reformat_daily_dataset(pinfomy, start_date, end_date, args.verbose)
+            else:
+                reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Reformating files: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Uploading files to DU: Started')
             pinfo.MODE = 'UPLOAD'
-            upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+            if pinfomy is not None:
+                if args.verbose:
+                    print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+                pinfomy.MODE = 'UPLOAD'
+                upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+            else:
+                upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
                 print('***********************************************************')
