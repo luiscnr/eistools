@@ -108,7 +108,16 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
             if verbose:
                 print('-------------------------------------------------------------------')
                 print(f'[INFO] Launching upload to DU for year: {year} and month: {month}')
-            upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
+            pinfomy = None
+            if mode=='DT':
+                pinfomy = pinfo.get_pinfomy_equivalent()
+            if pinfomy is not None:
+                if args.verbose:
+                    print(f'[INFO] Upload to equivalent MY (myint) product: {pinfomy.product_name} : datataset: {pinfomy.dataset_name}')
+                upload_daily_dataset_impl(pinfomy,'MY',year,month,day_ini,day_fin,verbose)
+                #delete also nrt
+            else:
+                upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
 
 
 def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
@@ -167,7 +176,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name(date_here)
-        if mode == 'DT':
+        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT':
             remote_file_name = remote_file_name.replace('nrt', 'dt')
 
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':

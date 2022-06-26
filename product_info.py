@@ -475,6 +475,16 @@ class ProductInfo:
         name = name_file_base.replace('DATE', date_file_str)
         return name
 
+    def get_pinfomy_equivalent(self):
+        if len(self.dinfo)==0:
+            return None
+        if "myproduct" in self.dinfo.keys() and "mydataset" in self.dinfo.keys():
+            pmyinfo = ProductInfo()
+            pmyinfo.set_dataset_info(self.dinfo['myproduct'],self.dinfo['mydataset'])
+            return pmyinfo
+        else:
+            return None
+
     def get_reformat_cmd(self, datehere):
         cmd = None
         if self.dinfo['dataset'] == 'climatology':
