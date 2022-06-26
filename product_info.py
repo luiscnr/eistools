@@ -418,13 +418,8 @@ class ProductInfo:
 
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)
-
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
-        print('TEMPO LINE 424 product_info.py')
-        print(self.dinfo['remote_dataset_tag'])
-        print(rpath)
-        print(sdir)
         return rpath, sdir
 
     def get_remote_path_monthly(self, year):
