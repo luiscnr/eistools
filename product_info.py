@@ -30,7 +30,7 @@ class ProductInfo:
         self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
         self.dict_info = {}
         self.start_my_dictionary()
-        # self.start_nrt_dictionary()
+        self.start_nrt_dictionary()
 
         self.MODE = 'UPLOAD'  # UPLOAD O REFORMAT
 
@@ -49,13 +49,24 @@ class ProductInfo:
         if sensor.lower() == 'olci':
             res = '300m'
         dataset_name = f'cmems_obs-oc_{basin.lower()}_bgc-{dtype.lower()}_{mode.lower()}_{level.lower()}-{sensor.lower()}-{res}_P1D'
-        dinfo = self.dict_info[mode.lower()][basin.lower()][level.lower()][dtype.lower()][sensor.lower()]
+        try:
+            dinfo = self.dict_info[mode.lower()][basin.lower()][level.lower()][dtype.lower()][sensor.lower()]
+        except:
+            print(f'[ERROR] Dataset: {mode} {basin} {level} {dtype} {sensor} is not available')
+            return None, None
 
         product_name = None
         if dinfo['dataset'] == dataset_name:
             product_name = dinfo['product']
 
         return product_name, dataset_name
+
+    def get_product_name(self, mode, basin, level):
+        dproduct = self.dict_info[mode.lower()][basin.lower()][level.lower()]
+        for dtype in dproduct.keys():
+            for sensor in dproduct[dtype].keys():
+                product_name = dproduct[dtype][sensor]['product']
+                return product_name
 
     def check_dataset_namesin_dict(self):
         check = True
@@ -89,14 +100,78 @@ class ProductInfo:
         # print(fproduct)
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
-            pinfo = json.load(f)
-            if dataset_name in pinfo.keys():
-                self.dinfo = pinfo[dataset_name]
+            self.pinfo = json.load(f)
+            if dataset_name in self.pinfo.keys():
+                self.dinfo = self.pinfo[dataset_name]
             else:
                 print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
             f.close()
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
+
+    def get_list_datasets(self, product_name):
+        product_names = []
+        dataset_names = []
+        fproduct = os.path.join(self.path2info, product_name + '.json')
+        if os.path.exists(fproduct):
+            f = open(fproduct, "r")
+            pinfo = json.load(f)
+            f.close()
+            for dataset in pinfo.keys():
+                product_names.append(product_name)
+                dataset_names.append(dataset)
+
+        return product_names, dataset_names
+
+    def get_list_datasets_with_sensor(self, product_name, sensor):
+        product_names = []
+        dataset_names = []
+        fproduct = os.path.join(self.path2info, product_name + '.json')
+        if os.path.exists(fproduct):
+            f = open(fproduct, "r")
+            pinfo = json.load(f)
+            f.close()
+            for dataset in pinfo.keys():
+                if pinfo[dataset]['sensor'].lower() == sensor.lower():
+                    product_names.append(product_name)
+                    dataset_names.append(dataset)
+
+        return product_names, dataset_names
+
+    def get_list_datasets_with_dataset(self, product_name, dtype):
+        product_names = []
+        dataset_names = []
+        fproduct = os.path.join(self.path2info, product_name + '.json')
+        if os.path.exists(fproduct):
+            f = open(fproduct, "r")
+            pinfo = json.load(f)
+            f.close()
+            for dataset in pinfo.keys():
+                if pinfo[dataset]['dataset'].lower() == dtype.lower():
+                    product_names.append(product_name)
+                    dataset_names.append(dataset)
+
+        return product_names, dataset_names
+
+    def get_list_datasets_params(self, mode, basin, level, dtype, sensor):
+        product_names = []
+        dataset_names = []
+        if mode is not None and basin is not None and level is not None and dtype is not None and sensor is not None:
+            product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
+            if product_name is not None and dataset_name is not None:
+                product_names.append(product_name)
+                dataset_names.append(dataset_name)
+        elif mode is not None and basin is not None and level is not None:
+            product_name = self.get_product_name(mode, basin, level)
+            if dtype is None and sensor is None:
+                product_names, dataset_names = self.get_list_datasets(product_name)
+            elif dtype is None and sensor is not None:
+                product_names, dataset_names = self.get_list_datasets_with_sensor(product_name,sensor)
+            elif dtype is not None and sensor is None:
+                product_names, dataset_names = self.get_list_datasets_with_dataset(product_name, dtype)
+
+
+        return product_names, dataset_names
 
     def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
@@ -339,7 +414,6 @@ class ProductInfo:
                 mfin = end_date.month
             path_ref = self.get_path_orig(y)
 
-
             for m in range(mini, mfin + 1):
                 day_ini = 1
                 day_fin = calendar.monthrange(y, m)[1]
@@ -476,11 +550,11 @@ class ProductInfo:
         return name
 
     def get_pinfomy_equivalent(self):
-        if len(self.dinfo)==0:
+        if len(self.dinfo) == 0:
             return None
         if "myproduct" in self.dinfo.keys() and "mydataset" in self.dinfo.keys():
             pmyinfo = ProductInfo()
-            pmyinfo.set_dataset_info(self.dinfo['myproduct'],self.dinfo['mydataset'])
+            pmyinfo.set_dataset_info(self.dinfo['myproduct'], self.dinfo['mydataset'])
             return pmyinfo
         else:
             return None
@@ -517,161 +591,6 @@ class ProductInfo:
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path} -d {d}'
 
         return cmd
-
-    def start_nrt_dictionary(self):
-        self.dict_info['nrt']['bal']['l3']['plackton']['olci'] = {
-            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
-            'dataset': 'cmems_obs-oc_bal_bgc-plankton_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['bal']['l3']['reflectance']['olci'] = {
-            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
-            'dataset': 'cmems_obs-oc_bal_bgc-reflectance_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['bal']['l3']['transp']['olci'] = {
-            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
-            'dataset': 'cmems_obs-oc_bal_bgc-transp_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['bal']['l3']['optics']['olci'] = {
-            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
-            'dataset': 'cmems_obs-oc_bal_bgc-optics_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['bal']['l4']['plackton']['olci'] = {
-            'product': 'OCEANCOLOUR_BAL_BGC_L4_NRT_009_132',
-            'dataset': 'cmems_obs-oc_bal_bgc-plankton_nrt_l4-olci-300m_P1M',
-            'frequency': 'm'
-        }
-
-        # MED
-        self.dict_info['nrt']['med']['l3']['plackton']['olci'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['med']['l3']['reflectance']['olci'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-reflectance_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['med']['l3']['transp']['olci'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-
-        self.dict_info['nrt']['med']['l3']['plackton']['multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['med']['l3']['reflectance']['multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-reflectance_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['med']['l3']['transp']['multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['med']['l3']['optics']['multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
-            'dataset': 'cmems_obs-oc_med_bgc-optics_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-
-        self.dict_info['nrt']['med']['l4']['plackton']['multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
-            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l4-multi-1km_P1D',
-            'frequency': 'm'
-        }
-        self.dict_info['nrt']['med']['l4']['plackton']['olci'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
-            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l4-olci-300m_P1M',
-            'frequency': 'm'
-        }
-        self.dict_info['nrt']['med']['l4']['plackton']['gapfree-multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
-            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l4-gapfree-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['med']['l4']['transp']['multi'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
-            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l4-multi-1km_P1D',
-            'frequency': 'm'
-        }
-        self.dict_info['nrt']['med']['l4']['transp']['olci'] = {
-            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
-            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l4-olci-300m_P1M',
-            'frequency': 'm'
-        }
-
-        # BLK
-        self.dict_info['nrt']['blk']['l3']['plackton']['olci'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['blk']['l3']['reflectance']['olci'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-reflectance_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['blk']['l3']['transp']['olci'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l3-olci-300m_P1D',
-            'frequency': 'd'
-        }
-
-        self.dict_info['nrt']['blk']['l3']['plackton']['multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['blk']['l3']['reflectance']['multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-reflectance_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['blk']['l3']['transp']['multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['blk']['l3']['optics']['multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
-            'dataset': 'cmems_obs-oc_blk_bgc-optics_nrt_l3-multi-1km_P1D',
-            'frequency': 'd'
-        }
-
-        self.dict_info['nrt']['blk']['l4']['plackton']['multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
-            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l4-multi-1km_P1D',
-            'frequency': 'm'
-        }
-        self.dict_info['nrt']['blk']['l4']['plackton']['olci'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
-            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l4-olci-300m_P1M',
-            'frequency': 'm'
-        }
-        self.dict_info['nrt']['blk']['l4']['plackton']['gapfree-multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
-            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l4-gapfree-multi-1km_P1D',
-            'frequency': 'd'
-        }
-        self.dict_info['nrt']['blk']['l4']['transp']['multi'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
-            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l4-multi-1km_P1D',
-            'frequency': 'm'
-        }
-        self.dict_info['nrt']['blk']['l4']['transp']['olci'] = {
-            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
-            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l4-olci-300m_P1M',
-            'frequency': 'm'
-        }
 
     def start_my_dictionary(self):
         self.dict_info['my'] = {
@@ -800,6 +719,208 @@ class ProductInfo:
                             'product': 'OCEANCOLOUR_BLK_BGC_L4_MY_009_154',
                             'dataset': 'cmems_obs-oc_blk_bgc-plankton_my_l4-multi-climatology-1km_P1D',
                             'frequency': 'd'
+                        }
+                    }
+                }
+            }
+        }
+
+    def start_nrt_dictionary(self):
+        self.dict_info['nrt'] = {
+            'bal': {
+                'l3': {
+                    'plankton': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
+                            'dataset': 'cmems_obs-oc_bal_bgc-plankton_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'reflectance': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
+                            'dataset': 'cmems_obs-oc_bal_bgc-reflectance_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'transp': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
+                            'dataset': 'cmems_obs-oc_bal_bgc-transp_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'optics': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BAL_BGC_L3_NRT_009_131',
+                            'dataset': 'cmems_obs-oc_bal_bgc-optics_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    }
+
+                },
+                'l4': {
+                    'plankton': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BAL_BGC_L4_NRT_009_132',
+                            'dataset': 'cmems_obs-oc_bal_bgc-plankton_nrt_l4-olci-300m_P1M',
+                            'frequency': 'm'
+                        }
+                    }
+                }
+            },
+            'med': {
+                'l3': {
+                    'plankton': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'reflectance': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-reflectance_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-reflectance_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'transp': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'optics': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141',
+                            'dataset': 'cmems_obs-oc_med_bgc-optics_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        }
+                    }
+                },
+                'l4': {
+                    'plankton': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
+                            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l4-multi-1km_P1M',
+                            'frequency': 'm'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
+                            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l4-olci-300m_P1M',
+                            'frequency': 'm'
+                        },
+                        'gapfree_multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
+                            'dataset': 'cmems_obs-oc_med_bgc-plankton_nrt_l4-gapfree-multi-1km_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'transp': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
+                            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l4-multi-1km_P1M',
+                            'frequency': 'm'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_MED_BGC_L4_NRT_009_142',
+                            'dataset': 'cmems_obs-oc_med_bgc-transp_nrt_l4-olci-300m_P1M',
+                            'frequency': 'm'
+                        }
+                    }
+                }
+            },
+            'blk': {
+                'l3': {
+                    'plankton': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'reflectance': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-reflectance_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-reflectance_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'transp': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l3-olci-300m_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'optics': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151',
+                            'dataset': 'cmems_obs-oc_blk_bgc-optics_nrt_l3-multi-1km_P1D',
+                            'frequency': 'd'
+                        }
+                    }
+                },
+                'l4': {
+                    'plankton': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
+                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l4-multi-1km_P1M',
+                            'frequency': 'm'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
+                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l4-olci-300m_P1M',
+                            'frequency': 'm'
+                        },
+                        'gapfree_multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
+                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_nrt_l4-gapfree-multi-1km_P1D',
+                            'frequency': 'd'
+                        }
+                    },
+                    'transp': {
+                        'multi': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
+                            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l4-multi-1km_P1M',
+                            'frequency': 'm'
+                        },
+                        'olci': {
+                            'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
+                            'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l4-olci-300m_P1M',
+                            'frequency': 'm'
                         }
                     }
                 }
