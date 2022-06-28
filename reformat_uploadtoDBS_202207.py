@@ -36,15 +36,19 @@ def main():
     n_datasets = 0
     do_multiple_datasets = False
 
+
     if args.mode and args.region and args.level:
         # pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
         dataset_type = None
         sensor = None
+        mode_search = args.mode
+        if args.mode=='DT':
+            mode_search = 'NRT'
         if args.dataset_type:
             dataset_type = args.dataset_type
         if args.sensor:
             sensor = args.sensor
-        name_products, name_datasets = pinfo.get_list_datasets_params(args.mode, args.region, args.level, dataset_type,
+        name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, args.region, args.level, dataset_type,
                                                                       sensor)
         n_datasets = len(name_products)
 
