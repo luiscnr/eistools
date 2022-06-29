@@ -10,7 +10,7 @@ import json
 import reformattoCMEMS_202207 as reformat
 import uploadtoDBS_202207 as upload
 
-parser = argparse.ArgumentParser(description='Upload 2DBS')
+parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])

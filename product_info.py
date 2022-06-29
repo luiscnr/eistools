@@ -55,7 +55,8 @@ class ProductInfo:
             print(f'[ERROR] Dataset: {mode} {basin} {level} {dtype} {sensor} is not available')
             return None, None
 
-        product_name = None
+        if dinfo['frequency']=='m':
+            dataset_name = dataset_name.replace('P1D','P1M')
         if dinfo['dataset'] == dataset_name:
             product_name = dinfo['product']
 

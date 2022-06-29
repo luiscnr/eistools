@@ -4,8 +4,9 @@ from datetime import timedelta
 from product_info import ProductInfo
 import subprocess
 
-parser = argparse.ArgumentParser(description='Upload 2DBS')
+parser = argparse.ArgumentParser(description='Reformat and upload 2DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
@@ -28,7 +29,7 @@ args = parser.parse_args()
 
 
 def main():
-    print('STARTED')
+    print('STARTED REFORMAT')
     pinfo = ProductInfo()
     do_multiple_datasets = False
     if args.mode and args.region and args.level and args.dataset_type and args.sensor:

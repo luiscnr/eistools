@@ -4,12 +4,13 @@ from datetime import timedelta
 from product_info import ProductInfo
 import reformattoCMEMS_202207 as reformat
 import uploadtoDBS_202207 as upload
+import deleteDBS_202207 as delete
 
-import check_202207 as checkf
+#import check_202207 as checkf
 
-parser = argparse.ArgumentParser(description='Reformat and upload 2DBS')
+parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
-#parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
+parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
@@ -28,14 +29,13 @@ args = parser.parse_args()
 
 
 def main():
+    print('[INFO] STARTED REFORMAT AND UPLOAD')
 
     ##DATASETS SELECTION
     pinfo = ProductInfo()
     name_products = []
     name_datasets = []
     n_datasets = 0
-    do_multiple_datasets = False
-
 
     if args.mode and args.region and args.level:
         # pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
@@ -97,8 +97,8 @@ def main():
     if args.verbose:
         print(f'[INFO] Start date: {start_date} End date: {end_date}')
 
-    # if args.check_param:
-    #     return
+    if args.check_param:
+        return
 
     # if args.start_date and args.end_date and not do_multiple_datasets:
     for idataset in range(n_datasets):
@@ -137,6 +137,8 @@ def main():
                     print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
                 pinfomy.MODE = 'UPLOAD'
                 upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+                #delete nrt
+                delete.make_delete_daily_dataset(pinfo,'NRT',start_date,end_date,args.verbose)
             else:
                 upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
             if args.verbose:
