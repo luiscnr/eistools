@@ -46,8 +46,8 @@ def main():
             dataset_type = args.dataset_type
         if args.sensor:
             sensor = args.sensor
-        if args.pfreq:
-            frequency = args.pfreq
+        if args.frequency_product:
+            frequency = args.frequency_product
         name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, args.region, args.level,
                                                                       dataset_type,
                                                                       sensor, frequency)
