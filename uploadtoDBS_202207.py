@@ -188,7 +188,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
 
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
-            if dt.now() >= datemyintref:
+            if date_here >= datemyintref:
                 remote_file_name = remote_file_name.replace('my', 'myint')
 
         status = ''
@@ -321,7 +321,7 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month, verbo
 
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
-            if dt.now() >= datemyintref:
+            if date_here >= datemyintref:
                 remote_file_name = remote_file_name.replace('my', 'myint')
 
         status = ''
