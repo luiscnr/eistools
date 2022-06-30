@@ -57,8 +57,13 @@ class ProductInfo:
 
         if dinfo['frequency'] == 'm':
             dataset_name = dataset_name.replace('P1D', 'P1M')
+
+        print(dataset_name),
+        print(dinfo['dataset'])
+
         if dinfo['dataset'] == dataset_name:
             product_name = dinfo['product']
+
 
         return product_name, dataset_name
 
@@ -666,7 +671,7 @@ class ProductInfo:
                     'plankton': {
                         'multi': {
                             'product': 'OCEANCOLOUR_MED_BGC_L4_MY_009_144',
-                            'dataset': 'cmems_obs-oc_med_bgc-plankton_my_l4-multi-1km_P1D',
+                            'dataset': 'cmems_obs-oc_med_bgc-plankton_my_l4-multi-1km_P1M',
                             'frequency': 'm'
                         },
                         'gapfree_multi': {
@@ -718,7 +723,7 @@ class ProductInfo:
                     'plankton': {
                         'multi': {
                             'product': 'OCEANCOLOUR_BLK_BGC_L4_MY_009_154',
-                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_my_l4-multi-1km_P1D',
+                            'dataset': 'cmems_obs-oc_blk_bgc-plankton_my_l4-multi-1km_P1M',
                             'frequency': 'm'
                         },
                         'gapfree_multi': {
