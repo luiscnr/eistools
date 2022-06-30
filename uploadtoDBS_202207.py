@@ -8,6 +8,7 @@ import lxml.etree as ET
 from product_info import ProductInfo
 from calendar import monthrange
 import argparse
+import deleteDBS_202207 as delete
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
@@ -121,6 +122,7 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
                     print(f'[INFO] Upload to equivalent MY (myint) product: {pinfomy.product_name} : datataset: {pinfomy.dataset_name}')
                 upload_daily_dataset_impl(pinfomy,'MY',year,month,day_ini,day_fin,verbose)
                 #delete also nrt
+                delete.delete_daily_dataset_impl(pinfo,'NRT',year,month,day_ini,day_fin,verbose)
             else:
                 upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
 
@@ -147,7 +149,7 @@ def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
         mfin = 12
         if year == start_date.year:
             mini = start_date.month
-        if year == end_date.month:
+        if year == end_date.year:
             mfin = end_date.month
         upload_monthly_dataset_impl(pinfo, mode, year, mini, mfin, verbose)
 
@@ -314,7 +316,14 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month, verbo
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
-        print(remote_file_name)
+        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT':
+            remote_file_name = remote_file_name.replace('nrt', 'dt')
+
+        if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
+            datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
+            if dt.now() >= datemyintref:
+                remote_file_name = remote_file_name.replace('my', 'myint')
+
         status = ''
         count = 0
         if args.verbose:

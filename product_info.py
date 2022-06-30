@@ -55,8 +55,8 @@ class ProductInfo:
             print(f'[ERROR] Dataset: {mode} {basin} {level} {dtype} {sensor} is not available')
             return None, None
 
-        if dinfo['frequency']=='m':
-            dataset_name = dataset_name.replace('P1D','P1M')
+        if dinfo['frequency'] == 'm':
+            dataset_name = dataset_name.replace('P1D', 'P1M')
         if dinfo['dataset'] == dataset_name:
             product_name = dinfo['product']
 
@@ -110,7 +110,7 @@ class ProductInfo:
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
 
-    def get_list_datasets(self, product_name):
+    def get_list_datasets(self, product_name,frequency):
         product_names = []
         dataset_names = []
         fproduct = os.path.join(self.path2info, product_name + '.json')
@@ -119,12 +119,15 @@ class ProductInfo:
             pinfo = json.load(f)
             f.close()
             for dataset in pinfo.keys():
+                if not frequency is None:
+                    if pinfo[dataset]['frequency'].lower() != frequency.lower():
+                        continue
                 product_names.append(product_name)
                 dataset_names.append(dataset)
 
         return product_names, dataset_names
 
-    def get_list_datasets_with_sensor(self, product_name, sensor):
+    def get_list_datasets_with_sensor(self, product_name, sensor, frequency):
         product_names = []
         dataset_names = []
         fproduct = os.path.join(self.path2info, product_name + '.json')
@@ -133,13 +136,18 @@ class ProductInfo:
             pinfo = json.load(f)
             f.close()
             for dataset in pinfo.keys():
+
+                if not frequency is None:
+                    print(pinfo[dataset]['frequency'].lower(),frequency.lower())
+                    if not pinfo[dataset]['frequency'].lower() == frequency.lower():
+                        continue
                 if pinfo[dataset]['sensor'].lower() == sensor.lower():
                     product_names.append(product_name)
                     dataset_names.append(dataset)
 
         return product_names, dataset_names
 
-    def get_list_datasets_with_dataset(self, product_name, dtype):
+    def get_list_datasets_with_dataset(self, product_name, dtype, frequency):
         product_names = []
         dataset_names = []
         fproduct = os.path.join(self.path2info, product_name + '.json')
@@ -148,13 +156,16 @@ class ProductInfo:
             pinfo = json.load(f)
             f.close()
             for dataset in pinfo.keys():
+                if not frequency is None:
+                    if pinfo[dataset]['frequency'].lower() != frequency.lower():
+                        continue
                 if pinfo[dataset]['dataset'].lower() == dtype.lower():
                     product_names.append(product_name)
                     dataset_names.append(dataset)
 
         return product_names, dataset_names
 
-    def get_list_datasets_params(self, mode, basin, level, dtype, sensor):
+    def get_list_datasets_params(self, mode, basin, level, dtype, sensor, frequency):
         product_names = []
         dataset_names = []
         if mode is not None and basin is not None and level is not None and dtype is not None and sensor is not None:
@@ -165,12 +176,11 @@ class ProductInfo:
         elif mode is not None and basin is not None and level is not None:
             product_name = self.get_product_name(mode, basin, level)
             if dtype is None and sensor is None:
-                product_names, dataset_names = self.get_list_datasets(product_name)
+                product_names, dataset_names = self.get_list_datasets(product_name, frequency)
             elif dtype is None and sensor is not None:
-                product_names, dataset_names = self.get_list_datasets_with_sensor(product_name,sensor)
+                product_names, dataset_names = self.get_list_datasets_with_sensor(product_name, sensor, frequency)
             elif dtype is not None and sensor is None:
-                product_names, dataset_names = self.get_list_datasets_with_dataset(product_name, dtype)
-
+                product_names, dataset_names = self.get_list_datasets_with_dataset(product_name, dtype, frequency)
 
         return product_names, dataset_names
 

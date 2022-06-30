@@ -39,15 +39,18 @@ def main():
         dataset_type = None
         sensor = None
         mode_search = args.mode
+        frequency = None
         if args.mode == 'DT':
             mode_search = 'NRT'
         if args.dataset_type:
             dataset_type = args.dataset_type
         if args.sensor:
             sensor = args.sensor
+        if args.pfreq:
+            frequency = args.pfreq
         name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, args.region, args.level,
                                                                       dataset_type,
-                                                                      sensor)
+                                                                      sensor, frequency)
         n_datasets = len(name_products)
     elif args.name_product and args.name_dataset:
         name_products.append(args.name_product)

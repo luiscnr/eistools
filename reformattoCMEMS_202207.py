@@ -134,7 +134,7 @@ def make_reformat_monthly_dataset(pinfo, start_date, end_date, verbose):
         mfin = 12
         if year == start_date.year:
             mini = start_date.month
-        if year == end_date.month:
+        if year == end_date.year:
             mfin = end_date.month
         for month in range(mini, mfin + 1):
             date_here = dt(year, month, 15)

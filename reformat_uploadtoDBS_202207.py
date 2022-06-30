@@ -42,14 +42,17 @@ def main():
         dataset_type = None
         sensor = None
         mode_search = args.mode
+        frequency = None
         if args.mode=='DT':
             mode_search = 'NRT'
         if args.dataset_type:
             dataset_type = args.dataset_type
         if args.sensor:
             sensor = args.sensor
+        if args.frequency_product:
+            frequency = args.frequency_product
         name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, args.region, args.level, dataset_type,
-                                                                      sensor)
+                                                                      sensor,frequency)
         n_datasets = len(name_products)
 
     elif args.name_product and args.name_dataset:
@@ -160,13 +163,30 @@ def main():
                 print(f'[INFO] Deleting previous files: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Reformatting files: Started')
-            reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date, args.verbose)
+            pinfomy = None
+            if args.mode == 'DT':
+                pinfomy = pinfo.get_pinfomy_equivalent()
+            if pinfomy is not None:
+                if args.verbose:
+                    print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+                pinfomy.MODE = 'REFORMAT'
+                reformat.make_reformat_monthly_dataset(pinfomy, start_date, end_date, args.verbose)
+            else:
+                reformat.make_reformat_monthly_dataset(pinfo, start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Reformating files: Completed')
                 print('***********************************************************')
                 print(f'[INFO] Uploading files to DU: Started')
             pinfo.MODE = 'UPLOAD'
-            upload.upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+            if pinfomy is not None:
+                if args.verbose:
+                    print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+                pinfomy.MODE = 'UPLOAD'
+                upload.upload_monthly_dataset_pinfo(pinfomy, 'MY',start_date, end_date, args.verbose)
+                #delete nrt
+                delete.make_delete_monthly_dataset(pinfo,'NRT',start_date,end_date,args.verbose)
+            else:
+                upload.upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
             if args.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
                 print('***********************************************************')
