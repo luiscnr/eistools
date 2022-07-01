@@ -8,7 +8,7 @@ parser = argparse.ArgumentParser(description='Reformat and upload 2DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, choices=['NRT', 'DT', 'MY'])
-parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
+parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK','BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
                     choices=['reflectance', 'plankton', 'optics', 'transp'])
@@ -32,8 +32,14 @@ def main():
     print('STARTED REFORMAT')
     pinfo = ProductInfo()
     do_multiple_datasets = False
+
+    if args.region:
+        region = args.region
+        if region == 'BS':
+            region = 'BLK'
+
     if args.mode and args.region and args.level and args.dataset_type and args.sensor:
-        pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
+        pinfo.set_dataset_info_fromparam(args.mode, region, args.level, args.dataset_type, args.sensor)
     elif args.name_product and args.name_dataset:
         pinfo.set_dataset_info(args.name_product, args.name_dataset)
     elif args.name_product and not args.name_dataset:

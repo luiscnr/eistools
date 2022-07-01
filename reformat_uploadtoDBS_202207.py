@@ -12,7 +12,7 @@ parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
-parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK'])
+parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
                     choices=['reflectance', 'plankton', 'optics', 'transp'])
@@ -37,6 +37,11 @@ def main():
     name_datasets = []
     n_datasets = 0
 
+    if args.region:
+        region = args.region
+        if region == 'BS':
+            region = 'BLK'
+
     if args.mode and args.region and args.level:
         # pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
         dataset_type = None
@@ -51,7 +56,7 @@ def main():
             sensor = args.sensor
         if args.frequency_product:
             frequency = args.frequency_product
-        name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, args.region, args.level, dataset_type,
+        name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, region, args.level, dataset_type,
                                                                       sensor,frequency)
         n_datasets = len(name_products)
 

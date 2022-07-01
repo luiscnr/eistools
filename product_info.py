@@ -45,6 +45,8 @@ class ProductInfo:
         return None
 
     def get_dataset_name(self, mode, basin, level, dtype, sensor):
+        if sensor.lower()=='gapfree_multi':
+            sensor = 'gapfree-multi'
         res = '1km'
         if sensor.lower() == 'olci':
             res = '300m'
@@ -63,7 +65,6 @@ class ProductInfo:
 
         if dinfo['dataset'] == dataset_name:
             product_name = dinfo['product']
-
 
         return product_name, dataset_name
 
@@ -115,7 +116,7 @@ class ProductInfo:
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
 
-    def get_list_datasets(self, product_name,frequency):
+    def get_list_datasets(self, product_name, frequency):
         product_names = []
         dataset_names = []
         fproduct = os.path.join(self.path2info, product_name + '.json')
@@ -141,9 +142,8 @@ class ProductInfo:
             pinfo = json.load(f)
             f.close()
             for dataset in pinfo.keys():
-
                 if not frequency is None:
-                    print(pinfo[dataset]['frequency'].lower(),frequency.lower())
+                    print(pinfo[dataset]['frequency'].lower(), frequency.lower())
                     if not pinfo[dataset]['frequency'].lower() == frequency.lower():
                         continue
                 if pinfo[dataset]['sensor'].lower() == sensor.lower():
