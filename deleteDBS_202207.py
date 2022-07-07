@@ -11,6 +11,7 @@ import lxml.etree as ET
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
+parser.add_argument('-del', "--del_folder", help="Delete folders mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
@@ -195,6 +196,8 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
         print(f'[INFO] Remote path: {rpath}/{sdir}')
 
     ftpdu.go_year_subdir(rpath,year)
+
+
     for month in range(month_ini, month_fin + 1):
         date_here = dt(year, month, 15)
         if args.verbose:
@@ -210,9 +213,12 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
         sdir_remote_file_name = os.path.join(sdir, remote_file_name)
+        print(sdir)
+        print(remote_file_name)
         tagged_dataset = pinfo.get_tagged_dataset()
         upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
         deliveries.add_delete(pinfo.product_name, tagged_dataset, sdir_remote_file_name, upload_TS)
+
         dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
         ftpdu.go_dnt(pinfo.product_name)
         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
@@ -259,7 +265,6 @@ class FTPUpload():
     def go_year_subdir(self, rpath, year):
         dateref = dt(year, 1, 1)
         yearstr = dateref.strftime('%Y')
-        # print('Changing directory to: ', rpath)
         self.ftpdu.cwd(rpath)
         if not (yearstr in self.ftpdu.nlst()):
             self.ftpdu.mkd(yearstr)
@@ -296,6 +301,14 @@ class FTPUpload():
         stop_upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
 
         return status, rr, start_upload_TS, stop_upload_TS
+
+    def isempty(self):
+        a = self.ftpdu.nlst()
+
+        if len(a)==0:
+            return True
+        else:
+            return False
 
     def close(self):
         self.ftpdu.close()
@@ -346,6 +359,17 @@ class Deliveries():
                 break
         return datafile_se
 
+    def get_directory_subelement(self, product, dataset, directory):
+        dataset_se = self.get_dataset_subelement(product, dataset)
+        if dataset_se is None:
+            return None
+        datafile_se = None
+        for index, child in enumerate(dataset_se):
+            if child.attrib['SourceFolderName'] == directory:
+                datafile_se = child
+                break
+        return datafile_se
+
     def add_product(self, product, start_upload_TS):
         if not (product in self.deliveries.keys()):
             self.deliveries[product] = ET.Element("delivery", product=product, PushingEntity="OC-CNR-ROMA-IT",
@@ -358,6 +382,42 @@ class Deliveries():
         if dataset_se is None:
             dataset_se = ET.SubElement(self.deliveries[product], "dataset", DatasetName=dataset)
         return dataset_se
+
+    def add_delete_month(self,product,dataset,year,month,upload_TS):
+        dataset_se = self.get_dataset_subelement(product, dataset)
+        datafile_se = None
+        dataref = dt(year, month, 15)
+        yearstr = dataref.strftime('%Y')
+        monthstr = dataref.strftime('%m')
+        pathym = os.path.join(yearstr, monthstr)
+        if dataset_se is None:
+            dataset_se = self.add_dataset(product, dataset, upload_TS)
+        else:
+            datafile_se = self.get_directory_subelement(product,dataset,pathym)
+        if datafile_se is None:
+            datafile_se = ET.SubElement(dataset_se, "directory",
+                                        SourceFolderName=pathym,
+                                        DestinationFolderName="",
+                                        )
+            ET.SubElement(datafile_se, "KeyWord").text = 'Delete'
+        return datafile_se
+
+    def add_delete_year(self,product,dataset,year,upload_TS):
+        dataset_se = self.get_dataset_subelement(product, dataset)
+        datafile_se = None
+        dataref = dt(year, 6, 15)
+        pathy = dataref.strftime('%Y')
+        if dataset_se is None:
+            dataset_se = self.add_dataset(product, dataset, upload_TS)
+        else:
+            datafile_se = self.get_directory_subelement(product,dataset,pathy)
+        if datafile_se is None:
+            datafile_se = ET.SubElement(dataset_se, "directory",
+                                        SourceFolderName=pathy,
+                                        DestinationFolderName="",
+                                        )
+            ET.SubElement(datafile_se, "KeyWord").text = 'Delete'
+        return datafile_se
 
     def add_delete(self, product, dataset, remote_file_name, upload_TS):
         dataset_se = self.get_dataset_subelement(product, dataset)
@@ -375,6 +435,10 @@ class Deliveries():
                                         Checksum="",
                                         FinalStatus="",
                                         FileType="")
+            # datafile_se = ET.SubElement(dataset_se, "directory",
+            #                             SourceFolderName="2021",
+            #                             DestinationFolderName="",
+            #                             )
             ET.SubElement(datafile_se, "KeyWord").text = 'Delete'
 
         return datafile_se

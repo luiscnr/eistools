@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime as dt
+from datetime import timedelta
 from product_info import ProductInfo
 import calendar
 import pandas as pd
@@ -30,21 +31,129 @@ args = parser.parse_args()
 
 
 def main():
+    print('[INFO] STARTED REFORMAT AND UPLOAD')
+
+    ##DATASETS SELECTION
     pinfo = ProductInfo()
-    do_multiple_datasets = False
-    if args.mode and args.region and args.level and args.dataset_type and args.sensor:
-        pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
+    name_products = []
+    name_datasets = []
+    n_datasets = 0
+
+    if args.region:
+        region = args.region
+        if region == 'BS':
+            region = 'BLK'
+
+    if args.mode and args.region and args.level:
+        # pinfo.set_dataset_info_fromparam(args.mode, args.region, args.level, args.dataset_type, args.sensor)
+        dataset_type = None
+        sensor = None
+        mode_search = args.mode
+        frequency = None
+        if args.mode == 'DT':
+            mode_search = 'NRT'
+        if args.dataset_type:
+            dataset_type = args.dataset_type
+        if args.sensor:
+            sensor = args.sensor
+        if args.frequency_product:
+            frequency = args.frequency_product
+        name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, region, args.level, dataset_type,
+                                                                      sensor, frequency)
+        n_datasets = len(name_products)
+
     elif args.name_product and args.name_dataset:
-        pinfo.set_dataset_info(args.name_product, args.name_dataset)
+        name_products.append(args.name_product)
+        name_datasets.append(args.name_dataset)
+        n_datasets = 1
+        # pinfo.set_dataset_info(args.name_product, args.name_dataset)
     elif args.name_product and not args.name_dataset:
-        pinfo.set_product_info(args.name_product)
+        name_products, name_datasets = pinfo.get_list_datasets(args.name_product)
+        n_datasets = len(name_products)
+        # pinfo.set_product_info(args.name_product)
         do_multiple_datasets = True
 
-    if args.start_date and args.end_date and not do_multiple_datasets:
-        start_date = dt.strptime(args.start_date, '%Y-%m-%d')
-        end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+    if n_datasets == 0:
+        print(f'[ERROR] No datasets selected')
+        return
+
+    if args.verbose:
+        print(f'[INFO] Number of selected datasets: {n_datasets}')
+        for idataset in range(n_datasets):
+            print(f'[INFO]  {name_products[idataset]}/{name_datasets[idataset]}')
+
+    ##DATES SELECTION
+    if not args.start_date and not args.end_date:
+        print(f'[ERROR] Start date(-sd) is not given.')
+        return
+    start_date_p = args.start_date
+    if args.end_date:
+        end_date_p = args.end_date
+    else:
+        end_date_p = start_date_p
+    start_date = get_date_from_param(start_date_p)
+    end_date = get_date_from_param(end_date_p)
+    if start_date is None:
+        print(
+            f'[ERROR] Start date {start_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
+        return
+    if end_date is None:
+        print(
+            f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
+        return
+    if start_date > end_date:
+        print(f'[ERROR] End date should be greater or equal than start date')
+        return
+    if args.verbose:
+        print(f'[INFO] Start date: {start_date} End date: {end_date}')
+
+    if args.check_param:
+        return
+
+    # if args.start_date and args.end_date and not do_multiple_datasets:
+    for idataset in range(n_datasets):
+        # start_date = dt.strptime(args.start_date, '%Y-%m-%d')
+        # end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+        pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
+        if args.verbose:
+            print(f'[INFO] Working with dataset: {name_products[idataset]}/{name_datasets[idataset]}')
         if pinfo.dinfo['frequency'] == 'd':
             check_daily(pinfo, start_date, end_date, args.verbose)
+
+
+def get_date_from_param(dateparam):
+    datefin = None
+    try:
+        ndays = int(dateparam)
+        datefin = dt.now().replace(hour=12, minute=0, second=0, microsecond=0) + timedelta(days=ndays)
+    except:
+        try:
+            datefin = dt.strptime(dateparam, '%Y-%m-%d')
+        except:
+            pass
+
+    return datefin
+
+
+# IMPORTANT: PINFO MUST CONTAIN PRODUCT NAME AND DATASET NAME
+def check_dailyfile_du(mode, pinfo, date, verbose):
+    if verbose:
+        print('[INFO] Checking  in the DU: started...')
+    ftpcheck = FTPCheck(mode)
+    y = date.year
+    m = date.month
+    rpath = ftpcheck.go_month_subdir(pinfo, y, m)
+    if verbose:
+        print(f'[INFO] Remote path: {rpath}')
+    remote_name = pinfo.get_remote_file_name(date)
+    if verbose:
+        print(f'[INFO] Remote file name: {remote_name}')
+
+    check = ftpcheck.check_file(remote_name)
+    if verbose:
+        print(f'[INFO] Status: {check}')
+
+    return rpath, remote_name, check
 
 
 def check_daily(pinfo, start_date, end_date, verbose):
@@ -184,6 +293,11 @@ class FTPCheck():
         self.go_subdir(rpath)
         return rpath
 
+    def check_file(self, fname):
+        if fname in self.ftpdu.nlst():
+            return True
+        else:
+            return False
     def get_file_size(self, fname):
         try:
             t = self.ftpdu.size(fname)

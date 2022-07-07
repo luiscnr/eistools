@@ -45,7 +45,7 @@ class ProductInfo:
         return None
 
     def get_dataset_name(self, mode, basin, level, dtype, sensor):
-        if sensor.lower()=='gapfree_multi':
+        if sensor.lower() == 'gapfree_multi':
             sensor = 'gapfree-multi'
         res = '1km'
         if sensor.lower() == 'olci':
@@ -60,9 +60,6 @@ class ProductInfo:
         if dinfo['frequency'] == 'm':
             dataset_name = dataset_name.replace('P1D', 'P1M')
 
-        print(dataset_name),
-        print(dinfo['dataset'])
-
         if dinfo['dataset'] == dataset_name:
             product_name = dinfo['product']
 
@@ -74,6 +71,22 @@ class ProductInfo:
             for sensor in dproduct[dtype].keys():
                 product_name = dproduct[dtype][sensor]['product']
                 return product_name
+
+    ##GETTERES
+    def get_dinfo_param(self, param):
+        if len(self.dinfo) == 0:
+            return None
+        return self.dinfo[param]
+    def get_region(self):
+        return self.get_dinfo_param('region')
+    def get_sensor(self):
+        return self.get_dinfo_param('sensor')
+    def get_level(self):
+        return self.get_dinfo_param('level')
+    def get_frequency(self):
+        return self.get_dinfo_param('frequency')
+    def get_dtype(self):
+        return self.get_dinfo_param('dataset')
 
     def check_dataset_namesin_dict(self):
         check = True
