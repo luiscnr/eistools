@@ -47,7 +47,10 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
     lines.append(f'COMPLETED DATASETS (NON DEGRADED): {ncompleted}/{ndatasets} * NO IMPLEMENTED YET')
     lines.append(f'PROCESSED DATASETS: {nprocessed}/{ndatasets} * NO IMPLEMENTED YET')
-    lines.append(f'UPLOADED DATASETS: {nuploaded}/{ndatasets}')
+    status = 'OK'
+    if nuploaded<ndatasets:
+        status = 'FAILED'
+    lines.append(f'UPLOADED DATASETS: {nuploaded}/{ndatasets} -> {status}')
     lines.append('')
     return lines
 
