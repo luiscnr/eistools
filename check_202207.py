@@ -146,6 +146,10 @@ def check_dailyfile_du(mode, pinfo, date, verbose):
     if verbose:
         print(f'[INFO] Remote path: {rpath}')
     remote_name = pinfo.get_remote_file_name(date)
+    if mode == 'DT':
+        remote_name = remote_name.replace('nrt', 'dt')
+    if mode == 'MYINT':
+        remote_name = remote_name.replace('my', 'myint')
     if verbose:
         print(f'[INFO] Remote file name: {remote_name}')
 
@@ -273,7 +277,7 @@ class FTPCheck():
         path2script = os.path.dirname(sdir)
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
-        if mode == 'MY':
+        if mode == 'MY' or mode == 'MYINT':
             du_server = "my-dev.cmems-du.eu"
         elif mode == 'NRT' or mode == 'DT':
             du_server = "nrt-dev.cmems-du.eu"
@@ -298,6 +302,7 @@ class FTPCheck():
             return True
         else:
             return False
+
     def get_file_size(self, fname):
         try:
             t = self.ftpdu.size(fname)

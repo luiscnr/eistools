@@ -156,7 +156,6 @@ class ProductInfo:
             f.close()
             for dataset in pinfo.keys():
                 if not frequency is None:
-                    print(pinfo[dataset]['frequency'].lower(), frequency.lower())
                     if not pinfo[dataset]['frequency'].lower() == frequency.lower():
                         continue
                 if pinfo[dataset]['sensor'].lower() == sensor.lower():
