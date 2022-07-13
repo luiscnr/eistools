@@ -32,7 +32,7 @@ class ProductInfo:
         self.start_my_dictionary()
         self.start_nrt_dictionary()
 
-        self.MODE = 'UPLOAD'  # UPLOAD O REFORMAT
+        self.MODE = 'UPLOAD'  # UPLOAD, REFORMAT, NONE
 
     def get_dataset_summary(self):
         if self.dataset_name is not None:
@@ -247,6 +247,16 @@ class ProductInfo:
             if tagprint is not None:
                 print(f'{tagprint} Expected file orig path {file_path} does not exist')
             return None
+        return file_path
+
+    #same as get_file_path_orig, but it returns the complete path despite of it doen't exist, it's used for checking
+    def get_file_path_orig_name(self,path, datehere):
+        if path is None:
+            path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
+        path_jday = os.path.join(path, datehere.strftime('%j'))
+        name_file = self.dinfo['name_origin']
+        date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
+        file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
         return file_path
 
     def get_size_file_path_orig_olci_monthly(self, path, datehere, dtype):
