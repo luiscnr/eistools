@@ -56,7 +56,7 @@ class SourceInfo():
                     wref = wrefhere
                     self.sessionid = os.path.basename(path)
         file_r.close()
-        os.remove(file_r)
+        os.remove('list.temp')
 
     def get_session_folder(self):
         if self.sessionid is None:
