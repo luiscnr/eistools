@@ -96,3 +96,10 @@ class SourceInfo():
             print(f'[WARNING] Session id for: {source} {mode} {region} {date} could not be found')
             return
 
+        session_folder = self.get_session_folder()
+        proccessing_folder = self.get_processing_folder()
+        log_file = self.get_log_file()
+        print('Session folder',session_folder)
+        print('Proccesing folder',proccessing_folder)
+        print('Log file: ',log_file)
+
