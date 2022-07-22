@@ -54,7 +54,7 @@ class SourceInfo():
                 wrefhere = float(wrefhere_str)
                 if wrefhere>=wref:
                     wref = wrefhere
-                    self.sessionid = os.path.basname(path)
+                    self.sessionid = os.path.basename(path)
         file_r.close()
         os.remove(file_r)
 
@@ -96,4 +96,3 @@ class SourceInfo():
             print(f'[WARNING] Session id for: {source} {mode} {region} {date} could not be found')
             return
 
-        
