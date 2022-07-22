@@ -28,19 +28,24 @@ def main():
 
     # checking
     ncompleted = 0
+    nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
         # print(name_products[idx], name_datasets[idx], dates[idx])
         lines_dataset, aresources, isuploaded = get_lines_dataset(name_products[idx], name_datasets[idx], dates[idx])
         if aresources:
             ncompleted = ncompleted + 1
+        isprocessed = True #no implemented
+        if isprocessed:
+            nprocessed = nprocessed + 1
         if isuploaded:
             nuploaded = nuploaded + 1
+
         lines = [*lines, *lines_dataset]
 
-    start_lines = get_start_lines(date, ndatasets, ndatasets, ndatasets, nuploaded)
+    start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
     lines = [*start_lines, *lines]
-    print_email_lines(lines)
+    print_email_lines(start_lines)
 
 
 def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
