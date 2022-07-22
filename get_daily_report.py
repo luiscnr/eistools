@@ -76,8 +76,13 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('------------------')
     lines.append('SOURCES')
     sources = pinfo.get_sources()
-    print(pinfo.product_name, pinfo.dataset_name)
-    lines_sources = get_lines_sources(pinfo, sources, date)
+    #print(pinfo.product_name, pinfo.dataset_name)
+    lines_sources, isvalid = get_lines_sources(pinfo, sources, date)
+    lines = [*lines, *lines_sources]
+    if isvalid:
+        lines.append('Status: OK')
+    else:
+        lines.append('Status: FAILED')
 
     upload_mode = args.mode
     if args.mode == 'DT':
@@ -103,15 +108,27 @@ def get_lines_dataset(name_product, name_dataset, date):
 
 def get_lines_sources(pinfo, sources, date):
     lines = []
+    isvalid = False
     if sources is None:
-        return lines
+        return lines, isvalid
     sinfo = SourceInfo('202207')
     slist = sources.split(',')
+    nvalid = 0
     for s in slist:
         source = s.strip()
-        #sinfo.start_source(source)
-        sinfo.check_source(source,args.mode,pinfo.get_region(),date)
-    return lines
+        lines_source,source_valid = sinfo.check_source(source,args.mode,pinfo.get_region(),date)
+        if source_valid:
+            nvalid = nvalid+1
+        if len(lines)==0:
+            lines = lines_source
+        else:
+            lines = [*lines, *lines_source]
+        lines.append('##############')
+
+
+    if nvalid == len(slist):
+        isvalid = True
+    return lines, isvalid
 
 
 def get_list_products_datasets(mode, date):
