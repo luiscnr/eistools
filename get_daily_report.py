@@ -31,7 +31,9 @@ def main():
     nuploaded = 0
     for idx in range(len(name_products)):
         # print(name_products[idx], name_datasets[idx], dates[idx])
-        lines_dataset, isuploaded = get_lines_dataset(name_products[idx], name_datasets[idx], dates[idx])
+        lines_dataset, aresources, isuploaded = get_lines_dataset(name_products[idx], name_datasets[idx], dates[idx])
+        if aresources:
+            ncompleted = ncompleted + 1
         if isuploaded:
             nuploaded = nuploaded + 1
         lines = [*lines, *lines_dataset]
@@ -48,7 +50,10 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'MODE: {args.mode}')
     lines.append(f'DATE: {datestr}')
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
-    lines.append(f'COMPLETED DATASETS (NON DEGRADED): {ncompleted}/{ndatasets} * NO IMPLEMENTED YET')
+    status = 'OK'
+    if ncompleted < ndatasets:
+        status = 'FAILED'
+    lines.append(f'COMPLETED DATASETS (NON DEGRADED): {ncompleted}/{ndatasets} -> {status}')
     lines.append(f'PROCESSED DATASETS: {nprocessed}/{ndatasets} * NO IMPLEMENTED YET')
     status = 'OK'
     if nuploaded < ndatasets:
@@ -77,9 +82,9 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('SOURCES')
     sources = pinfo.get_sources()
     #print(pinfo.product_name, pinfo.dataset_name)
-    lines_sources, isvalid = get_lines_sources(pinfo, sources, date)
+    lines_sources, aresources = get_lines_sources(pinfo, sources, date)
     lines = [*lines, *lines_sources]
-    if isvalid:
+    if aresources:
         lines.append('Status: OK')
     else:
         lines.append('Status: FAILED')
@@ -103,13 +108,15 @@ def get_lines_dataset(name_product, name_dataset, date):
     else:
         lines.append('Status: FAILED')
 
-    return lines, isuploaded
+    return lines, aresources, isuploaded
 
 
 def get_lines_sources(pinfo, sources, date):
     lines = []
     isvalid = False
     if sources is None:
+        lines = ['STATUS: No implemented']
+        isvalid = True
         return lines, isvalid
     sinfo = SourceInfo('202207')
     slist = sources.split(',')
