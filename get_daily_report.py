@@ -47,7 +47,7 @@ def main():
 
     start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
     lines = [*start_lines, *lines]
-    print_email_lines(start_lines)
+    print_email_lines(lines)
 
 
 def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
