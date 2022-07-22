@@ -4,6 +4,7 @@ from datetime import timedelta
 from product_info import ProductInfo
 import check_202207 as checkftp
 from source_info import SourceInfo
+import os
 
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
@@ -23,6 +24,7 @@ def main():
         return
 
     name_products, name_datasets, dates = get_list_products_datasets(args.mode, date)
+    start_reproc_file(date)
     lines = []
     ndatasets = len(name_datasets)
 
@@ -35,7 +37,7 @@ def main():
         lines_dataset, aresources, isuploaded = get_lines_dataset(name_products[idx], name_datasets[idx], dates[idx])
         if aresources:
             ncompleted = ncompleted + 1
-        isprocessed = True #no implemented
+        isprocessed = True  # no implemented
         if isprocessed:
             nprocessed = nprocessed + 1
         if isuploaded:
@@ -68,6 +70,22 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     return lines
 
 
+def start_reproc_file(date):
+    datestr = date.strftime('%Y%m%d')
+    freproc = get_reproc_filename(date)
+    lines = ['#!/bin/bash', '#bash script for reprocessing', f'#mode: {args.mode}', f'#date: {datestr}']
+    with open(freproc, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+def get_reproc_filename(date):
+    path_base = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES'
+    datestr = date.strftime('%Y%m%d')
+    freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}')
+    return freproc
+
+
 def get_lines_dataset(name_product, name_dataset, date):
     lines = []
     datestr = date.strftime('%Y-%m-%d')
@@ -86,7 +104,7 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('------------------')
     lines.append('SOURCES')
     sources = pinfo.get_sources()
-    #print(pinfo.product_name, pinfo.dataset_name)
+    # print(pinfo.product_name, pinfo.dataset_name)
     lines_sources, aresources = get_lines_sources(pinfo, sources, date)
     lines = [*lines, *lines_sources]
     if aresources:
@@ -128,15 +146,14 @@ def get_lines_sources(pinfo, sources, date):
     nvalid = 0
     for s in slist:
         source = s.strip()
-        lines_source,source_valid = sinfo.check_source(source,args.mode,pinfo.get_region(),date)
+        lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
         if source_valid:
-            nvalid = nvalid+1
-        if len(lines)==0:
+            nvalid = nvalid + 1
+        if len(lines) == 0:
             lines = lines_source
         else:
             lines = [*lines, *lines_source]
         lines.append('##############')
-
 
     if nvalid == len(slist):
         isvalid = True
