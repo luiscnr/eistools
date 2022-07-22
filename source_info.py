@@ -79,7 +79,7 @@ class SourceInfo():
     def get_log_file(self):
         if self.sessionid is None:
             return None
-        log_file = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/logs/{self.sessionid}.log'
+        log_file = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/log/{self.sessionid}.log'
         if os.path.exists(log_file):
             return log_file
         else:
