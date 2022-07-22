@@ -77,16 +77,30 @@ class ProductInfo:
         if len(self.dinfo) == 0:
             return None
         return self.dinfo[param]
+
     def get_region(self):
         return self.get_dinfo_param('region')
+
     def get_sensor(self):
         return self.get_dinfo_param('sensor')
+
     def get_level(self):
         return self.get_dinfo_param('level')
+
     def get_frequency(self):
         return self.get_dinfo_param('frequency')
+
     def get_dtype(self):
         return self.get_dinfo_param('dataset')
+
+    def get_sources(self):
+        if len(self.dinfo) == 0:
+            return None
+        try:
+            return self.dinfo['sources']
+        except:
+            return None
+
 
     def check_dataset_namesin_dict(self):
         check = True
@@ -249,8 +263,8 @@ class ProductInfo:
             return None
         return file_path
 
-    #same as get_file_path_orig, but it returns the complete path despite of it doen't exist, it's used for checking
-    def get_file_path_orig_name(self,path, datehere):
+    # same as get_file_path_orig, but it returns the complete path despite of it doen't exist, it's used for checking
+    def get_file_path_orig_name(self, path, datehere):
         if path is None:
             path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
         path_jday = os.path.join(path, datehere.strftime('%j'))
@@ -441,6 +455,16 @@ class ProductInfo:
                     df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                     df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
         return df
+
+    # Note: dinfo must be defined
+    def check_sources(self, date):
+        if len(self.dinfo) == 0:
+            return
+        if self.dinfo['sensor']=='MULTI':
+            self.check_multi_sources(date)
+
+    def check_multi_sources(self,date):
+        print('checking multi sources...')
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
         for y in range(start_date.year, end_date.year + 1):

@@ -3,6 +3,7 @@ from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
 import check_202207 as checkftp
+from source_info import SourceInfo
 
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
@@ -11,7 +12,6 @@ args = parser.parse_args()
 
 
 def main():
-    date = None
     if args.date:
         date = get_date_from_param(args.date)
     else:
@@ -25,9 +25,12 @@ def main():
     name_products, name_datasets, dates = get_list_products_datasets(args.mode, date)
     lines = []
     ndatasets = len(name_datasets)
+
+    # checking
+    ncompleted = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        #print(name_products[idx], name_datasets[idx], dates[idx])
+        # print(name_products[idx], name_datasets[idx], dates[idx])
         lines_dataset, isuploaded = get_lines_dataset(name_products[idx], name_datasets[idx], dates[idx])
         if isuploaded:
             nuploaded = nuploaded + 1
@@ -48,7 +51,7 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'COMPLETED DATASETS (NON DEGRADED): {ncompleted}/{ndatasets} * NO IMPLEMENTED YET')
     lines.append(f'PROCESSED DATASETS: {nprocessed}/{ndatasets} * NO IMPLEMENTED YET')
     status = 'OK'
-    if nuploaded<ndatasets:
+    if nuploaded < ndatasets:
         status = 'FAILED'
     lines.append(f'UPLOADED DATASETS: {nuploaded}/{ndatasets} -> {status}')
     lines.append('')
@@ -69,6 +72,12 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append(f'DATASET TYPE: {pinfo.get_dtype()}')
     lines.append(f'LEVEL: {pinfo.get_level()}')
     lines.append(f'FREQUENCY: {pinfo.get_frequency()}')
+
+    lines.append('------------------')
+    lines.append('SOURCES')
+    sources = pinfo.get_sources()
+    print(pinfo.product_name, pinfo.dataset_name)
+    lines_sources = get_lines_sources(pinfo, sources, date)
 
     upload_mode = args.mode
     if args.mode == 'DT':
@@ -92,6 +101,19 @@ def get_lines_dataset(name_product, name_dataset, date):
     return lines, isuploaded
 
 
+def get_lines_sources(pinfo, sources, date):
+    lines = []
+    if sources is None:
+        return lines
+    sinfo = SourceInfo('202207')
+    slist = sources.split(',')
+    for s in slist:
+        source = s.strip()
+        #sinfo.start_source(source)
+        sinfo.check_source(source,args.mode,pinfo.get_region(),date)
+    return lines
+
+
 def get_list_products_datasets(mode, date):
     pinfo = ProductInfo()
     name_products = []
@@ -112,7 +134,6 @@ def get_list_products_datasets(mode, date):
         for level in levels:
             for sensor in sensors:
                 name_p, name_d = pinfo.get_list_datasets_params('NRT', region, level, None, sensor, 'd')
-
                 if mode == 'NRT':
                     dates_d = [date_nrt] * len(name_p)
                 if mode == 'DT':
