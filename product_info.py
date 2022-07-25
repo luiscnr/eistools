@@ -279,7 +279,7 @@ class ProductInfo:
         nTot = -1
         nAva = 0
         missing_files = []
-        if not 'name_processed' in self.dinfo:
+        if not 'name_processed' in self.dinfo.keys():
             return path_jday, nTot, nAva, missing_files
         names_processed = self.dinfo['names_processed']
         names_list = names_processed.split(',')
