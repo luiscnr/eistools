@@ -168,7 +168,7 @@ def get_lines_processing(pinfo, date):
     if session_id is None:
         lines = ['Warning: Session ID was not found']
     else:
-        sinfo = SourceInfo()
+        sinfo = SourceInfo('202207')
         sinfo.sessionid = session_id
         lines = [f'Session ID: {session_id}', f'Processing folder: {sinfo.get_processing_folder()}',
                  f'Session folder: {sinfo.get_session_folder()}', f'Log file:  {sinfo.get_log_file()}']
