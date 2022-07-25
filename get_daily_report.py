@@ -37,7 +37,7 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        #print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
+        # print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -56,8 +56,9 @@ def main():
         lines = [*lines, *lines_dataset]
 
     start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
-    lines = [*start_lines, *lines]
-    print_email_lines(lines)
+    #lines = [*start_lines, *lines]
+    print_email_lines(start_lines)
+    save_attach_info_file(lines)
 
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
@@ -141,6 +142,17 @@ def get_reproc_filename(date):
     datestr = date.strftime('%Y%m%d')
     freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}')
     return freproc
+
+
+def save_attach_info_file(lines):
+    if args.mode == 'NRT':
+        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/NRTProduct.info'
+    if args.mode == 'DT':
+        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/DTProduct.info'
+    with open(finfo, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
 
 
 def get_lines_dataset(name_product, name_dataset, date):
