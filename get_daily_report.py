@@ -97,7 +97,7 @@ def main():
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
                                        args.mode)
                 cmdlines.append(cmd)
-                cmd = get_upload_cmd(pinfo,dates[idx])
+                cmd = get_upload_cmd(pinfo, dates[idx])
                 cmdlines.append(cmd)
             if not processed_array[idx]:
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
@@ -109,14 +109,11 @@ def main():
             if not uploaded_array[idx]:
                 cmd = get_upload_cmd(pinfo, dates[idx])
                 cmdlines.append(cmd)
-        cmdlines.append('')
         datestr = date.strftime('%Y-%m-%d')
         cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
         cmdlines.append(cmd)
-        output = set()
-        for x in cmdlines:
-            output.add(x)
-        cmdlines = list(output)
+        cmdlines = reorganize_cmd_lines(cmdlines)
+
         append_lines_to_reproc_file(date, cmdlines)
         lines_mail.append('')
         lines_mail.append('PROPOSED REPROCESSING')
@@ -394,6 +391,16 @@ def get_date_from_param(dateparam):
             pass
 
     return datefin
+
+
+def reorganize_cmd_lines(cmd_lines):
+    new_cmd_lines = cmd_lines[0]
+    for idx in range(1, len(cmd_lines), 1):
+        lines_prev = cmd_lines[0:idx]
+        line_now = new_cmd_lines[idx]
+        if not line_now in lines_prev:
+            new_cmd_lines.append(line_now)
+    return new_cmd_lines
 
 
 # Press the green button in the gutter to run the script.
