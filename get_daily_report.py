@@ -37,7 +37,7 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        # print(name_products[idx], name_datasets[idx], dates[idx])
+        print(name_products[idx], name_datasets[idx], dates[idx])
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -58,7 +58,7 @@ def main():
 
     start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
     lines = [*start_lines, *lines]
-    print_email_lines(lines)
+    #print_email_lines(lines)
 
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
