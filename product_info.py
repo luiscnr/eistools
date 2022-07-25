@@ -101,6 +101,9 @@ class ProductInfo:
         except:
             return None
 
+    def get_reprocessing_cmd(self):
+        return self.get_dinfo_param('CMD_reprocessing')
+
     def check_dataset_namesin_dict(self):
         check = True
         for m in self.modes:

@@ -24,7 +24,7 @@ def main():
         return
 
     name_products, name_datasets, dates = get_list_products_datasets(args.mode, date)
-    start_reproc_file(date)
+
     lines = []
     ndatasets = len(name_datasets)
     completed_array = [False] * ndatasets
@@ -38,7 +38,9 @@ def main():
     nuploaded = 0
     for idx in range(len(name_products)):
         # print(name_products[idx], name_datasets[idx], dates[idx])
-        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],name_datasets[idx],dates[idx])
+        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
+                                                                                             name_datasets[idx],
+                                                                                             dates[idx])
         if iscompleted:
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
@@ -56,6 +58,32 @@ def main():
     lines = [*start_lines, *lines]
     print_email_lines(lines)
 
+    # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
+    if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
+        # CMD REPROC FILE
+        pinfo = ProductInfo()
+        start_reproc_file(date)
+        cmdlines = []
+        for idx in range(len(name_products)):
+            pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
+            if not iscompleted[idx]:
+                missing_sources_str = missing_array[idx]
+                missing_sources = missing_sources_str.split(',')
+                sinfo = SourceInfo('202207')
+                for source in missing_sources:
+                    sinfo.start_source(source.strip())
+                    cmd = get_specific_cmd(sinfo.get_cmd(), '202207', dates[idx], pinfo.get_region(), args.mode)
+                    cmdlines.append(cmd)
+                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
+                cmdlines.append(cmd)
+            if not isprocessed[idx]:
+                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
+                cmdlines.append(cmd)
+        output = set()
+        for x in cmdlines:
+            output.add(x)
+        cmdlines = list(output)
+        append_lines_to_reproc_file(date,cmdlines)
 
 def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines = []
@@ -65,17 +93,23 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'DATE: {datestr}')
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
     status = 'OK'
+    generalstatus = 'OK'
     if ncompleted < ndatasets:
         status = 'FAILED'
+        generalstatus = 'FAILED'
     lines.append(f'COMPLETED DATASETS (NON DEGRADED): {ncompleted}/{ndatasets} -> {status}')
     status = 'OK'
     if nprocessed < ndatasets:
         status = 'FAILED'
+        generalstatus = 'FAILED'
     lines.append(f'PROCESSED DATASETS: {nprocessed}/{ndatasets} -> {status}')
     status = 'OK'
     if nuploaded < ndatasets:
         status = 'FAILED'
+        generalstatus = 'FAILED'
     lines.append(f'UPLOADED DATASETS: {nuploaded}/{ndatasets} -> {status}')
+    lines.append('')
+    lines.append(F'GENERAL STATUS: {generalstatus}')
     lines.append('')
     return lines
 
@@ -85,6 +119,14 @@ def start_reproc_file(date):
     freproc = get_reproc_filename(date)
     lines = ['#!/bin/bash', '#bash script for reprocessing', f'#mode: {args.mode}', f'#date: {datestr}']
     with open(freproc, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+
+def append_lines_to_reproc_file(date, lines):
+    freproc = get_reproc_filename(date)
+    with open(freproc, 'a') as f:
         for line in lines:
             f.write(line)
             f.write('\n')
@@ -103,7 +145,7 @@ def get_lines_dataset(name_product, name_dataset, date):
     pinfo = ProductInfo()
     pinfo.set_dataset_info(name_product, name_dataset)
 
-    lines.append('*************************************************************************************************')
+    lines.append('====================================================================================================')
     lines.append(f'PRODUCT: {name_product}')
     lines.append(f'DATASET: {name_dataset}')
     lines.append(f'DATE: {datestr}')
@@ -159,12 +201,12 @@ def get_lines_dataset(name_product, name_dataset, date):
 
 def get_lines_processing(pinfo, date):
     isprocessed = False
-    path_jday,nTot,nAva,missing_files = pinfo.check_processed_files(date)
-    if nTot==-1:
-        lines = [f'Processed files path: {path_jday}','NO IMPLEMENTED']
+    path_jday, nTot, nAva, missing_files = pinfo.check_processed_files(date)
+    if nTot == -1:
+        lines = [f'Processed files path: {path_jday}', 'NO IMPLEMENTED']
         isprocessed = True
         return lines, isprocessed
-    session_id = pinfo.get_session_id(args.mode,date)
+    session_id = pinfo.get_session_id(args.mode, date)
     if session_id is None:
         lines = ['Warning: Session ID was not found']
     else:
@@ -182,7 +224,6 @@ def get_lines_processing(pinfo, date):
             lines.append(f'Path: {path_jday} does not exists')
         for name_file in missing_files:
             lines.append(f'File: {name_file} is not available')
-
 
     return lines, isprocessed
 
@@ -212,7 +253,6 @@ def get_lines_sources(pinfo, sources, date):
             lines = lines_source
         else:
             lines = [*lines, *lines_source]
-        lines.append('##############')
 
     if ncompleted == len(slist):
         iscompleted = True
@@ -253,6 +293,18 @@ def get_list_products_datasets(mode, date):
                 dates = [*dates, *dates_d]
 
     return name_products, name_datasets, dates
+
+
+def get_specific_cmd(cmd, eis, date, region, mode):
+    region = region.upper()
+    if region == 'BLK':
+        region = 'BS'
+    mode = mode.upper()
+    cmd = cmd.replace('$EIS$', eis)
+    cmd = cmd.replace('$REG$', region)
+    cmd = cmd.replace('$MODE$', mode)
+    cmd = cmd.replace('$DATE$', date.strftime('%Y-%m-%d'))
+    return cmd
 
 
 def print_email_lines(lines):

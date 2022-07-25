@@ -109,7 +109,7 @@ class SourceInfo():
         if self.dsource["agency"] == "NASA":
             lines_source, valid_source = self.check_source_NASA(lines_source)
         else:
-            lines_source.append('Checking not implemented yet')
+            lines_source.append(' Status: no implemented')
             valid_source = True
 
         return lines_source, valid_source
@@ -154,4 +154,5 @@ class SourceInfo():
 
         return lines_source, valid_sources
 
-
+    def get_cmd(self):
+        return self.dsource["cmd"]
