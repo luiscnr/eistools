@@ -80,7 +80,10 @@ def main():
 
         # CMD REPROC FILE
         start_reproc_file(date)
-        cmdlines = []
+        cmdlines = ['ins=$(date +%Y%m%d%H%M%S']
+        name_r = get_reproc_filename(date)[:-3]
+        path_o = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/LAUNCHED/'
+        cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
         for idx in range(len(name_products)):
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
             if not completed_array[idx]:
@@ -180,7 +183,7 @@ def append_lines_to_reproc_file(date, lines):
 def get_reproc_filename(date):
     path_base = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/PENDING'
     datestr = date.strftime('%Y%m%d')
-    freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}')
+    freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}.sh')
     return freproc
 
 
