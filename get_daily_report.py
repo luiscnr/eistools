@@ -82,7 +82,7 @@ def main():
         start_reproc_file(date)
         cmdlines = ['ins=$(date +%Y%m%d%H%M%S)']
         name_r = get_reproc_filename(date)[:-3]
-        name_r.split('/')[-1]
+        name_r = name_r.split('/')[-1]
         path_o = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/LAUNCHED/'
         cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
         for idx in range(len(name_products)):
@@ -372,7 +372,7 @@ def get_specific_cmd(cmd, eis, date, region, mode):
 
 def get_upload_cmd(pinfo, date):
     datestr = date.strftime('%Y-%m-%d')
-    cmd = f'/home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -pname {pinfo.product_name} -dname {pinfo.dataset_name} -sd {datestr}'
+    cmd = f'sh /home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -pname {pinfo.product_name} -dname {pinfo.dataset_name} -sd {datestr}'
     return cmd
 
 
