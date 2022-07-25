@@ -396,8 +396,8 @@ def get_date_from_param(dateparam):
 def reorganize_cmd_lines(cmd_lines):
     new_cmd_lines = [cmd_lines[0]]
     for idx in range(1, len(cmd_lines), 1):
-        lines_prev = cmd_lines[0:idx]
-        line_now = new_cmd_lines[idx]
+        lines_prev = cmd_lines[:idx]
+        line_now = cmd_lines[idx]
         if not line_now in lines_prev:
             new_cmd_lines.append(line_now)
     return new_cmd_lines
