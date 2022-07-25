@@ -55,15 +55,30 @@ def main():
 
         lines = [*lines, *lines_dataset]
 
-    start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
-    #lines = [*start_lines, *lines]
-    print_email_lines(start_lines)
     save_attach_info_file(lines)
+    start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
+    lines_mail = start_lines
 
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
-        # CMD REPROC FILE
         pinfo = ProductInfo()
+        # PROBLEMS DETECTED
+        lines.mail.append('')
+        lines_mail.append('ISSUES DETECTED')
+        lines_mail.append('===============')
+        lines_mail.append('')
+        for idx in range(len(name_products)):
+            pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
+            if not completed_array[idx] or not processed_array[idx] or not uploaded_array[idx]:
+                lines_mail.append(f'{name_products[idx]}/{name_datasets[idx]}')
+                if not completed_array[idx]:
+                    lines_mail.append(f'     MISSING SOURCES ({missing_array[idx]})')
+                if not processed_array[idx]:
+                    lines_mail.append(f'     INCOMPLETED PROCESSING')
+                if not uploaded_array[idx]:
+                    lines_mail.append(f'     DATASET WAS NOT UPLOADED')
+
+        # CMD REPROC FILE
         start_reproc_file(date)
         cmdlines = []
         for idx in range(len(name_products)):
@@ -79,15 +94,38 @@ def main():
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
                                        args.mode)
                 cmdlines.append(cmd)
+                cmd = get_upload_cmd(pinfo,dates[idx])
+                cmdlines.append(cmd)
             if not processed_array[idx]:
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
                                        args.mode)
                 cmdlines.append(cmd)
+                cmd = get_upload_cmd(pinfo, dates[idx])
+                cmdlines.append(cmd)
+
+            if not uploaded_array[idx]:
+                cmd = get_upload_cmd(pinfo, dates[idx])
+                cmdlines.append(cmd)
+        cmdlines.append('')
+        datestr = date.strftime('%Y-%m-%d')
+        cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
+        cmdlines.append(cmd)
         output = set()
         for x in cmdlines:
             output.add(x)
         cmdlines = list(output)
         append_lines_to_reproc_file(date, cmdlines)
+        lines.mail.append('')
+        lines_mail.append('PROPOSED REPROCESSING')
+        lines_mail.append('=====================')
+        lines_mail.append('')
+        lines_mail.append(f'CMD: sh {get_reproc_filename(date)}')
+        lines_mail.append('')
+        for linecmd in cmdlines:
+            lines_mail.append(linecmd)
+
+    # lines_mail = [*start_lines, *cmdlines]
+    print_email_lines(lines_mail)
 
 
 def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
@@ -96,6 +134,8 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'DAILY TECHNICAL REPORT')
     lines.append(f'MODE: {args.mode}')
     lines.append(f'DATE: {datestr}')
+    cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
+    lines.append(cmd)
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
     status = 'OK'
     generalstatus = 'OK'
@@ -326,6 +366,11 @@ def get_specific_cmd(cmd, eis, date, region, mode):
     cmd = cmd.replace('$REG$', region)
     cmd = cmd.replace('$MODE$', mode)
     cmd = cmd.replace('$DATE$', date.strftime('%Y-%m-%d'))
+    return cmd
+
+
+def get_upload_cmd(pinfo, date):
+    cmd = f'/home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -pname {pinfo.product_name} -dname {pinfo.dataset_name} -sd {date}'
     return cmd
 
 

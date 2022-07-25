@@ -124,7 +124,7 @@ class SourceInfo():
         fsource_list = os.path.join(session_folder, 'source_files.list')
         if not os.path.exists(fsource_list):
             valid_sources = False
-            lines_source.append(f' ERROR: Source files for {self.source} are not available')
+            lines_source.append(f' Status: FAIL Source files for {self.source} are not available')
             return lines_source,valid_sources
 
         fs = open(fsource_list,'r')
