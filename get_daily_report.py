@@ -66,7 +66,7 @@ def main():
         cmdlines = []
         for idx in range(len(name_products)):
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
-            if not iscompleted[idx]:
+            if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
                 missing_sources = missing_sources_str.split(',')
                 sinfo = SourceInfo('202207')
@@ -76,7 +76,7 @@ def main():
                     cmdlines.append(cmd)
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
                 cmdlines.append(cmd)
-            if not isprocessed[idx]:
+            if not processed_array[idx]:
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
                 cmdlines.append(cmd)
         output = set()
