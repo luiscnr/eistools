@@ -63,7 +63,7 @@ def main():
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
         pinfo = ProductInfo()
         # PROBLEMS DETECTED
-        lines.mail.append('')
+        lines_mail.append('')
         lines_mail.append('ISSUES DETECTED')
         lines_mail.append('===============')
         lines_mail.append('')
