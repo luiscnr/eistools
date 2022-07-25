@@ -162,6 +162,7 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('SOURCES')
     sources = pinfo.get_sources()
     lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
+    print('Missing str: ',missing_str)
     lines = [*lines, *lines_sources]
     if iscompleted:
         lines.append('Status: OK')
