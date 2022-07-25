@@ -27,6 +27,10 @@ def main():
     start_reproc_file(date)
     lines = []
     ndatasets = len(name_datasets)
+    completed_array = [False] * ndatasets
+    missing_array = [''] * ndatasets
+    processed_array = [False] * ndatasets
+    uploaded_array = [False] * ndatasets
 
     # checking
     ncompleted = 0
@@ -34,14 +38,19 @@ def main():
     nuploaded = 0
     for idx in range(len(name_products)):
         # print(name_products[idx], name_datasets[idx], dates[idx])
-        lines_dataset, aresources, isuploaded = get_lines_dataset(name_products[idx], name_datasets[idx], dates[idx])
-        if aresources:
+        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
+                                                                                             name_datasets[idx],
+                                                                                             dates[idx])
+        if iscompleted:
             ncompleted = ncompleted + 1
-        isprocessed = True  # no implemented
+            completed_array[idx] = iscompleted
+            missing_array[idx] = missing_str
         if isprocessed:
             nprocessed = nprocessed + 1
+            processed_array[idx] = isprocessed
         if isuploaded:
             nuploaded = nuploaded + 1
+            uploaded_array[idx] = isuploaded
 
         lines = [*lines, *lines_dataset]
 
@@ -79,8 +88,9 @@ def start_reproc_file(date):
             f.write(line)
             f.write('\n')
 
+
 def get_reproc_filename(date):
-    path_base = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES'
+    path_base = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/PENDING'
     datestr = date.strftime('%Y%m%d')
     freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}')
     return freproc
@@ -101,17 +111,28 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append(f'LEVEL: {pinfo.get_level()}')
     lines.append(f'FREQUENCY: {pinfo.get_frequency()}')
 
+    # 1: SOURCES CHECK
     lines.append('------------------')
     lines.append('SOURCES')
     sources = pinfo.get_sources()
-    # print(pinfo.product_name, pinfo.dataset_name)
-    lines_sources, aresources = get_lines_sources(pinfo, sources, date)
+    lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
     lines = [*lines, *lines_sources]
-    if aresources:
+    if iscompleted:
         lines.append('Status: OK')
     else:
         lines.append('Status: FAILED')
 
+    # 2: PROCESSING CHECK
+    lines.append('------------------')
+    lines.append('PROCESSING')
+    lines_processing, isprocessed = get_lines_processing(pinfo, date)
+    lines = [*lines, *lines_sources]
+    if isprocessed:
+        lines.append('Status: OK')
+    else:
+        lines.append('Status: FAILED')
+
+    # 3: UPLOAD CHECK
     upload_mode = args.mode
     if args.mode == 'DT':
         pinfomy = pinfo.get_pinfomy_equivalent()
@@ -131,33 +152,59 @@ def get_lines_dataset(name_product, name_dataset, date):
     else:
         lines.append('Status: FAILED')
 
-    return lines, aresources, isuploaded
+    return lines, iscompleted, isprocessed, isuploaded, missing_str
+
+
+def get_lines_processing(pinfo, date):
+    isprocessed = False
+    path_jday,nTot,nAva,missing_files = pinfo.check_processed_files(date)
+    if nTot==-1:
+        lines = [f'Processed files path: {path_jday}','NO IMPLEMENTED']
+        isprocessed = True
+        return lines, isprocessed
+    lines = [f'Processed files path: {path_jday}',f'Processed files: {nAva}/{nTot}']
+    if nAva == nTot:
+        isprocessed = True
+    else:
+        if not os.path.exists(path_jday):
+            lines.append(f'Path: {path_jday} does not exists')
+        for name_file in missing_files:
+            lines.append(f'File: {name_file} is not available')
+
+
+    return lines, isprocessed
 
 
 def get_lines_sources(pinfo, sources, date):
     lines = []
-    isvalid = False
+    missing_str = None
+    iscompleted = False
     if sources is None:
         lines = ['STATUS: No implemented']
-        isvalid = True
-        return lines, isvalid
+        iscompleted = True
+        return lines, iscompleted
     sinfo = SourceInfo('202207')
     slist = sources.split(',')
-    nvalid = 0
+    ncompleted = 0
     for s in slist:
         source = s.strip()
         lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
         if source_valid:
-            nvalid = nvalid + 1
+            ncompleted = ncompleted + 1
+        else:
+            if missing_str is None:
+                missing_str = s.strip()
+            else:
+                missing_str = f'{missing_str},{s.strip}'
         if len(lines) == 0:
             lines = lines_source
         else:
             lines = [*lines, *lines_source]
         lines.append('##############')
 
-    if nvalid == len(slist):
-        isvalid = True
-    return lines, isvalid
+    if ncompleted == len(slist):
+        iscompleted = True
+    return lines, iscompleted, missing_str
 
 
 def get_list_products_datasets(mode, date):

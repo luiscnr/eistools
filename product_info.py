@@ -273,6 +273,31 @@ class ProductInfo:
         file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
         return file_path
 
+    def check_processed_files(self,datehere):
+        path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
+        path_jday = os.path.join(path, datehere.strftime('%j'))
+        nTot = -1
+        nAva = 0
+        missing_files = []
+        if not 'name_processed' in self.dinfo:
+            return path_jday, nTot, nAva, missing_files
+        names_processed = self.dinfo['names_processed']
+        names_list = names_processed.split(',')
+        if not os.path.exists(path_jday):
+            missing_files = names_list
+            return path_jday,nTot,nAva,missing_files
+
+        for name_file in names_list:
+            name_file = name_file.strip()
+            date_file_str = datehere.strftime(self.dinfo['format_date_processed'])
+            file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
+            if os.path.exists(file_path):
+                nAva = nAva +1
+            else:
+                missing_files.append(name_file)
+        return path_jday,nTot,nAva,missing_files
+
+
     def get_size_file_path_orig_olci_monthly(self, path, datehere, dtype):
         tamgb = -1
         if path is None:
