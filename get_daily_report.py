@@ -141,7 +141,7 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'DAILY TECHNICAL REPORT')
     lines.append(f'MODE: {args.mode}')
     lines.append(f'DATE: {datestr}')
-    cmd = f'CMD REPORT: sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
+    cmd = f'CMD REPORT: {get_report_cmd(date)}'
     lines.append(cmd)
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
     status = 'OK'
