@@ -134,7 +134,7 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines.append(f'DAILY TECHNICAL REPORT')
     lines.append(f'MODE: {args.mode}')
     lines.append(f'DATE: {datestr}')
-    cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
+    cmd = f'CMD REPORT: sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
     lines.append(cmd)
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
     status = 'OK'
@@ -370,7 +370,8 @@ def get_specific_cmd(cmd, eis, date, region, mode):
 
 
 def get_upload_cmd(pinfo, date):
-    cmd = f'/home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -pname {pinfo.product_name} -dname {pinfo.dataset_name} -sd {date}'
+    datestr = date.strftime('%Y-%m-%d')
+    cmd = f'/home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -pname {pinfo.product_name} -dname {pinfo.dataset_name} -sd {datestr}'
     return cmd
 
 
