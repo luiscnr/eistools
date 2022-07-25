@@ -37,7 +37,6 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        #print(name_products[idx], name_datasets[idx], dates[idx])
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -75,16 +74,19 @@ def main():
                     sinfo.start_source(source.strip())
                     cmd = get_specific_cmd(sinfo.get_cmd(), '202207', dates[idx], pinfo.get_region(), args.mode)
                     cmdlines.append(cmd)
-                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
+                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
+                                       args.mode)
                 cmdlines.append(cmd)
             if not processed_array[idx]:
-                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
+                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
+                                       args.mode)
                 cmdlines.append(cmd)
         output = set()
         for x in cmdlines:
             output.add(x)
         cmdlines = list(output)
-        append_lines_to_reproc_file(date,cmdlines)
+        append_lines_to_reproc_file(date, cmdlines)
+
 
 def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines = []
@@ -183,6 +185,12 @@ def get_lines_dataset(name_product, name_dataset, date):
         pinfomy = pinfo.get_pinfomy_equivalent()
         if not pinfomy is None:
             upload_mode = 'MYINT'
+    if args.mode == 'NRT' and date < pinfo.get_last_nrt_date():
+        upload_mode = 'DT'
+        pinfomy = pinfo.get_pinfomy_equivalent()
+        if not pinfomy is None:
+            upload_mode = 'MYINT'
+
     if upload_mode == 'MYINT':
         rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
     else:

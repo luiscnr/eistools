@@ -1,8 +1,8 @@
 import calendar
-import datetime
 import os
 import json
 from datetime import datetime as dt
+from datetime import timedelta
 from source_info import SourceInfo
 import pandas as pd
 from netCDF4 import Dataset
@@ -103,6 +103,17 @@ class ProductInfo:
 
     def get_reprocessing_cmd(self):
         return self.get_dinfo_param('CMD_reprocessing')
+
+    def get_last_nrt_date(self):
+        datenow = dt.now().replace(hour=12, minute=0, second=0, microsecond=0)
+        sensor = self.get_sensor()
+        if sensor.lower() == 'multi':
+            date_dt = (datenow - timedelta(days=20)).replace(hour=23, minute=59, second=59)
+        if sensor.lower() == 'gapfree_multi':
+            date_dt = (datenow - timedelta(days=24)).replace(hour=23, minute=59, second=59)
+        if sensor.lower() == 'olci':
+            date_dt = (datenow - timedelta(days=8)).replace(hour=23, minute=59, second=59)
+        return date_dt
 
     def check_dataset_namesin_dict(self):
         check = True
