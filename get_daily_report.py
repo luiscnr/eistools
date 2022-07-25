@@ -80,7 +80,7 @@ def main():
 
         # CMD REPROC FILE
         start_reproc_file(date)
-        cmdlines = ['ins=$(date +%Y%m%d%H%M%S']
+        cmdlines = ['ins=$(date +%Y%m%d%H%M%S)']
         name_r = get_reproc_filename(date)[:-3]
         path_o = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/LAUNCHED/'
         cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
