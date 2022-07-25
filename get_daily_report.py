@@ -102,6 +102,7 @@ def get_lines_dataset(name_product, name_dataset, date):
     datestr = date.strftime('%Y-%m-%d')
     pinfo = ProductInfo()
     pinfo.set_dataset_info(name_product, name_dataset)
+    
     lines.append('*************************************************************************************************')
     lines.append(f'PRODUCT: {name_product}')
     lines.append(f'DATASET: {name_dataset}')
