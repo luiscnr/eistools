@@ -372,7 +372,11 @@ def get_specific_cmd(cmd, eis, date, region, mode):
 
 def get_upload_cmd(pinfo, date):
     datestr = date.strftime('%Y-%m-%d')
-    cmd = f'sh /home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -pname {pinfo.product_name} -dname {pinfo.dataset_name} -sd {datestr}'
+    region = pinfo.get_region()
+    level = pinfo.get_level().lower()
+    sensor = pinfo.get_sensor().lower()
+    dtype = pinfo.get_dtype().lower()
+    cmd = f'sh /home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -r {region} -l {level} -s {sensor} -d {dtype} -sd {datestr}'
     return cmd
 
 
