@@ -37,6 +37,7 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
+        #print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -194,7 +195,7 @@ def get_lines_dataset(name_product, name_dataset, date):
     if upload_mode == 'MYINT':
         rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
     else:
-        rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(args.mode, pinfo, date, False)
+        rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('DU Upload')
     lines.append(f'Upload mode:  {upload_mode.lower()}')
