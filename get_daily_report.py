@@ -59,13 +59,18 @@ def main():
     start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
     lines_mail = start_lines
 
+    if ncompleted==ndatasets and nprocessed==ndatasets and nuploaded==ndatasets:
+        reproc_file = get_reproc_filename(date)
+        if os.path.exists(reproc_file):
+            os.remove(reproc_file)
+
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
         pinfo = ProductInfo()
         # PROBLEMS DETECTED
         lines_mail.append('')
-        lines_mail.append('ISSUES DETECTED')
-        lines_mail.append('===============')
+        lines_mail.append('IDENTIFIED PROBLEMS')
+        lines_mail.append('===================')
         lines_mail.append('')
         for idx in range(len(name_products)):
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
