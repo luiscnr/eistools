@@ -279,6 +279,7 @@ class ProductInfo:
         nTot = -1
         nAva = 0
         missing_files = []
+        print(self.dinfo.keys())
         if not 'names_processed' in self.dinfo.keys():
             return path_jday, nTot, nAva, missing_files
         names_processed = self.dinfo['names_processed']
