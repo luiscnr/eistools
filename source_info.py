@@ -155,5 +155,4 @@ class SourceInfo():
         return lines_source, valid_sources
 
     def get_cmd(self):
-        print(self.dsource)
         return self.dsource["cmd"]

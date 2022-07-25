@@ -45,6 +45,8 @@ def main():
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
             missing_array[idx] = missing_str
+            print('imcompleted dataset')
+            print(missing_array[idx])
         if isprocessed:
             nprocessed = nprocessed + 1
             processed_array[idx] = isprocessed
