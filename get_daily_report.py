@@ -59,7 +59,7 @@ def main():
     start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
     lines_mail = start_lines
 
-    if ncompleted==ndatasets and nprocessed==ndatasets and nuploaded==ndatasets:
+    if ncompleted == ndatasets and nprocessed == ndatasets and nuploaded == ndatasets:
         reproc_file = get_reproc_filename(date)
         if os.path.exists(reproc_file):
             os.remove(reproc_file)
@@ -115,9 +115,10 @@ def main():
             if not uploaded_array[idx]:
                 cmd = get_upload_cmd(pinfo, dates[idx])
                 cmdlines.append(cmd)
-        datestr = date.strftime('%Y-%m-%d')
-        cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_NRT_202207.sh {datestr}'
+
+        cmd = get_report_cmd(date)
         cmdlines.append(cmd)
+
         cmdlines = reorganize_cmd_lines(cmdlines)
 
         append_lines_to_reproc_file(date, cmdlines)
@@ -382,6 +383,12 @@ def get_upload_cmd(pinfo, date):
     sensor = pinfo.get_sensor().lower()
     dtype = pinfo.get_dtype().lower()
     cmd = f'sh /home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -r {region} -l {level} -s {sensor} -d {dtype} -sd {datestr}'
+    return cmd
+
+
+def get_report_cmd(date):
+    datestr = date.strftime('%Y-%m-%d')
+    cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_{args.mode}_202207.sh {datestr}'
     return cmd
 
 
