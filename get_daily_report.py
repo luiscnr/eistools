@@ -45,8 +45,6 @@ def main():
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
             missing_array[idx] = missing_str
-            print('imcompleted dataset')
-            print(missing_array[idx])
         if isprocessed:
             nprocessed = nprocessed + 1
             processed_array[idx] = isprocessed
@@ -248,10 +246,12 @@ def get_lines_sources(pinfo, sources, date):
             ncompleted = ncompleted + 1
         else:
             print('Me llega aqui, soruce is imcomplet@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+            print('antes ->', missing_str)
             if missing_str is None:
                 missing_str = s.strip()
             else:
                 missing_str = f'{missing_str},{s.strip}'
+            print('despues ->', missing_str)
         if len(lines) == 0:
             lines = lines_source
         else:
