@@ -118,7 +118,7 @@ def main():
             output.add(x)
         cmdlines = list(output)
         append_lines_to_reproc_file(date, cmdlines)
-        lines.mail.append('')
+        lines_mail.append('')
         lines_mail.append('PROPOSED REPROCESSING')
         lines_mail.append('=====================')
         lines_mail.append('')
