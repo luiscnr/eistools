@@ -280,6 +280,10 @@ class ProductInfo:
         nAva = 0
         missing_files = []
         print(self.dinfo.keys())
+        if 'names_processed' in self.dinfo:
+            print('AQUI DEBERIA LLEGA SI ESTA---------------------------------------------------------------')
+        if not 'names_processed' in self.dinfo:
+            print('AQUI DEBERIA LLEGA SI NO ESTA************************************************************')
         if not 'names_processed' in self.dinfo:
             return path_jday, nTot, nAva, missing_files
         names_processed = self.dinfo['names_processed']
