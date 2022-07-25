@@ -68,7 +68,10 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     if ncompleted < ndatasets:
         status = 'FAILED'
     lines.append(f'COMPLETED DATASETS (NON DEGRADED): {ncompleted}/{ndatasets} -> {status}')
-    lines.append(f'PROCESSED DATASETS: {nprocessed}/{ndatasets} * NO IMPLEMENTED YET')
+    status = 'OK'
+    if nprocessed < ndatasets:
+        status = 'FAILED'
+    lines.append(f'PROCESSED DATASETS: {nprocessed}/{ndatasets} -> {status}')
     status = 'OK'
     if nuploaded < ndatasets:
         status = 'FAILED'
@@ -110,7 +113,7 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append(f'FREQUENCY: {pinfo.get_frequency()}')
 
     # 1: SOURCES CHECK
-    lines.append('------------------')
+    lines.append('-------------------------------------------------------------------------------------------')
     lines.append('SOURCES')
     sources = pinfo.get_sources()
     lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
@@ -121,10 +124,10 @@ def get_lines_dataset(name_product, name_dataset, date):
         lines.append('Status: FAILED')
 
     # 2: PROCESSING CHECK
-    lines.append('------------------')
+    lines.append('-------------------------------------------------------------------------------------------')
     lines.append('PROCESSING')
     lines_processing, isprocessed = get_lines_processing(pinfo, date)
-    lines = [*lines, *lines_sources]
+    lines = [*lines, *lines_processing]
     if isprocessed:
         lines.append('Status: OK')
     else:
@@ -140,7 +143,7 @@ def get_lines_dataset(name_product, name_dataset, date):
         rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
     else:
         rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(args.mode, pinfo, date, False)
-    lines.append('------------------')
+    lines.append('-------------------------------------------------------------------------------------------')
     lines.append('DU Upload')
     lines.append(f'Upload mode:  {upload_mode.lower()}')
     lines.append(f'Remote path: {rpath}')
