@@ -3,7 +3,7 @@ import datetime
 import os
 import json
 from datetime import datetime as dt
-
+from source_info import SourceInfo
 import pandas as pd
 from netCDF4 import Dataset
 
@@ -100,7 +100,6 @@ class ProductInfo:
             return self.dinfo['sources']
         except:
             return None
-
 
     def check_dataset_namesin_dict(self):
         check = True
@@ -273,35 +272,39 @@ class ProductInfo:
         file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
         return file_path
 
-    def check_processed_files(self,datehere):
+    def check_processed_files(self, datehere):
         path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
         path_jday = os.path.join(path, datehere.strftime('%j'))
         nTot = -1
         nAva = 0
         missing_files = []
-        print(self.dinfo.keys())
-        if 'names_processed' in self.dinfo:
-            print('AQUI DEBERIA LLEGA SI ESTA---------------------------------------------------------------')
-        if not 'names_processed' in self.dinfo:
-            print('AQUI DEBERIA LLEGA SI NO ESTA************************************************************')
+
         if not 'names_processed' in self.dinfo:
             return path_jday, nTot, nAva, missing_files
+
         names_processed = self.dinfo['names_processed']
         names_list = names_processed.split(',')
+        nTot = len(names_list)
         if not os.path.exists(path_jday):
             missing_files = names_list
-            return path_jday,nTot,nAva,missing_files
+            return path_jday, nTot, nAva, missing_files
 
         for name_file in names_list:
             name_file = name_file.strip()
             date_file_str = datehere.strftime(self.dinfo['format_date_processed'])
             file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
             if os.path.exists(file_path):
-                nAva = nAva +1
+                nAva = nAva + 1
             else:
                 missing_files.append(name_file)
-        return path_jday,nTot,nAva,missing_files
+        return path_jday, nTot, nAva, missing_files
 
+    def get_session_id(self, mode, date):
+        if self.dinfo['sensor'] == 'MULTI':
+            sinfo = SourceInfo()
+            sinfo.source = 'MULTI'
+            sinfo.get_last_session_id(mode, self.dinfo['region'], date)
+            return sinfo.sessionid
 
     def get_size_file_path_orig_olci_monthly(self, path, datehere, dtype):
         tamgb = -1
@@ -490,10 +493,10 @@ class ProductInfo:
     def check_sources(self, date):
         if len(self.dinfo) == 0:
             return
-        if self.dinfo['sensor']=='MULTI':
+        if self.dinfo['sensor'] == 'MULTI':
             self.check_multi_sources(date)
 
-    def check_multi_sources(self,date):
+    def check_multi_sources(self, date):
         print('checking multi sources...')
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):

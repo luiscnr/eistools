@@ -164,7 +164,17 @@ def get_lines_processing(pinfo, date):
         lines = [f'Processed files path: {path_jday}','NO IMPLEMENTED']
         isprocessed = True
         return lines, isprocessed
-    lines = [f'Processed files path: {path_jday}',f'Processed files: {nAva}/{nTot}']
+    session_id = pinfo.get_session_id(args.mode,date)
+    if session_id is None:
+        lines = ['Warning: Session ID was not found']
+    else:
+        sinfo = SourceInfo()
+        sinfo.sessionid = session_id
+        lines = [f'Session ID: {session_id}', f'Processing folder: {sinfo.get_processing_folder()}',
+                 f'Session folder: {sinfo.get_session_folder()}', f'Log file:  {sinfo.get_log_file()}']
+
+    lines.append(f'Processed files path: {path_jday}')
+    lines.append(f'Processed files: {nAva}/{nTot}')
     if nAva == nTot:
         isprocessed = True
     else:
