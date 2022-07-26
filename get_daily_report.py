@@ -64,6 +64,7 @@ def main():
         if os.path.exists(reproc_file):
             os.remove(reproc_file)
 
+    ncompleted = 19
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
         pinfo = ProductInfo()
@@ -122,7 +123,7 @@ def main():
                     cmd = get_specific_cmd(get_olci_processing_cmd(), '202207', dates[idx], pinfo.get_region(),
                                            args.mode)
                     cmdlines.append(cmd)
-                if processed_array[idx] == 1 or processed_array[idx] == 3:
+                if processed_array[idx] > 0:
                     cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
                                            args.mode)
                     cmdlines.append(cmd)
