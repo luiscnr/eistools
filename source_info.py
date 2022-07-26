@@ -49,6 +49,8 @@ class SourceInfo():
             if mode == 'DT':
                 mode = 'NT'
             path_search = '/EO_DATA/TDIR/'
+        if self.source == 'OLCIP':
+            source_str = 'OLCI'
         prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
         self.sessionid = self.search_session_id_inlist(prename)
         if self.sessionid is not None:
@@ -245,7 +247,20 @@ class SourceInfo():
         lines_source.append(f' Trimmed files: {n_tfiles}/{len(tfiles)}')
         lines_source.append(f' Final products: {n_fpfiles}/{len(fpfiles)}')
 
+        if valid_sources:
+            lines_source.append(f' Status: OK')
+        else:
+            lines_source.append(f' Status: FAIL')
+
         return lines_source, valid_sources
 
     def get_cmd(self):
         return self.dsource["cmd"]
+
+    def get_processing_cmd(self):
+        return self.dsource["cmd_proc"]
+
+    def get_processed_files(self):
+        sfiles = self.dsource["processed_files"]
+        sfiles_list = sfiles.split(',')
+        return sfiles_list

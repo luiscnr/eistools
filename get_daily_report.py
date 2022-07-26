@@ -29,7 +29,7 @@ def main():
     ndatasets = len(name_datasets)
     completed_array = [False] * ndatasets
     missing_array = [''] * ndatasets
-    processed_array = [False] * ndatasets
+    processed_array = [0] * ndatasets
     uploaded_array = [False] * ndatasets
 
     # checking
@@ -46,9 +46,9 @@ def main():
             completed_array[idx] = iscompleted
         else:
             missing_array[idx] = missing_str
-        if isprocessed:
+        if isprocessed == 0:
             nprocessed = nprocessed + 1
-            processed_array[idx] = isprocessed
+        processed_array[idx] = isprocessed
         if isuploaded:
             nuploaded = nuploaded + 1
             uploaded_array[idx] = isuploaded
@@ -78,8 +78,8 @@ def main():
                 lines_mail.append(f'{name_products[idx]}/{name_datasets[idx]}')
                 if not completed_array[idx]:
                     lines_mail.append(f'     MISSING SOURCES ({missing_array[idx]})')
-                if not processed_array[idx]:
-                    lines_mail.append(f'     INCOMPLETED PROCESSING')
+                if processed_array[idx] > 0:
+                    lines_mail.append(f'     PROCESSING ERROR')
                 if not uploaded_array[idx]:
                     lines_mail.append(f'     DATASET WAS NOT UPLOADED')
 
@@ -105,10 +105,15 @@ def main():
                 cmdlines.append(cmd)
                 cmd = get_upload_cmd(pinfo, dates[idx])
                 cmdlines.append(cmd)
-            if not processed_array[idx]:
-                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
-                                       args.mode)
-                cmdlines.append(cmd)
+            if processed_array[idx] > 0:
+                if processed_array[idx] == 2 or processed_array[idx] == 3:  # olci cmd
+                    cmd = get_specific_cmd(get_olci_processing_cmd(), '202207', dates[idx], pinfo.get_region(),
+                                           args.mode)
+                    cmdlines.append(cmd)
+                if processed_array[idx] == 1 or processed_array[idx] == 3:
+                    cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
+                                           args.mode)
+                    cmdlines.append(cmd)
                 cmd = get_upload_cmd(pinfo, dates[idx])
                 cmdlines.append(cmd)
 
@@ -226,19 +231,29 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
     lines = [*lines, *lines_sources]
     if iscompleted:
-        lines.append('Status: OK')
+        lines.append('Sources status: OK')
     else:
-        lines.append('Status: FAILED')
+        lines.append('Sources status: FAILED')
 
     # 2: PROCESSING CHECK
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('PROCESSING')
-    lines_processing, isprocessed = get_lines_processing(pinfo, date)
+    isprocessed = 0
+    if pinfo.get_sensor().lower() == 'multi':  ##PREVIOUS OLCI PROCESSING
+        lines_oprocessing, isoprocessed = get_lines_processing_olci(pinfo.get_region(), date)
+        lines = [*lines, *lines_oprocessing]
+        if not isoprocessed:
+            isprocessed = isprocessed + 2
+
+    lines_processing, isgprocessed = get_lines_processing(pinfo, date)
     lines = [*lines, *lines_processing]
-    if isprocessed:
-        lines.append('Status: OK')
+    if not isgprocessed:
+        isprocessed = isprocessed + 1
+
+    if isprocessed == 0:
+        lines.append('Processing status: OK')
     else:
-        lines.append('Status: FAILED')
+        lines.append('Processing status: FAILED')
 
     # 3: UPLOAD CHECK
     upload_mode = args.mode
@@ -262,38 +277,82 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append(f'Remote path: {rpath}')
     lines.append(f'Remote file name: {remote_file_name}')
     if isuploaded:
-        lines.append('Status: OK')
+        lines.append('Upload status: OK')
     else:
-        lines.append('Status: FAILED')
+        lines.append('Upload status: FAILED')
 
     return lines, iscompleted, isprocessed, isuploaded, missing_str
 
 
 def get_lines_processing(pinfo, date):
     isprocessed = False
+
+    lines = [f' {pinfo.get_sensor()} PROCESSING']
     path_jday, nTot, nAva, missing_files = pinfo.check_processed_files(date)
     if nTot == -1:
-        lines = [f'Processed files path: {path_jday}', 'NO IMPLEMENTED']
+        lines.append(f'  Processed files path: {path_jday}')
+        lines.append(f'  Status: NO IMPLEMENTED')
         isprocessed = True
         return lines, isprocessed
     session_id = pinfo.get_session_id(args.mode, date)
     if session_id is None:
-        lines = ['Warning: Session ID was not found']
+        lines.append('  Warning: Session ID was not found')
     else:
         sinfo = SourceInfo('202207')
         sinfo.sessionid = session_id
-        lines = [f'Session ID: {session_id}', f'Processing folder: {sinfo.get_processing_folder()}',
-                 f'Session folder: {sinfo.get_session_folder()}', f'Log file:  {sinfo.get_log_file()}']
+        lines.append(f'  Session ID: {session_id}')
+        lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')
+        lines.append(f'  Session folder: {sinfo.get_session_folder()}')
+        lines.append(f'  Log file:  {sinfo.get_log_file()}')
 
-    lines.append(f'Processed files path: {path_jday}')
-    lines.append(f'Processed files: {nAva}/{nTot}')
+    lines.append(f'  Processed files path: {path_jday}')
+    lines.append(f'  Processed files: {nAva}/{nTot}')
     if nAva == nTot:
         isprocessed = True
+        lines.append(f'  Status: OK')
     else:
         if not os.path.exists(path_jday):
-            lines.append(f'Path: {path_jday} does not exists')
+            lines.append(f'  Path: {path_jday} does not exists')
         for name_file in missing_files:
-            lines.append(f'File: {name_file} is not available')
+            lines.append(f'  File: {name_file} is not available')
+        lines.append(f'  Status: FAILED')
+
+    return lines, isprocessed
+
+
+def get_lines_processing_olci(region, date, pathjday):
+    if region == 'BLK':
+        region = 'BS'
+    isprocessed = False
+    lines = [' OLCI PROCESSING']
+    sinfo = SourceInfo('202207')
+    sinfo.start_source('OLCI')
+    sinfo.source = 'OLCIP'
+    sinfo.get_last_session_id(args.mode, region, date)
+    if sinfo.session_id is None:
+        lines.append('  Warning: Session ID was not found')
+    else:
+        lines.append(f'  Session ID: {sinfo.session_id}')
+        lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')
+        lines.append(f'  Session folder: {sinfo.get_session_folder()}')
+        lines.append(f'  Log file:  {sinfo.get_log_file()}')
+
+    name_list = sinfo.get_processed_files()
+    nfiles = 0
+    ntot = len(name_list)
+    path = sinfo.get_processing_folder()
+    for name in name_list:
+        name = name.replace('DATE', date.strftime('%Y%j'))
+        name = name.replace('REG', region.lower())
+        fhere = os.path.join(path, name)
+        if os.path.exists(fhere):
+            nfiles = nfiles + 1
+    lines.append(f'  Processed files: {nfiles}/{ntot}')
+    if nfiles == ntot:
+        isprocessed = True
+        lines.append(f'  Status: OK')
+    else:
+        lines.append(f'  Status: Failed')
 
     return lines, isprocessed
 
@@ -365,14 +424,24 @@ def get_list_products_datasets(mode, date):
     return name_products, name_datasets, dates
 
 
+def get_olci_processing_cmd():
+    sinfo = SourceInfo('202207')
+    sinfo.start_source('OLCI')
+    return sinfo.get_processing_cmd()
+
+
 def get_specific_cmd(cmd, eis, date, region, mode):
     region = region.upper()
     if region == 'BLK':
         region = 'BS'
     mode = mode.upper()
+    olcimode = 'NR'
+    if mode=='DT':
+        olcimode = 'NT'
     cmd = cmd.replace('$EIS$', eis)
     cmd = cmd.replace('$REG$', region)
     cmd = cmd.replace('$MODE$', mode)
+    cmd = cmd.replace('$OLCIMODE$', olcimode)
     cmd = cmd.replace('$DATE$', date.strftime('%Y-%m-%d'))
     return cmd
 
