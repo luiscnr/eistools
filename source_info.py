@@ -123,7 +123,8 @@ class SourceInfo():
             proccessing_folder = self.get_processing_folder()
             if proccessing_folder is not None and os.path.exists(proccessing_folder):
                 jdate = date.strftime('%Y%j')
-                log_file = os.path.join(proccessing_folder, f'{jdate}_{self.sessionid}.log')
+                log_file = os.path.join(proccessing_folder, f'{jdate}_{self.sessionid[17:]}.log')
+                print(log_file,os.path.exists(log_file))
                 if not os.path.exists(log_file):
                     log_file = None
         else:
