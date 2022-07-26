@@ -39,7 +39,14 @@ class SourceInfo():
             region = 'BS'
         path_search = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions'
         datestr = date.strftime('%Y%m%d')
-        prename = f'OC_PROC_EIS{self.eis}_{self.source}_{mode}_{region}_{datestr}'
+        source_str = self.source
+        if self.source=='OLCI':
+            source_str = 's3olci_S3A_RR'
+            if mode=='NRT':
+                mode = 'NR'
+            if mode=='DT':
+                mode = 'NT'
+        prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
