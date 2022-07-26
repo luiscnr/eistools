@@ -91,6 +91,7 @@ def main():
         path_o = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/LAUNCHED/'
         cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
         for idx in range(len(name_products)):
+            print(idx,name_products[idx],'/',name_datasets[idx])
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
