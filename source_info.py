@@ -200,12 +200,15 @@ class SourceInfo():
         for line in fmail:
             if line.startswith('Downloaded files:'):
                 start_dfiles = True
+                continue
             if line.startswith('Trimmed files:'):
                 start_tfiles = True
                 start_dfiles = False
+                continue
             if line.startswith('Final Products:'):
                 start_fpfiles = True
                 start_tfiles = False
+                continue
             if start_dfiles and len(line.strip()) > 0:
                 dfiles.append(line.strip())
             if start_tfiles and len(line.strip()) > 0:
@@ -223,8 +226,6 @@ class SourceInfo():
             f = os.path.join(path, name)
             if os.path.exists(f):
                 n_dfiles = n_dfiles + 1
-            else:
-                print('questo no existe: ',f,'-->',name)
         path = self.dsource["source_dir_trim"]
         path = os.path.join(path, date.strftime('%Y'), date.strftime('%j'))
         for name in tfiles:
