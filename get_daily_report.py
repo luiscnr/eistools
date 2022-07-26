@@ -37,7 +37,7 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
+        #print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -79,7 +79,10 @@ def main():
                 if not completed_array[idx]:
                     lines_mail.append(f'     MISSING SOURCES ({missing_array[idx]})')
                 if processed_array[idx] > 0:
-                    lines_mail.append(f'     PROCESSING ERROR')
+                    if processed_array[idx]==2 or processed_array[idx]==3:
+                        lines_mail.append(f'     OLCI PROCESSING ERROR')
+                    if processed_array[idx]==1 or processed_array[idx]==3:
+                        lines_mail.append(f'     {pinfo.get_sensor()} PROCESSING ERROR')
                 if not uploaded_array[idx]:
                     lines_mail.append(f'     DATASET WAS NOT UPLOADED')
 
@@ -92,13 +95,22 @@ def main():
         cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
         for idx in range(len(name_products)):
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
+            if idx==8:
+                completed_array[idx] = False
+                missing_array[idx] = 'AQUA,OLCI'
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
                 missing_sources = missing_sources_str.split(',')
                 sinfo = SourceInfo('202207')
+                olciismissing = False
                 for source in missing_sources:
+                    if source.lower()=='olci':
+                        olciismissing = True
                     sinfo.start_source(source.strip())
                     cmd = get_specific_cmd(sinfo.get_cmd(), '202207', dates[idx], pinfo.get_region(), args.mode)
+                    cmdlines.append(cmd)
+                if olciismissing:
+                    cmd = get_specific_cmd(get_olci_processing_cmd(),'202207', dates[idx], pinfo.get_region(),args.mode)
                     cmdlines.append(cmd)
                 cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(), '202207', dates[idx], pinfo.get_region(),
                                        args.mode)
