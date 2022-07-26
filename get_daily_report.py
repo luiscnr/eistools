@@ -320,7 +320,7 @@ def get_lines_processing(pinfo, date):
     return lines, isprocessed
 
 
-def get_lines_processing_olci(region, date, pathjday):
+def get_lines_processing_olci(region, date):
     if region == 'BLK':
         region = 'BS'
     isprocessed = False
