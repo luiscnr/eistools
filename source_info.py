@@ -15,6 +15,8 @@ class SourceInfo():
         self.dsource = {}
         self.sessionid = None
 
+        self.sessionid_list = []
+
     def start_source(self, source):
         self.dsource = {}
         self.source = None
@@ -46,10 +48,12 @@ class SourceInfo():
                 mode = 'NR'
             if mode == 'DT':
                 mode = 'NT'
-            path_search = f'/EO_DATA/TDIR/'
+            path_search = '/EO_DATA/TDIR/'
         prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
+        self.sessionid = self.search_session_id_inlist(prename)
+        if self.sessionid is not None:
+            return
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
-        print(cmd)
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
         if err:
@@ -65,9 +69,16 @@ class SourceInfo():
                 if wrefhere >= wref:
                     wref = wrefhere
                     self.sessionid = os.path.basename(path)
+                    self.sessionid_list.append(self.sessionid)
         file_r.close()
         os.remove('list.temp')
 
+    def search_session_id_inlist(self,prename):
+        if len(self.sessionid_list)==0:
+            return None
+        for s in self.sessionid_list:
+            if s.startswith(prename):
+                return s
     def get_session_folder(self):
         if self.sessionid is None:
             return None
