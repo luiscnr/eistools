@@ -49,6 +49,7 @@ class SourceInfo():
             path_search = f'/EO_DATA/TDIR/'
         prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
+        print(cmd)
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
         if err:
