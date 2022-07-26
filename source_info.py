@@ -73,12 +73,13 @@ class SourceInfo():
         file_r.close()
         os.remove('list.temp')
 
-    def search_session_id_inlist(self,prename):
-        if len(self.sessionid_list)==0:
+    def search_session_id_inlist(self, prename):
+        if len(self.sessionid_list) == 0:
             return None
         for s in self.sessionid_list:
             if s.startswith(prename):
                 return s
+
     def get_session_folder(self):
         if self.sessionid is None:
             return None
@@ -123,8 +124,7 @@ class SourceInfo():
             proccessing_folder = self.get_processing_folder()
             if proccessing_folder is not None and os.path.exists(proccessing_folder):
                 jdate = date.strftime('%Y%j')
-                log_file = os.path.join(proccessing_folder, f'{jdate}_{self.sessionid[17:]}.log')
-                print(log_file,os.path.exists(log_file))
+                log_file = os.path.join(proccessing_folder, f'{jdate}{self.sessionid[17:]}.log')
                 if not os.path.exists(log_file):
                     log_file = None
         else:
@@ -138,6 +138,8 @@ class SourceInfo():
 
         if self.dsource["agency"] == "NASA":
             lines_source, valid_source = self.check_source_NASA(lines_source)
+        elif source == "OLCI":
+            lines_source, valid_source = self.check_source_OLCI(date, lines_source)
         else:
             lines_source.append(' Status: no implemented')
             valid_source = True
@@ -181,6 +183,64 @@ class SourceInfo():
             lines_source.append(f' Status: OK')
         else:
             lines_source.append(f' Status: FAIL')
+
+        return lines_source, valid_sources
+
+    def check_source_OLCI(self, date, lines_source):
+        valid_sources = True
+        proccessing_folder = self.get_processing_folder()
+        mail_file = os.path.join(proccessing_folder, 'final_mail.txt')
+        fmail = open(mail_file, 'r')
+        dfiles = []
+        tfiles = []
+        fpfiles = []
+        start_dfiles = False
+        start_tfiles = False
+        start_fpfiles = False
+        for line in fmail:
+            if line.startswith('Downloaded files:'):
+                start_dfiles = True
+            if line.startswith('Trimmed files:'):
+                start_tfiles = True
+                start_dfiles = False
+            if line.startswith('Final Products:'):
+                start_fpfiles = True
+                start_tfiles = False
+            if start_dfiles and len(line.strip()) > 0:
+                dfiles.append(line.strip())
+            if start_tfiles and len(line.strip()) > 0:
+                tfiles.append(line.strip())
+            if start_fpfiles and len(line.strip()) > 0:
+                fpfiles.append(line.strip())
+        fmail.close()
+        n_dfiles = 0
+        n_tfiles = 0
+        n_fpfiles = 0
+
+        path = self.dsource["source_dir_orig"]
+        path = os.path.join(path, date.strftime('%Y'), date.strftime('%j'))
+        for name in dfiles:
+            f = os.path.join(path, name)
+            if os.path.exists(f):
+                n_dfiles = n_dfiles + 1
+        path = self.dsource["source_dir_trim"]
+        path = os.path.join(path, date.strftime('%Y'), date.strftime('%j'))
+        for name in tfiles:
+            f = os.path.join(path, name)
+            if os.path.exists(f):
+                n_tfiles = n_tfiles + 1
+
+        for name in fpfiles:
+            f = os.path.join(proccessing_folder, name)
+            if os.path.exists(f):
+                n_fpfiles = n_fpfiles + 1
+
+        if n_dfiles == len(dfiles) and n_tfiles == len(tfiles) and n_fpfiles == len(fpfiles):
+            valid_sources = True
+
+        lines_source.append(f'Downloaded files: {len(dfiles)}/{n_dfiles}')
+        lines_source.append(f'Trimmed files: {len(tfiles)}/{n_tfiles}')
+        lines_source.append(f'Final products: {len(fpfiles)}/{n_fpfiles}')
 
         return lines_source, valid_sources
 
