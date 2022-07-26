@@ -64,7 +64,7 @@ def main():
         if os.path.exists(reproc_file):
             os.remove(reproc_file)
 
-    nprocessed = 19
+    
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
         pinfo = ProductInfo()
@@ -96,8 +96,6 @@ def main():
         cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
         for idx in range(len(name_products)):
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
-            if idx==8:
-                processed_array[idx] = 3
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
                 missing_sources = missing_sources_str.split(',')
