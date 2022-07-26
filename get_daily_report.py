@@ -329,10 +329,10 @@ def get_lines_processing_olci(region, date):
     sinfo.start_source('OLCI')
     sinfo.source = 'OLCIP'
     sinfo.get_last_session_id(args.mode, region, date)
-    if sinfo.session_id is None:
+    if sinfo.sessionid is None:
         lines.append('  Warning: Session ID was not found')
     else:
-        lines.append(f'  Session ID: {sinfo.session_id}')
+        lines.append(f'  Session ID: {sinfo.sessionid}')
         lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')
         lines.append(f'  Session folder: {sinfo.get_session_folder()}')
         lines.append(f'  Log file:  {sinfo.get_log_file()}')
