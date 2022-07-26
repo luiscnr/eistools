@@ -116,6 +116,7 @@ def main():
                 cmd = get_upload_cmd(pinfo, dates[idx])
                 cmdlines.append(cmd)
 
+        cmdlines.append('sleep 60')
         cmd = get_report_cmd(date)
         cmdlines.append(cmd)
 
