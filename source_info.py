@@ -40,14 +40,14 @@ class SourceInfo():
         path_search = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions'
         datestr = date.strftime('%Y%m%d')
         source_str = self.source
-        if self.source=='OLCI':
+        if self.source == 'OLCI':
             source_str = 's3olci_S3A_RR'
-            if mode=='NRT':
+            if mode == 'NRT':
                 mode = 'NR'
-            if mode=='DT':
+            if mode == 'DT':
                 mode = 'NT'
+            path_search = f'/EO_DATA/TDIR/'
         prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
-        print('PRENAME ES: ',prename)
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
@@ -106,9 +106,18 @@ class SourceInfo():
             lines_source.append(f'[WARNING] Session id for: {source} {mode} {region} {date} could not be found')
             return lines_source, valid_source
 
-        session_folder = self.get_session_folder()
-        proccessing_folder = self.get_processing_folder()
-        log_file = self.get_log_file()
+        if source == 'OLCI':
+            session_folder = None
+            proccessing_folder = self.get_processing_folder()
+            if proccessing_folder is not None and os.path.exists(proccessing_folder):
+                jdate = date.strftime('%Y%j')
+                log_file = os.path.join(proccessing_folder, f'{jdate}_{self.sessionid}.log')
+                if not os.path.exists(log_file):
+                    log_file = None
+        else:
+            session_folder = self.get_session_folder()
+            proccessing_folder = self.get_processing_folder()
+            log_file = self.get_log_file()
         lines_source.append(f' Session ID: {self.sessionid}')
         lines_source.append(f' Session folder: {session_folder}')
         lines_source.append(f' Proccessing folder: {proccessing_folder}')
@@ -123,7 +132,7 @@ class SourceInfo():
         return lines_source, valid_source
 
     # implementation of check_source, session id is already defined
-    def check_source_NASA(self,lines_source):
+    def check_source_NASA(self, lines_source):
         valid_sources = True
 
         session_folder = self.get_session_folder()
@@ -133,25 +142,25 @@ class SourceInfo():
         if not os.path.exists(fsource_list):
             valid_sources = False
             lines_source.append(f' Status: FAIL Source files for {self.source} are not available')
-            return lines_source,valid_sources
+            return lines_source, valid_sources
 
-        fs = open(fsource_list,'r')
+        fs = open(fsource_list, 'r')
         ntot = 0
         ngood = 0
         notexisting = []
         for fname in fs:
-            if len(fname)==0:
+            if len(fname) == 0:
                 continue
-            ntot = ntot +1
-            file_s = os.path.join(proccessing_folder,fname.strip())
+            ntot = ntot + 1
+            file_s = os.path.join(proccessing_folder, fname.strip())
             if os.path.exists(file_s):
-                ngood = ngood +1
+                ngood = ngood + 1
             else:
                 notexisting.append(fname.strip())
         fs.close()
 
         lines_source.append(f' Available source files: {ngood}/{ntot}')
-        if ngood<ntot:
+        if ngood < ntot:
             valid_sources = False
             for fname in notexisting:
                 lines_source.append(f'  Source file not found: {fname}')
