@@ -223,6 +223,8 @@ class SourceInfo():
             f = os.path.join(path, name)
             if os.path.exists(f):
                 n_dfiles = n_dfiles + 1
+            else:
+                print('questo no existe: ',f,'-->',name)
         path = self.dsource["source_dir_trim"]
         path = os.path.join(path, date.strftime('%Y'), date.strftime('%j'))
         for name in tfiles:
@@ -238,9 +240,9 @@ class SourceInfo():
         if n_dfiles == len(dfiles) and n_tfiles == len(tfiles) and n_fpfiles == len(fpfiles):
             valid_sources = True
 
-        lines_source.append(f'Downloaded files: {len(dfiles)}/{n_dfiles}')
-        lines_source.append(f'Trimmed files: {len(tfiles)}/{n_tfiles}')
-        lines_source.append(f'Final products: {len(fpfiles)}/{n_fpfiles}')
+        lines_source.append(f' Downloaded files: {n_dfiles}/{len(dfiles)}')
+        lines_source.append(f' Trimmed files: {n_tfiles}/{len(tfiles)}')
+        lines_source.append(f' Final products: {n_fpfiles}/{len(fpfiles)}')
 
         return lines_source, valid_sources
 
