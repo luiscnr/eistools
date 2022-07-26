@@ -47,6 +47,7 @@ class SourceInfo():
             if mode=='DT':
                 mode = 'NT'
         prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
+        print('PRENAME ES: ',prename)
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
@@ -99,11 +100,11 @@ class SourceInfo():
         self.start_source(source)
         if self.source is None:
             lines_source.append(f'[WARNING] Source: {source} was not identified in sources config file')
-            return valid_source, lines_source
+            return lines_source, valid_source
         self.get_last_session_id(mode, region, date)
         if self.sessionid is None:
             lines_source.append(f'[WARNING] Session id for: {source} {mode} {region} {date} could not be found')
-            return valid_source, lines_source
+            return lines_source, valid_source
 
         session_folder = self.get_session_folder()
         proccessing_folder = self.get_processing_folder()
