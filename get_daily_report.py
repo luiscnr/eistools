@@ -98,15 +98,12 @@ def main():
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
-                print('Line 101: ',missing_sources_str)
                 missing_sources = missing_sources_str.split(',')
-                print('Line 103: ',missing_sources)
                 sinfo = SourceInfo('202207')
                 olciismissing = False
                 for source in missing_sources:
                     if source.strip().lower() == 'olci':
                         olciismissing = True
-                    print('Line 109: source strip es: ',source.strip())
                     sinfo.start_source(source.strip())
                     cmd = get_specific_cmd(sinfo.get_cmd(), '202207', dates[idx], pinfo.get_region(), args.mode)
                     cmdlines.append(cmd)
@@ -391,7 +388,7 @@ def get_lines_sources(pinfo, sources, date):
             if missing_str is None:
                 missing_str = s.strip()
             else:
-                missing_str = f'{missing_str},{s.strip}'
+                missing_str = f'{missing_str},{s.strip()}'
         if len(lines) == 0:
             lines = lines_source
         else:
