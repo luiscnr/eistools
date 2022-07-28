@@ -37,7 +37,7 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        #print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
+        print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -64,7 +64,7 @@ def main():
         if os.path.exists(reproc_file):
             os.remove(reproc_file)
 
-    
+
     # IF EVERYTHING IS OK, SCRIPT FINISHES HERE
     if ncompleted < ndatasets or nprocessed < ndatasets or nuploaded < ndatasets:
         pinfo = ProductInfo()
@@ -380,6 +380,7 @@ def get_lines_sources(pinfo, sources, date):
     ncompleted = 0
     for s in slist:
         source = s.strip()
+        print('line 383 ',source)
         lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
         if source_valid:
             ncompleted = ncompleted + 1

@@ -42,13 +42,17 @@ class SourceInfo():
         path_search = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions'
         datestr = date.strftime('%Y%m%d')
         source_str = self.source
-        if self.source == 'OLCI':
-            source_str = 's3olci_S3A_RR'
+        if self.source == 'OLCI' or self.source == 'S3A_FR' or self.source == 'S3B_FR':
+            if self.source == 'OLCI':
+                source_str = 's3olci_S3A_RR'
+            else:
+                source_str = f's3olci_{self.source}'
             if mode == 'NRT':
                 mode = 'NR'
             if mode == 'DT':
                 mode = 'NT'
             path_search = '/EO_DATA/TDIR/'
+
         if self.source == 'OLCIP':
             source_str = 'OLCI'
         prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
@@ -129,6 +133,14 @@ class SourceInfo():
                 log_file = os.path.join(proccessing_folder, f'{jdate}{self.sessionid[17:]}.log')
                 if not os.path.exists(log_file):
                     log_file = None
+        elif source == 'S3A_FR' or source == 'S3B_FR':
+            session_folder = None
+            proccessing_folder = self.get_processing_folder()
+            if proccessing_folder is not None and os.path.exists(proccessing_folder):
+                jdate = date.strftime('%Y%j')
+                log_file = os.path.join(proccessing_folder, f'{jdate}{self.sessionid[17:]}.log')
+                if not os.path.exists(log_file):
+                    log_file = None
         else:
             session_folder = self.get_session_folder()
             proccessing_folder = self.get_processing_folder()
@@ -140,7 +152,7 @@ class SourceInfo():
 
         if self.dsource["agency"] == "NASA":
             lines_source, valid_source = self.check_source_NASA(lines_source)
-        elif source == "OLCI":
+        elif source == "OLCI" or source == 'S3A_FR' or source == 'S3B_FR':
             lines_source, valid_source = self.check_source_OLCI(date, lines_source)
         else:
             lines_source.append(' Status: no implemented')
