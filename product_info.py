@@ -94,15 +94,15 @@ class ProductInfo:
         return self.get_dinfo_param('dataset')
 
     def get_sources(self):
-        print('line 97: soruces')
+
         if len(self.dinfo) == 0:
-            print('aqui no deberia llegar')
+
             return None
         try:
-            print('102')
+
             return self.dinfo['sources']
         except:
-            print('105 sin implementar')
+
             return None
 
     def get_reprocessing_cmd(self):

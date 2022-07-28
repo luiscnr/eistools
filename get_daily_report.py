@@ -37,7 +37,7 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
+        #print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
@@ -95,14 +95,16 @@ def main():
         path_o = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/LAUNCHED/'
         cmdlines.append(f'cp {get_reproc_filename(date)} {path_o}{name_r}_$ins.sh')
         for idx in range(len(name_products)):
+            print(name_products[idx], name_datasets[idx], dates[idx],'-------------------------------------------------------')
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
                 missing_sources = missing_sources_str.split(',')
+                print('103', missing_sources_str)
                 sinfo = SourceInfo('202207')
                 olciismissing = False
                 for source in missing_sources:
-                    if source.lower()=='olci':
+                    if source.strip().lower()=='olci':
                         olciismissing = True
                     sinfo.start_source(source.strip())
                     cmd = get_specific_cmd(sinfo.get_cmd(), '202207', dates[idx], pinfo.get_region(), args.mode)
@@ -380,7 +382,6 @@ def get_lines_sources(pinfo, sources, date):
     ncompleted = 0
     for s in slist:
         source = s.strip()
-        print('line 383 ',source)
         lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
         if source_valid:
             ncompleted = ncompleted + 1
