@@ -61,12 +61,17 @@ class SourceInfo():
 
         if self.source == 'OLCIP':
             source_str = 'OLCI'
-        #prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
-        prename = f'{proc_folder}_{source_str}_{mode}_{region}_{datestr}'
+
+        if self.source == 'S3A_FR' or self.source == 'S3B_FR':
+            prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
+        else:
+            prename = f'{proc_folder}_{source_str}_{mode}_{region}_{datestr}'
         self.sessionid = self.search_session_id_inlist(prename)
         if self.sessionid is not None:
             return
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
+        print('-----------------------------------------------')
+        print(cmd)
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
         if err:
