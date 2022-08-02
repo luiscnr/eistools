@@ -312,6 +312,7 @@ def get_lines_processing(pinfo, date):
         lines.append('  Warning: Session ID was not found')
     else:
         sinfo = SourceInfo('202207')
+        sinfo.start_source('MULTI')
         sinfo.sessionid = session_id
         lines.append(f'  Session ID: {session_id}')
         lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')

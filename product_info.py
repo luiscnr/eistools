@@ -320,11 +320,11 @@ class ProductInfo:
         return path_jday, nTot, nAva, missing_files
 
     def get_session_id(self, mode, date):
-        if self.dinfo['sensor'] == 'MULTI':
-            sinfo = SourceInfo('202207')
+        sinfo = SourceInfo('202207')
+        if self.dinfo['sensor'] == 'MULTI' or self.dinfo['sensor'] == 'gapfree_multi':
             sinfo.start_source('MULTI')
             sinfo.get_last_session_id(mode, self.dinfo['region'], date)
-            return sinfo.sessionid
+        return sinfo.sessionid
 
     def get_size_file_path_orig_olci_monthly(self, path, datehere, dtype):
         tamgb = -1
