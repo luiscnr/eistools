@@ -316,7 +316,7 @@ def get_lines_processing(pinfo, date):
         lines.append(f'  Session ID: {session_id}')
         lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')
         lines.append(f'  Session folder: {sinfo.get_session_folder(args.mode)}')
-        lines.append(f'  Log file:  {sinfo.get_log_file()}')
+        lines.append(f'  Log file:  {sinfo.get_log_file(args.mode)}')
 
     lines.append(f'  Processed files path: {path_jday}')
     lines.append(f'  Processed files: {nAva}/{nTot}')
@@ -348,7 +348,7 @@ def get_lines_processing_olci(region, date):
         lines.append(f'  Session ID: {sinfo.sessionid}')
         lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')
         lines.append(f'  Session folder: {sinfo.get_session_folder(args.mode)}')
-        lines.append(f'  Log file:  {sinfo.get_log_file()}')
+        lines.append(f'  Log file:  {sinfo.get_log_file(args.mode)}')
 
     name_list = sinfo.get_processed_files()
     nfiles = 0

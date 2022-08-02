@@ -35,8 +35,8 @@ class SourceInfo():
 
     def get_last_session_id(self, mode, region, date):
         if mode=='NRT':
-            print(mode, region, date, self.source)
-            print(self.dsource)
+            # print(mode, region, date, self.source)
+            # print(self.dsource)
             proc_folder = self.dsource["proc_folder_nrt"]
         if mode=='DT':
             proc_folder = self.dsource["proc_folder_dt"]
