@@ -91,7 +91,7 @@ class SourceInfo():
             if s.startswith(prename):
                 return s
 
-    def get_session_folder(self):
+    def get_session_folder(self,mode):
         if self.sessionid is None:
             return None
         if mode=='NRT':
