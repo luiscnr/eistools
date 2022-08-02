@@ -6,7 +6,6 @@ import check_202207 as checkftp
 from source_info import SourceInfo
 import os
 
-
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
 parser.add_argument("-sd", "--date", help="Date.")
@@ -38,8 +37,11 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
-        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],name_datasets[idx],dates[idx])
+        print(name_products[idx], name_datasets[idx], dates[idx],
+              '-------------------------------------------------------')
+        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
+                                                                                             name_datasets[idx],
+                                                                                             dates[idx])
         if iscompleted:
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
@@ -104,9 +106,9 @@ def main():
                     if source.strip().lower() == 'olci':
                         olciismissing = True
                     sinfo.start_source(source.strip())
-                    if args.mode=='NRT':
+                    if args.mode == 'NRT':
                         cmd = get_specific_cmd(sinfo.get_cmd_nrt(), '202207', dates[idx], pinfo.get_region(), args.mode)
-                    elif args.mode=='DT':
+                    elif args.mode == 'DT':
                         cmd = get_specific_cmd(sinfo.get_cmd_dt(), '202207', dates[idx], pinfo.get_region(), args.mode)
                     cmdlines.append(cmd)
                 if olciismissing:
@@ -124,7 +126,8 @@ def main():
                                            args.mode)
                     cmdlines.append(cmd)
                 if processed_array[idx] > 0:
-                    cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(args.mode), '202207', dates[idx], pinfo.get_region(),
+                    cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(args.mode), '202207', dates[idx],
+                                           pinfo.get_region(),
                                            args.mode)
                     cmdlines.append(cmd)
                 cmd = get_upload_cmd(pinfo, dates[idx])
@@ -309,7 +312,10 @@ def get_lines_processing(pinfo, date):
         return lines, isprocessed
     session_id = pinfo.get_session_id(args.mode, date)
     if session_id is None:
-        lines.append('  Warning: Session ID was not found')
+        if pinfo.get_sensor() == 'OLCI':
+            lines.append(f'  Session ID: N/A')
+        else:
+            lines.append('  Warning: Session ID was not found')
     else:
         sinfo = SourceInfo('202207')
         sinfo.start_source('MULTI')
@@ -441,9 +447,9 @@ def get_list_products_datasets(mode, date):
 def get_olci_processing_cmd(mode):
     sinfo = SourceInfo('202207')
     sinfo.start_source('OLCI')
-    if mode=='NRT':
+    if mode == 'NRT':
         return sinfo.get_processing_cmd_nrt()
-    elif mode=='DT':
+    elif mode == 'DT':
         return sinfo.get_processing_cmd_dt()
 
 
