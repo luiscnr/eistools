@@ -94,7 +94,12 @@ class SourceInfo():
     def get_session_folder(self):
         if self.sessionid is None:
             return None
-        session_folder = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions/{self.sessionid}'
+        if mode=='NRT':
+            proc_folder = self.dsource['proc_folder_nrt']
+        if mode=='DT':
+            proc_folder = self.dsource['proc_folder_dt']
+        #session_folder = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions/{self.sessionid}'
+        session_folder = f'/home/gosuser/Processing/{proc_folder}/sessions/{self.sessionid}'
         if os.path.exists(session_folder) and os.path.isdir(session_folder):
             return session_folder
         else:
@@ -147,7 +152,7 @@ class SourceInfo():
                 if not os.path.exists(log_file):
                     log_file = None
         else:
-            session_folder = self.get_session_folder()
+            session_folder = self.get_session_folder(mode)
             proccessing_folder = self.get_processing_folder()
             log_file = self.get_log_file()
         lines_source.append(f' Session ID: {self.sessionid}')
@@ -156,7 +161,7 @@ class SourceInfo():
         lines_source.append(f' Log file: {log_file}')
 
         if self.dsource["agency"] == "NASA":
-            lines_source, valid_source = self.check_source_NASA(lines_source)
+            lines_source, valid_source = self.check_source_NASA(lines_source, mode)
         elif source == "OLCI" or source == 'S3A_FR' or source == 'S3B_FR':
             lines_source, valid_source = self.check_source_OLCI(date, lines_source)
         else:
@@ -166,10 +171,10 @@ class SourceInfo():
         return lines_source, valid_source
 
     # implementation of check_source, session id is already defined
-    def check_source_NASA(self, lines_source):
+    def check_source_NASA(self, lines_source, mode):
         valid_sources = True
 
-        session_folder = self.get_session_folder()
+        session_folder = self.get_session_folder(mode)
         proccessing_folder = self.get_processing_folder()
 
         fsource_list = os.path.join(session_folder, 'source_files.list')

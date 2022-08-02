@@ -39,9 +39,7 @@ def main():
     nuploaded = 0
     for idx in range(len(name_products)):
         print(name_products[idx],name_datasets[idx],dates[idx],'-------------------------------------------------------')
-        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
-                                                                                             name_datasets[idx],
-                                                                                             dates[idx])
+        lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],name_datasets[idx],dates[idx])
         if iscompleted:
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
@@ -243,7 +241,6 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('SOURCES')
     sources = pinfo.get_sources()
-    print(sources)
     lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
     lines = [*lines, *lines_sources]
     if iscompleted:
