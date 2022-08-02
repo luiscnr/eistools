@@ -62,7 +62,7 @@ class SourceInfo():
         if self.source == 'OLCIP':
             source_str = 'OLCI'
 
-        if self.source == 'S3A_FR' or self.source == 'S3B_FR':
+        if self.source == 'S3A_FR' or self.source == 'S3B_FR' or self.source == 'OLCI':
             prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
         else:
             prename = f'{proc_folder}_{source_str}_{mode}_{region}_{datestr}'
