@@ -37,9 +37,9 @@ class SourceInfo():
         if mode=='NRT':
             print(mode, region, date, self.source)
             print(self.dsource)
-            proc_folder = self.dsource['proc_folder_nrt']
+            proc_folder = self.dsource["proc_folder_nrt"]
         if mode=='DT':
-            proc_folder = self.dsource['proc_folder_dt']
+            proc_folder = self.dsource["proc_folder_dt"]
         self.sessionid = None
         if self.source is None:
             return None
@@ -97,9 +97,9 @@ class SourceInfo():
         if self.sessionid is None:
             return None
         if mode=='NRT':
-            proc_folder = self.dsource['proc_folder_nrt']
+            proc_folder = self.dsource["proc_folder_nrt"]
         if mode=='DT':
-            proc_folder = self.dsource['proc_folder_dt']
+            proc_folder = self.dsource["proc_folder_dt"]
         #session_folder = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions/{self.sessionid}'
         session_folder = f'/home/gosuser/Processing/{proc_folder}/sessions/{self.sessionid}'
         if os.path.exists(session_folder) and os.path.isdir(session_folder):
@@ -116,10 +116,14 @@ class SourceInfo():
         else:
             return None
 
-    def get_log_file(self):
+    def get_log_file(self,mode):
         if self.sessionid is None:
             return None
-        log_file = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/log/{self.sessionid}.log'
+        if mode=='NRT':
+            proc_folder = self.dsource["proc_folder_nrt"]
+        if mode=='DT':
+            proc_folder = self.dsource["proc_folder_dt"]
+        log_file = f'/home/gosuser/Processing/{proc_folder}/log/{self.sessionid}.log'
         if os.path.exists(log_file):
             return log_file
         else:
@@ -156,7 +160,7 @@ class SourceInfo():
         else:
             session_folder = self.get_session_folder(mode)
             proccessing_folder = self.get_processing_folder()
-            log_file = self.get_log_file()
+            log_file = self.get_log_file(mode)
         lines_source.append(f' Session ID: {self.sessionid}')
         lines_source.append(f' Session folder: {session_folder}')
         lines_source.append(f' Proccessing folder: {proccessing_folder}')

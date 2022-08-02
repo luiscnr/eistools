@@ -322,7 +322,7 @@ class ProductInfo:
     def get_session_id(self, mode, date):
         if self.dinfo['sensor'] == 'MULTI':
             sinfo = SourceInfo('202207')
-            sinfo.source = 'MULTI'
+            sinfo.start_source('MULTI')
             sinfo.get_last_session_id(mode, self.dinfo['region'], date)
             return sinfo.sessionid
 
