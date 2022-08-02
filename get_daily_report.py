@@ -53,7 +53,6 @@ def main():
         if isuploaded:
             nuploaded = nuploaded + 1
             uploaded_array[idx] = isuploaded
-
         lines = [*lines, *lines_dataset]
 
     save_attach_info_file(lines)
