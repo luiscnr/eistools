@@ -96,7 +96,6 @@ class ProductInfo:
     def get_sources(self):
 
         if len(self.dinfo) == 0:
-
             return None
         try:
 
@@ -105,8 +104,11 @@ class ProductInfo:
 
             return None
 
-    def get_reprocessing_cmd(self):
-        return self.get_dinfo_param('CMD_reprocessing')
+    def get_reprocessing_cmd(self, mode):
+        if mode == 'NRT':
+            return self.get_dinfo_param('CMD_NRT_reprocessing')
+        if mode == 'DT':
+            return self.get_dinfo_param('CMD_DT_reprocessing')
 
     def get_last_nrt_date(self):
         datenow = dt.now().replace(hour=12, minute=0, second=0, microsecond=0)

@@ -34,12 +34,16 @@ class SourceInfo():
             print(f'[ERROR] Source file {fsources} does not exit')
 
     def get_last_session_id(self, mode, region, date):
+        if mode=='NRT':
+            proc_folder = self.dsource['proc_folder_nrt']
+        if mode=='DT':
+            proc_folder = self.dsource['proc_folder_dt']
         self.sessionid = None
         if self.source is None:
             return None
         if region == 'BLK':
             region = 'BS'
-        path_search = f'/home/gosuser/Processing/OC_PROC_EIS{self.eis}/sessions'
+        path_search = f'/home/gosuser/Processing/{proc_folder}/sessions'
         datestr = date.strftime('%Y%m%d')
         source_str = self.source
         if self.source == 'OLCI' or self.source == 'S3A_FR' or self.source == 'S3B_FR':
@@ -55,7 +59,8 @@ class SourceInfo():
 
         if self.source == 'OLCIP':
             source_str = 'OLCI'
-        prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
+        #prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'
+        prename = f'{proc_folder}_{source_str}_{mode}_{region}_{datestr}'
         self.sessionid = self.search_session_id_inlist(prename)
         if self.sessionid is not None:
             return
@@ -266,11 +271,17 @@ class SourceInfo():
 
         return lines_source, valid_sources
 
-    def get_cmd(self):
-        return self.dsource["cmd"]
+    def get_cmd_nrt(self):
+        return self.dsource["cmd_nrt"]
 
-    def get_processing_cmd(self):
-        return self.dsource["cmd_proc"]
+    def get_processing_cmd_nrt(self):
+        return self.dsource["cmd_proc_nrt"]
+
+    def get_cmd_dt(self):
+        return self.dsource["cmd_dt"]
+
+    def get_processing_cmd_dt(self):
+        return self.dsource["cmd_proc_dt"]
 
     def get_processed_files(self):
         sfiles = self.dsource["processed_files"]
