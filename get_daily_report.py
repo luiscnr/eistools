@@ -350,6 +350,8 @@ def get_lines_processing_olci(region, date):
     sinfo.get_last_session_id(args.mode, region, date)
     if sinfo.sessionid is None:
         lines.append('  Warning: Session ID was not found')
+        lines.append(f'  Status: Failed')
+        return lines, isprocessed
     else:
         lines.append(f'  Session ID: {sinfo.sessionid}')
         lines.append(f'  Processing folder: {sinfo.get_processing_folder()}')
