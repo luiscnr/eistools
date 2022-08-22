@@ -73,7 +73,7 @@ class SourceInfo():
         out, err = prog.communicate()
         if err:
             print(f'[ERROR]{err}')
-            return None
+            return
         wref = 0
         file_r = open('list.temp', 'r')
         for line in file_r:
@@ -222,6 +222,11 @@ class SourceInfo():
         valid_sources = True
         proccessing_folder = self.get_processing_folder()
         mail_file = os.path.join(proccessing_folder, 'final_mail.txt')
+        if not os.path.exists(mail_file):
+            lines_source.append(f' Expected file {mail_file} was not found. Error downloading OLCI files')
+            lines_source.append(f' Status: FAIL')
+            valid_sources = False
+            return lines_source, valid_sources
         fmail = open(mail_file, 'r')
         dfiles = []
         tfiles = []

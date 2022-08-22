@@ -213,14 +213,25 @@ def get_reproc_filename(date):
 
 
 def save_attach_info_file(lines):
-    if args.mode == 'NRT':
-        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/NRTProduct.txt'
-    if args.mode == 'DT':
-        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/DTProduct.txt'
+    finfo = get_attach_info_file()
     with open(finfo, 'w') as f:
         for line in lines:
             f.write(line)
             f.write('\n')
+
+
+def get_attach_info_file():
+    if args.mode == 'NRT':
+        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/NRTProduct.txt'
+    if args.mode == 'DT':
+        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/DTProduct.txt'
+    return finfo
+
+
+def start_info_file(date):
+    datestr = date.strftime('%Y-%m-%d')
+    lines = [f'INFO FILE FOR DATE: {datestr} WAS NOT CREATED']
+    save_attach_info_file(lines)
 
 
 def get_lines_dataset(name_product, name_dataset, date):
@@ -255,12 +266,22 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('PROCESSING')
     isprocessed = 0
     if pinfo.get_sensor().lower() == 'multi':  ##PREVIOUS OLCI PROCESSING
-        lines_oprocessing, isoprocessed = get_lines_processing_olci(pinfo.get_region(), date)
+        try:
+            lines_oprocessing, isoprocessed = get_lines_processing_olci(pinfo.get_region(), date)
+        except:
+            lines_oprocessing = [
+                f'Exception raised with processing OLCI for multi. Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
+            isoprocessed = False
         lines = [*lines, *lines_oprocessing]
         if not isoprocessed:
             isprocessed = isprocessed + 2
 
-    lines_processing, isgprocessed = get_lines_processing(pinfo, date)
+    try:
+        lines_processing, isgprocessed = get_lines_processing(pinfo, date)
+    except:
+        lines_processing = [f'Exception raised with processing for {pinfo.get_sensor()} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
+        isgprocessed = False
+
     lines = [*lines, *lines_processing]
     if not isgprocessed:
         isprocessed = isprocessed + 1
@@ -391,7 +412,12 @@ def get_lines_sources(pinfo, sources, date):
     ncompleted = 0
     for s in slist:
         source = s.strip()
-        lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
+        try:
+            lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
+        except:
+            lines_source = [f'Exception raised with source: {source} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
+            source_valid = False
+
         if source_valid:
             ncompleted = ncompleted + 1
         else:
