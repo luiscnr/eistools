@@ -214,9 +214,9 @@ def get_reproc_filename(date):
 
 def save_attach_info_file(lines):
     if args.mode == 'NRT':
-        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/NRTProduct.info'
+        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/NRTProduct.txt'
     if args.mode == 'DT':
-        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/DTProduct.info'
+        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/DTProduct.txt'
     with open(finfo, 'w') as f:
         for line in lines:
             f.write(line)
