@@ -412,9 +412,16 @@ def get_lines_sources(pinfo, sources, date):
     ncompleted = 0
     for s in slist:
         source = s.strip()
-        print(pinfo.product_name,pinfo.dataset_name,args.mode,date)
+        date_source = date
+        if source.lower()=='olci' and args.mode=='DT' :
+            if pinfo.get_sensor().lower()=='multi':
+                date_source = date + timedelta(days=12)
+            if pinfo.get_sensor().lower()=='gapfree_multi':
+                date_source = date + timedelta(days=16)
+
+        print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
         try:
-            lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
+            lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date_source)
         except:
             lines_source = [f'Exception raised with source: {source} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
             source_valid = False
