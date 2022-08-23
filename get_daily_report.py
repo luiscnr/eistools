@@ -412,6 +412,7 @@ def get_lines_sources(pinfo, sources, date):
     ncompleted = 0
     for s in slist:
         source = s.strip()
+        print(pinfo.product_name,pinfo.dataset_name,args.mode,date)
         try:
             lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date)
         except:
