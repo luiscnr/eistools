@@ -413,11 +413,14 @@ def get_lines_sources(pinfo, sources, date):
     for s in slist:
         source = s.strip()
         date_source = date
+
         if source.lower()=='olci' and args.mode=='DT' :
             if pinfo.get_sensor().lower()=='multi':
                 date_source = date + timedelta(days=12)
             if pinfo.get_sensor().lower()=='gapfree_multi':
                 date_source = date + timedelta(days=16)
+        if not source.lower() == 'olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
+            date_source = date + timedelta(days=4)
 
         #print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
         try:
