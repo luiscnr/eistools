@@ -9,6 +9,7 @@ from product_info import ProductInfo
 from calendar import monthrange
 import argparse
 import deleteDBS_202207 as delete
+import general_options as goptions
 
 parser = argparse.ArgumentParser(description='Upload 2DBS')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
@@ -189,7 +190,8 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name(date_here)
-        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT':
+        use_dt_suffix = goptions.use_dt_suffix()
+        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
 
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
@@ -214,7 +216,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             if count > 0:
                 deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
             count = count + 1
-            if status == "Delivered" and mode == 'DT':
+            if status == "Delivered" and mode == 'DT' and use_dt_suffix:
                 deliveries.add_delete_NRT_from_datafile_se(datafile_se)
 
         if status == 'Failed':
@@ -322,7 +324,8 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month, verbo
             print(f'[ERROR] Error with the file: {pfile}')
             continue
         remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
-        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT':
+        use_dt_suffix = goptions.use_dt_suffix()
+        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
 
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
@@ -345,7 +348,7 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month, verbo
             if count > 0:
                 deliveries.add_resend_attempt_to_datafile_se(datafile_se, rr, count)
             count = count + 1
-            if status == "Delivered" and mode == 'DT':
+            if status == "Delivered" and mode == 'DT' and use_dt_suffix:
                 deliveries.add_delete_NRT_from_datafile_se(datafile_se)
 
         if status == 'Failed':
