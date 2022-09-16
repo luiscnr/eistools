@@ -61,11 +61,12 @@ def copy_aqua_impl(sinfo, date_here, region):
     file_list = get_files_aqua_from_list(proc_folder, flist)
     if len(file_list) > 0:
         for f in file_list:
-            print('estamos aqui-> ',f)
             name = f.split('/')[-1]
             year = date_here.strftime('%Y')
             jday = date_here.strftime('%j')
             fout = f'/store3/OC/MODISA/sources/{year}/{jday}/{name}'
+            print(f)
+            print(fout)
             if not os.path.exists(fout):
                 if args.verbose:
                     print(f'[INFO]   Copying {f} to {fout}')
@@ -84,7 +85,6 @@ def get_files_aqua_from_list(proc_folder, file_list):
             fname = f'A{datehereold}.L2_LAC_OC.nc'
             filea = os.path.join(proc_folder, fname)
             if os.path.exists(filea):
-                print('Ading: ',filea)
                 filelist.append(filea)
         else:
             filea = os.path.join(proc_folder, line.strip())
