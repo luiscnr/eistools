@@ -58,6 +58,7 @@ def copy_aqua_impl(sinfo, date_here, region):
         print(f'[INFO]   Session ID: ', sinfo.sessionid)
         print(f'[INFO]   Processing folder: ', proc_folder)
     flist = os.path.join(proc_folder, 'daily_L2_files.list')
+    print(os.path.exists(flist))
     file_list = get_files_aqua_from_list(proc_folder, flist)
     if len(file_list) > 0:
         for f in file_list:
