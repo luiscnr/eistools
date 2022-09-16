@@ -15,10 +15,10 @@ parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 
 args = parser.parse_args()
 
-def main():
-    if args.mode=='COPYAQUA':
-        copy_aqua()
 
+def main():
+    if args.mode == 'COPYAQUA':
+        copy_aqua()
 
 
 def copy_aqua():
@@ -28,36 +28,37 @@ def copy_aqua():
     for y in range(start_date.year, end_date.year + 1):
         monthIni = 1
         monthEnd = 12
-        if y==start_date.year:
+        if y == start_date.year:
             monthIni = start_date.month
-        if y==end_date.year:
+        if y == end_date.year:
             monthEnd = end_date.month
         for m in range(monthIni, monthEnd + 1):
 
             day_ini = 1
             day_fin = calendar.monthrange(y, m)[1]
-            if m == start_date.month and y== start_date.year:
+            if m == start_date.month and y == start_date.year:
                 day_ini = start_date.day
-            if m == end_date.month and y==end_date.year:
+            if m == end_date.month and y == end_date.year:
                 day_fin = end_date.day
 
-            for d in range(day_ini,day_fin+1):
-                date_here = dt(y,m,d)
+            for d in range(day_ini, day_fin + 1):
+                date_here = dt(y, m, d)
                 if args.verbose:
                     print('----------------------------------------------')
                     print(f'[INFO] Copying files for date: {date_here}')
-                copy_aqua_impl(sinfo,date_here,'MED')
-                copy_aqua_impl(sinfo, date_here,'BS')
+                copy_aqua_impl(sinfo, date_here, 'MED')
+                copy_aqua_impl(sinfo, date_here, 'BS')
 
 
-def copy_aqua_impl(sinfo,date_here,region):
+def copy_aqua_impl(sinfo, date_here, region):
     sinfo.get_last_session_id('NRT', region, date_here)
     proc_folder = sinfo.get_processing_folder()
     if args.verbose:
-        print(f'[INFO]   Region: ',region)
+        print(f'[INFO]   Region: ', region)
         print(f'[INFO]   Session ID: ', sinfo.sessionid)
         print(f'[INFO]   Processing folder: ', proc_folder)
-    file_list = os.path.join(proc_folder, 'daily_L2_files.list')
+    flist = os.path.join(proc_folder, 'daily_L2_files.list')
+    file_list = get_files_aqua_from_list(proc_folder, flist)
     if len(file_list) > 0:
         for f in file_list:
             name = f.split('/')[-1]
@@ -69,27 +70,25 @@ def copy_aqua_impl(sinfo,date_here,region):
                     print(f'[INFO]   Copying {f} to {fout}')
                 shutil.copy(f, fout)
 
-def get_files_aqua_from_list(proc_folder,file_list):
+
+def get_files_aqua_from_list(proc_folder, file_list):
     file1 = open(file_list, 'r')
     filelist = []
     for line in file1:
         if line.startswith('AQUA_MODIS'):
-            datehere = dt.strptime(line.strip().split('.')[1],'%Y%m%dT%H%M%S')
+            datehere = dt.strptime(line.strip().split('.')[1], '%Y%m%dT%H%M%S')
             datehere = datehere.replace(second=0)
             datehereold = datehere.strftime('%Y%m%d%H%m%s')
             fname = f'A{datehereold}.L2_LAC_OC.nc'
-            filea = os.path.join(proc_folder,fname)
+            filea = os.path.join(proc_folder, fname)
             if os.path.exists(filea):
                 filelist.append(filea)
         else:
-            filea = os.path.join(proc_folder,line.strip())
+            filea = os.path.join(proc_folder, line.strip())
             if os.path.exists(filea):
                 filelist.append((filea))
     file1.close()
     return filelist
-
-
-
 
 
 def get_dates():
@@ -120,6 +119,7 @@ def get_dates():
 
     return start_date, end_date
 
+
 def get_date_from_param(dateparam):
     datefin = None
     try:
@@ -131,6 +131,7 @@ def get_date_from_param(dateparam):
         except:
             pass
     return datefin
+
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
