@@ -71,6 +71,8 @@ class SourceInfo():
             return
         cmd = f'find {path_search} -name {prename}* -type d > list.temp'
 
+        print(f'CMD: {cmd}')
+
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE)
         out, err = prog.communicate()
         if err:
