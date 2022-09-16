@@ -61,6 +61,7 @@ def copy_aqua_impl(sinfo, date_here, region):
     file_list = get_files_aqua_from_list(proc_folder, flist)
     if len(file_list) > 0:
         for f in file_list:
+            print('estamos aqui-> ',f)
             name = f.split('/')[-1]
             year = date_here.strftime('%Y')
             jday = date_here.strftime('%j')
@@ -76,21 +77,19 @@ def get_files_aqua_from_list(proc_folder, file_list):
     filelist = []
     for line in file1:
         line = line.strip()
-        print(line)
         if line.startswith('AQUA_MODIS'):
             datehere = dt.strptime(line.split('.')[1], '%Y%m%dT%H%M%S')
             datehere = datehere.replace(second=0)
-            print(datehere)
             datehereold = datehere.strftime('%Y%j%H%M%S')
             fname = f'A{datehereold}.L2_LAC_OC.nc'
             filea = os.path.join(proc_folder, fname)
-            print(filea)
             if os.path.exists(filea):
+                print('Ading: ',filea)
                 filelist.append(filea)
         else:
             filea = os.path.join(proc_folder, line.strip())
             if os.path.exists(filea):
-                filelist.append((filea))
+                filelist.append(filea)
     file1.close()
     return filelist
 
