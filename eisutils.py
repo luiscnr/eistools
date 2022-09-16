@@ -1,8 +1,10 @@
 import argparse
+import shutil
 from datetime import datetime as dt
 from datetime import timedelta
 from source_info import SourceInfo
 import calendar
+import os
 
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -42,12 +44,50 @@ def copy_aqua():
             for d in range(day_ini,day_fin+1):
                 date_here = dt(y,m,d)
                 if args.verbose:
+                    print('----------------------------------------------')
                     print(f'[INFO] Copying files for date: {date_here}')
-                sinfo.get_last_session_id('NRT','MED',date_here)
-                proc_folder = sinfo.get_processing_folder()
+                copy_aqua_impl(sinfo,date_here,'MED')
+                copy_aqua_impl(sinfo, date_here,'BS')
+
+
+def copy_aqua_impl(sinfo,date_here,region):
+    sinfo.get_last_session_id('NRT', region, date_here)
+    proc_folder = sinfo.get_processing_folder()
+    if args.verbose:
+        print(f'[INFO]   Region: ',region)
+        print(f'[INFO]   Session ID: ', sinfo.sessionid)
+        print(f'[INFO]   Processing folder: ', proc_folder)
+    file_list = os.path.join(proc_folder, 'daily_L2_files.list')
+    if len(file_list) > 0:
+        for f in file_list:
+            name = f.split('/')[-1]
+            year = date_here.strftime('%Y')
+            jday = date_here.strftime('%j')
+            fout = f'/store3/OC/MODISA/sources/{year}/{jday}/{name}'
+            if not os.path.exists(fout):
                 if args.verbose:
-                    print(f'[INFO] Session ID: ', sinfo.sessionid)
-                    print(f'[INFO] Processing folder: ',proc_folder)
+                    print(f'[INFO]   Copying {f} to {fout}')
+                shutil.copy(f, fout)
+
+def get_files_aqua_from_list(proc_folder,file_list):
+    file1 = open(file_list, 'r')
+    filelist = []
+    for line in file1:
+        if line.startswith('AQUA_MODIS'):
+            datehere = dt.strptime(line.strip().split('.')[1],'%Y%m%dT%H%M%S')
+            datehere = datehere.replace(second=0)
+            datehereold = datehere.strftime('%Y%m%d%H%m%s')
+            fname = f'A{datehereold}.L2_LAC_OC.nc'
+            filea = os.path.join(proc_folder,fname)
+            if os.path.exists(filea):
+                filelist.append(filea)
+        else:
+            filea = os.path.join(proc_folder,line.strip())
+            if os.path.exists(filea):
+                filelist.append((filea))
+    file1.close()
+    return filelist
+
 
 
 
