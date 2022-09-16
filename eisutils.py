@@ -43,7 +43,7 @@ def copy_aqua():
                 date_here = dt(y,m,d)
                 if args.verbose:
                     print(f'[INFO] Copying files for date: {date_here}')
-                sinfo.get_last_session_id('NRT','BAL',date_here)
+                sinfo.get_last_session_id('NRT','MED',date_here)
                 proc_folder = sinfo.get_processing_folder()
                 if args.verbose:
                     print(f'[INFO] Session ID: ', sinfo.sessionid)
