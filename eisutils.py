@@ -46,6 +46,7 @@ def copy_aqua():
                 sinfo.get_last_session_id('NRT','BAL',date_here)
                 proc_folder = sinfo.get_processing_folder()
                 if args.verbose:
+                    print(f'[INFO] Session ID: ', sinfo.sessionid)
                     print(f'[INFO] Processing folder: ',proc_folder)
 
 
