@@ -75,13 +75,16 @@ def get_files_aqua_from_list(proc_folder, file_list):
     file1 = open(file_list, 'r')
     filelist = []
     for line in file1:
+        line = line.strip()
         print(line)
         if line.startswith('AQUA_MODIS'):
-            datehere = dt.strptime(line.strip().split('.')[1], '%Y%m%dT%H%M%S')
+            datehere = dt.strptime(line.split('.')[1], '%Y%m%dT%H%M%S')
             datehere = datehere.replace(second=0)
+            print(datehere)
             datehereold = datehere.strftime('%Y%m%d%H%m%s')
             fname = f'A{datehereold}.L2_LAC_OC.nc'
             filea = os.path.join(proc_folder, fname)
+            print(filea)
             if os.path.exists(filea):
                 filelist.append(filea)
         else:
