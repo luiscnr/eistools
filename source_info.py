@@ -8,6 +8,7 @@ class SourceInfo():
     def __init__(self, eis):
         sdir = os.path.abspath(os.path.dirname(__file__))
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
+        print(self.path2info)
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
             self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         self.eis = eis
