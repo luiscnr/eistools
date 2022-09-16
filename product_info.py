@@ -617,6 +617,20 @@ class ProductInfo:
         sdir = os.path.join(dtref.strftime('%Y'))
         return rpath, sdir
 
+    def get_remote_path_normal(self, year, month):
+        dtref = dt(year, month, 1)
+        rpath = os.path.join(os.sep,'Core',self.product_name, self.dinfo['remote_dataset'])
+        sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
+        return rpath, sdir
+
+    def get_remote_path_monthly_normal(self, year):
+        dtref = dt(year, 1, 1)
+        rpath = os.path.join(os.sep, 'Core',self.product_name, self.dinfo['remote_dataset'])
+        sdir = os.path.join(dtref.strftime('%Y'))
+        return rpath, sdir
+
+
+
     def get_remote_path_climatology(self):
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
         sdir = ''

@@ -7,6 +7,7 @@ from ftplib import FTP
 from configparser import RawConfigParser
 import os, hashlib
 import lxml.etree as ET
+import general_options as goptions
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -41,7 +42,6 @@ def main():
         region = args.region
         if region == 'BS':
             region = 'BLK'
-
 
     if args.mode and args.region and args.level:
         dataset_type = None
@@ -134,9 +134,22 @@ def make_delete_daily_dataset(pinfo, mode, start_date, end_date, verbose):
                 day_fin = end_date.day
             if verbose:
                 print('-------------------------------------------------------------------')
-                print(f'[INFO] Launching delete from DU for year: {year} and month: {month}')
+                print(f'[INFO] Launching delete from DU for year {year} and month {month}')
 
             delete_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
+
+    for year in range(year_ini, year_fin + 1):
+        month_ini = 1
+        month_fin = 12
+        if year == year_ini:
+            month_ini = start_date.month
+        if year == year_fin:
+            month_fin = end_date.month
+        for month in range(month_ini, month_fin + 1):
+            delete_month_folder(pinfo, mode, year, month, verbose)
+
+    for year in range(year_ini, year_fin + 1):
+        delete_year_folder(pinfo, mode, year, verbose)
 
 
 def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, verbose):
@@ -151,29 +164,46 @@ def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, verbose):
             month_fin = end_date.month
         delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose)
 
+    for year in range(year_ini, year_fin + 1):
+        delete_year_folder(pinfo, mode, year, verbose)
+
 
 def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verbose):
-    ftpdu = FTPUpload(mode)
+    ftpdu = FTPUpload('cnr', mode)
+    ftpnormal = FTPUpload('normal', mode)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path(year, month)
     if verbose:
         print(f'[INFO] Remote path: {rpath}/{sdir}')
-
     ftpdu.go_month_subdir(rpath, year, month)
+
+    rpathnormal, sdir = pinfo.get_remote_path_normal(year, month)
+    gomonth = ftpnormal.go_month_subdir(rpathnormal, year, month)
+    if not gomonth:
+        print(f'[INFO] No directory found for year {year} and month {month}')
+        return
+
+    use_dt_suffix = goptions.use_dt_suffix()
+
     for day in range(start_day, end_day + 1):
         date_here = dt(year, month, day)
         if args.verbose:
             print('-------------------------')
             print(f'[INFO] Date: {date_here}')
         remote_file_name = pinfo.get_remote_file_name(date_here)
-        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT':
+        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
             if dt.now() >= datemyintref:
                 remote_file_name = remote_file_name.replace('my', 'myint')
+
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
+        if not ftpnormal.exist_file_name(remote_file_name):
+            print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
+            continue
+
         sdir_remote_file_name = os.path.join(sdir, remote_file_name)
         tagged_dataset = pinfo.get_tagged_dataset()
         upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
@@ -187,16 +217,25 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
         else:
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
 
+    ftpdu.close()
+    ftpnormal.close()
+
 
 def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose):
-    ftpdu = FTPUpload(mode)
+    ftpdu = FTPUpload('cnr', mode)
+    ftpnormal = FTPUpload('normal', mode)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
         print(f'[INFO] Remote path: {rpath}/{sdir}')
+    ftpdu.go_year_subdir(rpath, year)
 
-    ftpdu.go_year_subdir(rpath,year)
-
+    rpathnormal, sdir = pinfo.get_remote_path_monthly_normal(year)
+    goyear = ftpnormal.go_year_subdir(rpathnormal, year)
+    if not goyear:
+        print(f'[INFO] No directory found for year: {year}')
+        return
+    use_dt_suffix = goptions.use_dt_suffix()
 
     for month in range(month_ini, month_fin + 1):
         date_here = dt(year, month, 15)
@@ -204,7 +243,7 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
             print('-------------------------')
             print(f'[INFO] Date: {date_here}')
         remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
-        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT':
+        if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
@@ -212,13 +251,13 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
                 remote_file_name = remote_file_name.replace('my', 'myint')
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
+        if not ftpnormal.exist_file_name(remote_file_name):
+            print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
+            continue
         sdir_remote_file_name = os.path.join(sdir, remote_file_name)
-        print(sdir)
-        print(remote_file_name)
         tagged_dataset = pinfo.get_tagged_dataset()
         upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
         deliveries.add_delete(pinfo.product_name, tagged_dataset, sdir_remote_file_name, upload_TS)
-
         dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
         ftpdu.go_dnt(pinfo.product_name)
         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
@@ -227,6 +266,83 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
                 print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
         else:
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
+
+    ftpdu.close()
+    ftpnormal.close()
+
+
+def delete_year_folder(pinfo, mode, year, verbose):
+    ftpdu = FTPUpload('cnr', mode)
+    ftpnormal = FTPUpload('normal', mode)
+    rpath, sdir = pinfo.get_remote_path_monthly(year)
+    if verbose:
+        print('-------------------------')
+        print(f'[INFO] Deleting remote path for {year}: {rpath}/{sdir}...')
+    rpathnormal, sdir = pinfo.get_remote_path_monthly_normal(year)
+    goyear = ftpnormal.go_year_subdir(rpathnormal, year)
+    if not goyear:
+        print(f'[INFO] No directory found for year: {year}')
+        return
+    ftpdu.go_year_subdir(rpath, year)
+
+    if ftpnormal.isempty():
+        deliveriesf = Deliveries()
+        tagged_dataset = pinfo.get_tagged_dataset()
+        upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
+        deliveriesf.add_delete_year(pinfo.product_name, tagged_dataset, year, upload_TS)
+        if verbose:
+            print(f'[INFO] Deleting empty year directory: {pinfo.product_name}/{tagged_dataset}/{year}')
+        dnt_file_name, dnt_file_path = deliveriesf.create_dnt_file(pinfo.product_name)
+        ftpdu.go_dnt(pinfo.product_name)
+        status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
+        if status == 'Delivered':
+            if args.verbose:
+                print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
+        else:
+            print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
+    else:
+        tagged_dataset = pinfo.get_tagged_dataset()
+        if verbose:
+            print(f'[INFO] Year directory: {pinfo.product_name}/{tagged_dataset}/{year} is not empty. Skiping...')
+    ftpdu.close()
+    ftpnormal.close()
+
+
+def delete_month_folder(pinfo, mode, year, month, verbose):
+    ftpdu = FTPUpload('cnr', mode)
+    ftpnormal = FTPUpload('normal', mode)
+    rpath, sdir = pinfo.get_remote_path(year,month)
+    if verbose:
+        print('-------------------------')
+        print(f'[INFO] Deleting remote path for {year}-{month}: {rpath}/{sdir}...')
+    rpathnormal, sdir = pinfo.get_remote_path_normal(year,month)
+    gomonth = ftpnormal.go_month_subdir(rpathnormal,year,month)
+    if not gomonth:
+        print(f'[INFO] No directory found for year-month: {year}-{month} ')
+        return
+    ftpdu.go_month_subdir(rpath,year,month)
+
+    if ftpnormal.isempty():
+        deliveriesf = Deliveries()
+        tagged_dataset = pinfo.get_tagged_dataset()
+        upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
+        deliveriesf.add_delete_month(pinfo.product_name,tagged_dataset,year,month,upload_TS)
+        if verbose:
+            print(f'[INFO] Deleting empty month directory: {pinfo.product_name}/{tagged_dataset}/{year}/{month}')
+        dnt_file_name, dnt_file_path = deliveriesf.create_dnt_file(pinfo.product_name)
+        ftpdu.go_dnt(pinfo.product_name)
+        status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
+        if status == 'Delivered':
+            if args.verbose:
+                print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
+        else:
+            print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
+    else:
+        tagged_dataset = pinfo.get_tagged_dataset()
+        if verbose:
+            print(f'[INFO] Year/Month directory: {pinfo.product_name}/{tagged_dataset}/{year}/{month} is not empty. Skiping...')
+    ftpdu.close()
+    ftpnormal.close()
 
 
 def get_date_from_param(dateparam):
@@ -244,7 +360,8 @@ def get_date_from_param(dateparam):
 
 
 class FTPUpload():
-    def __init__(self, mode):
+    # user: cnr or normal
+    def __init__(self, user, mode):
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         path2script = os.path.dirname(sdir)
@@ -254,8 +371,8 @@ class FTPUpload():
             du_server = "my.cmems-du.eu"
         elif mode == 'NRT' or mode == 'DT':
             du_server = "nrt.cmems-du.eu"
-        du_uname = credentials.get('cnr', 'uname')
-        du_passwd = credentials.get('cnr', 'passwd')
+        du_uname = credentials.get(user, 'uname')
+        du_passwd = credentials.get(user, 'passwd')
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
     def go_subdir(self, rpath):
@@ -267,8 +384,10 @@ class FTPUpload():
         yearstr = dateref.strftime('%Y')
         self.ftpdu.cwd(rpath)
         if not (yearstr in self.ftpdu.nlst()):
-            self.ftpdu.mkd(yearstr)
+            # self.ftpdu.mkd(yearstr)
+            return False
         self.ftpdu.cwd(yearstr)
+        return True
 
     def go_month_subdir(self, rpath, year, month):
         dateref = dt(year, month, 1)
@@ -278,12 +397,15 @@ class FTPUpload():
         self.ftpdu.cwd(rpath)
 
         if not (yearstr in self.ftpdu.nlst()):
-            self.ftpdu.mkd(yearstr)
+            # self.ftpdu.mkd(yearstr)
+            return False
         self.ftpdu.cwd(yearstr)
 
         if not (monthstr in self.ftpdu.nlst()):
-            self.ftpdu.mkd(monthstr)
+            # self.ftpdu.mkd(monthstr)
+            return False
         self.ftpdu.cwd(monthstr)
+        return True
 
     def go_dnt(self, product):
         dnt_dir_name = os.path.join(os.sep, product, 'DNT')
@@ -302,10 +424,15 @@ class FTPUpload():
 
         return status, rr, start_upload_TS, stop_upload_TS
 
+    def exist_file_name(self, remote_file_name):
+        if remote_file_name in self.ftpdu.nlst():
+            return True
+        else:
+            return False
+
     def isempty(self):
         a = self.ftpdu.nlst()
-
-        if len(a)==0:
+        if len(a) == 0:
             return True
         else:
             return False
@@ -383,7 +510,7 @@ class Deliveries():
             dataset_se = ET.SubElement(self.deliveries[product], "dataset", DatasetName=dataset)
         return dataset_se
 
-    def add_delete_month(self,product,dataset,year,month,upload_TS):
+    def add_delete_month(self, product, dataset, year, month, upload_TS):
         dataset_se = self.get_dataset_subelement(product, dataset)
         datafile_se = None
         dataref = dt(year, month, 15)
@@ -393,7 +520,7 @@ class Deliveries():
         if dataset_se is None:
             dataset_se = self.add_dataset(product, dataset, upload_TS)
         else:
-            datafile_se = self.get_directory_subelement(product,dataset,pathym)
+            datafile_se = self.get_directory_subelement(product, dataset, pathym)
         if datafile_se is None:
             datafile_se = ET.SubElement(dataset_se, "directory",
                                         SourceFolderName=pathym,
@@ -402,7 +529,7 @@ class Deliveries():
             ET.SubElement(datafile_se, "KeyWord").text = 'Delete'
         return datafile_se
 
-    def add_delete_year(self,product,dataset,year,upload_TS):
+    def add_delete_year(self, product, dataset, year, upload_TS):
         dataset_se = self.get_dataset_subelement(product, dataset)
         datafile_se = None
         dataref = dt(year, 6, 15)
@@ -410,7 +537,7 @@ class Deliveries():
         if dataset_se is None:
             dataset_se = self.add_dataset(product, dataset, upload_TS)
         else:
-            datafile_se = self.get_directory_subelement(product,dataset,pathy)
+            datafile_se = self.get_directory_subelement(product, dataset, pathy)
         if datafile_se is None:
             datafile_se = ET.SubElement(dataset_se, "directory",
                                         SourceFolderName=pathy,
