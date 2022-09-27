@@ -23,7 +23,6 @@ class SourceInfo():
         fsources = os.path.join(self.path2info, 'SOURCES.json')
         if os.path.exists(fsources):
             f = open(fsources, "r")
-            print(fsources)
             sourcesinfo = json.load(f)
 
             try:

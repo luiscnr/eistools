@@ -65,8 +65,6 @@ def copy_aqua_impl(sinfo, date_here, region):
             year = date_here.strftime('%Y')
             jday = date_here.strftime('%j')
             fout = f'/store3/OC/MODISA/sources/{year}/{jday}/{name}'
-            print(f)
-            print(fout)
             if not os.path.exists(fout):
                 if args.verbose:
                     print(f'[INFO]   Copying {f} to {fout}')
