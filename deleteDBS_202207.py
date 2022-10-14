@@ -374,6 +374,7 @@ class FTPUpload():
             du_server = "nrt.cmems-du.eu"
         du_uname = credentials.get(user, 'uname')
         du_passwd = credentials.get(user, 'passwd')
+        print(du_server,du_uname,du_passwd)
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
     def go_subdir(self, rpath):
