@@ -169,8 +169,8 @@ def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, verbose):
 
 
 def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verbose):
-    ftpdu = FTPUpload('cnr', mode)
-    ftpnormal = FTPUpload('normal', mode)
+    ftpdu = FTPUpload('cnr', mode, False)
+    ftpnormal = FTPUpload('normal', mode, True)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path(year, month)
     if verbose:
@@ -223,8 +223,8 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
 
 
 def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose):
-    ftpdu = FTPUpload('cnr', mode)
-    ftpnormal = FTPUpload('normal', mode)
+    ftpdu = FTPUpload('cnr', mode, False)
+    ftpnormal = FTPUpload('normal', mode, True)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
@@ -273,8 +273,8 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
 
 
 def delete_year_folder(pinfo, mode, year, verbose):
-    ftpdu = FTPUpload('cnr', mode)
-    ftpnormal = FTPUpload('normal', mode)
+    ftpdu = FTPUpload('cnr', mode, False)
+    ftpnormal = FTPUpload('normal', mode, True)
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
         print('-------------------------')
@@ -310,8 +310,8 @@ def delete_year_folder(pinfo, mode, year, verbose):
 
 
 def delete_month_folder(pinfo, mode, year, month, verbose):
-    ftpdu = FTPUpload('cnr', mode)
-    ftpnormal = FTPUpload('normal', mode)
+    ftpdu = FTPUpload('cnr', mode, False)
+    ftpnormal = FTPUpload('normal', mode,True)
     rpath, sdir = pinfo.get_remote_path(year,month)
     if verbose:
         print('-------------------------')
@@ -362,17 +362,22 @@ def get_date_from_param(dateparam):
 
 class FTPUpload():
     # user: cnr or normal
-    def __init__(self, user, mode):
+    def __init__(self, user, mode, usardevserver):
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         path2script = os.path.dirname(sdir)
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
         if mode == 'MY':
-            #du_server = "my.cmems-du.eu"
-            du_server = "my-dev.cmems-du.eu"
+            if usardevserver:
+                du_server = "my-dev.cmems-du.eu"
+            else:
+                du_server = "my.cmems-du.eu"
         elif mode == 'NRT' or mode == 'DT':
-            du_server = "nrt.cmems-du.eu"
+            if usardevserver:
+                du_server = "nrt-dev.cmems-du.eu"
+            else:
+                du_server = "nrt.cmems-du.eu"
         du_uname = credentials.get(user, 'uname')
         du_passwd = credentials.get(user, 'passwd')
         #print(du_server,du_uname,du_passwd)
