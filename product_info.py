@@ -18,7 +18,7 @@ class ProductInfo:
 
         self.path_reformat_script = os.path.join(os.path.dirname(sdir),'eistools','reformatting_file_cmems2_lois.sh')
         if not os.path.exists(self.path_reformat_script):
-            self.path_reformat_script = '/store3/simone/tmp/reformatting_file_cmems2_lois.sh'
+            self.path_reformat_script = '/store/woc/simone/tmp/reformatting_file_cmems2_lois.sh'
 
         self.product_name = ''
         self.dataset_name = ''
