@@ -369,12 +369,13 @@ class FTPUpload():
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
         if mode == 'MY':
-            du_server = "my.cmems-du.eu"
+            #du_server = "my.cmems-du.eu"
+            du_server = "my-dev.cmems-du.eu"
         elif mode == 'NRT' or mode == 'DT':
             du_server = "nrt.cmems-du.eu"
         du_uname = credentials.get(user, 'uname')
         du_passwd = credentials.get(user, 'passwd')
-        print(du_server,du_uname,du_passwd)
+        #print(du_server,du_uname,du_passwd)
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
     def go_subdir(self, rpath):
