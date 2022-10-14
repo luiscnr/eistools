@@ -196,8 +196,8 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             remote_file_name = remote_file_name.replace('nrt', 'dt')
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
-            if dt.now() >= datemyintref:
-                remote_file_name = remote_file_name.replace('my', 'myint')
+            # if dt.now() >= datemyintref:
+            #     remote_file_name = remote_file_name.replace('my', 'myint')
 
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
