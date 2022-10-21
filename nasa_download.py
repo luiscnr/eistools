@@ -1,6 +1,7 @@
 from datetime import datetime as dt
 import os, re
 import urllib.request
+import urllib.parse
 
 
 class NASA_DOWNLOAD:
@@ -67,7 +68,7 @@ class NASA_DOWNLOAD:
 
         datestr = date_here.strftime('%Y%m%d')
         url_date = self.get_url_date(sensor, date_here)
-
+        url_date = urllib.parse.urlparse(url_date,'utf-8')
         request = urllib.request.Request(url_date)
         response = urllib.request.urlopen(request)
         page = response.read()
