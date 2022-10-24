@@ -2,6 +2,7 @@ from datetime import datetime as dt
 import os, re
 import urllib.request
 import urllib.parse
+import ssl
 
 
 class NASA_DOWNLOAD:
@@ -67,6 +68,7 @@ class NASA_DOWNLOAD:
     def get_list_files(self, date_here, sensor, region, mode):
 
         datestr = date_here.strftime('%Y%m%d')
+        ssl._create_default_https_context = ssl._create_unverified_context
         url_date = self.get_url_date(sensor, date_here)
         url_date = urllib.parse.urlparse(url_date,'utf-8')
         request = urllib.request.Request(url_date)
