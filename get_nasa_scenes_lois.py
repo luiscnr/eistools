@@ -1,6 +1,6 @@
-from nasa_download import NASA_DOWNLOAD
-from datetime import datetime as dt
-import argparse
+# from nasa_download import NASA_DOWNLOAD
+# from datetime import datetime as dt
+# import argparse
 
 # def main():
 #     try:
@@ -22,6 +22,7 @@ import argparse
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    import argparse
     parser = argparse.ArgumentParser(description='NASA Get Scenes. Patch to retrieve DT scenes')
     parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
     parser.add_argument("-sen", "--sensor", help="Specify sensor: VIIRS, VIIRSJ, AQUA", required=True)
@@ -30,6 +31,9 @@ if __name__ == '__main__':
                         required=False)
     args = parser.parse_args()
 
+    from nasa_download import NASA_DOWNLOAD
+    from datetime import datetime as dt
+    
     try:
         date_here = dt.strptime(args.date,'%Y%m%d')
         sensor = args.sensor
