@@ -656,6 +656,7 @@ class ProductInfo:
                 variable_list = self.dinfo['variables'].split(',')
                 for variable in variable_list:
                     if not variable in nc.variables:
+                        print(f'[ERROR] Variable: {variable} was not found in reformatted file: {file}')
                         check = False
 
 
