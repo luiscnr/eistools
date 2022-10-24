@@ -52,6 +52,8 @@ class NASA_DOWNLOAD:
     def get_expected_prefix_files_from_nrt_cnr_server(self, sensor, date_here, region):
         path_log = self.get_folder_nrt_cnr_server(sensor, date_here)
         wce = self.get_wce_nrt_cnr_server(sensor, date_here, region)
+        print(path_log)
+        print(wce)
         lprefix = []
         for name in os.listdir(path_log):
             if name.startswith(wce):
