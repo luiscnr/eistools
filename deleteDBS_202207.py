@@ -12,6 +12,8 @@ import general_options as goptions
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
+parser.add_argument("-noupload","--no_upload", help="No upload mode, only reformat.",action="store_true")
+parser.add_argument("-noreformat","--no_reformat",help="No reformat mode, only upload.",action="store_true")
 parser.add_argument('-del', "--del_folder", help="Delete folders mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
