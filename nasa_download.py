@@ -70,6 +70,7 @@ class NASA_DOWNLOAD:
         datestr = date_here.strftime('%Y%m%d')
         ssl._create_default_https_context = ssl._create_unverified_context
         url_date = self.get_url_date(sensor, date_here)
+        print(url_date)
         request = urllib.request.Request(url_date)
         response = urllib.request.urlopen(request)
         page = response.read()
@@ -83,6 +84,7 @@ class NASA_DOWNLOAD:
         wce = wce.replace('DATE', datestr)
 
         all_scenes = list(re.findall(wce, page))
+        print(all_scenes)
         prefixes = self.get_expected_prefix_files_from_nrt_cnr_server(sensor, date_here, region)
 
         scenes = []
