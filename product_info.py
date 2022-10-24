@@ -16,12 +16,11 @@ class ProductInfo:
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
             self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
 
-        self.path_reformat_script = os.path.join(os.path.dirname(sdir),'reformatting_file_cmems2_202211.sh')
+        self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
         if not os.path.exists(self.path_reformat_script):
             self.path_reformat_script = '/home/gosuser/OCTACManager/EiS202210/reformatting_file_cmems2_202211.sh'
         if not os.path.exists(self.path_reformat_script):
             self.path_reformat_script = '/store/woc/simone/tmp/reformatting_file_cmems2_lois.sh'
-
 
         self.product_name = ''
         self.dataset_name = ''
@@ -624,17 +623,15 @@ class ProductInfo:
 
     def get_remote_path_normal(self, year, month):
         dtref = dt(year, month, 1)
-        rpath = os.path.join(os.sep,'Core',self.product_name, self.dinfo['remote_dataset'])
+        rpath = os.path.join(os.sep, 'Core', self.product_name, self.dinfo['remote_dataset'])
         sdir = os.path.join(dtref.strftime('%Y'), dtref.strftime('%m'))
         return rpath, sdir
 
     def get_remote_path_monthly_normal(self, year):
         dtref = dt(year, 1, 1)
-        rpath = os.path.join(os.sep, 'Core',self.product_name, self.dinfo['remote_dataset'])
+        rpath = os.path.join(os.sep, 'Core', self.product_name, self.dinfo['remote_dataset'])
         sdir = os.path.join(dtref.strftime('%Y'))
         return rpath, sdir
-
-
 
     def get_remote_path_climatology(self):
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
@@ -655,6 +652,13 @@ class ProductInfo:
             check = False
             if nc.title == self.dataset_name and nc.cmems_product_id == self.product_name:
                 check = True
+            if check:
+                variable_list = self.dinfo['variables'].split(',')
+                for variable in variable_list:
+                    if not variable in nc.variables:
+                        check = False
+
+
             nc.close()
             return check
         except:
