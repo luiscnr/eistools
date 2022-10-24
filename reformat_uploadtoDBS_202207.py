@@ -10,6 +10,8 @@ import deleteDBS_202207 as delete
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument("-noupload","--no_upload", help="No upload mode, only reformat.",action="store_true")
+parser.add_argument("-noreformat","--no_reformat",help="No reformat mode, only upload.",action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
@@ -27,6 +29,52 @@ parser.add_argument("-dname", "--name_dataset", help="Product name")
 
 args = parser.parse_args()
 
+
+def make_reformat_daily(pinfo,pinfomy,start_date,end_date):
+    pinfo.MODE = 'REFORMAT'
+    if args.verbose:
+        print('***********************************************************')
+        print(f'[INFO] Deleting previous files: Started')
+    pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+    if args.verbose:
+        print(f'[INFO] Deleting previous files: Completed')
+        print('***********************************************************')
+        print(f'[INFO] Reformatting files: Started')
+    pinfomy = None
+    if args.mode == 'DT':
+        pinfomy = pinfo.get_pinfomy_equivalent()
+    if pinfomy is not None:
+        if args.verbose:
+            print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+        pinfomy.MODE = 'REFORMAT'
+        reformat.make_reformat_daily_dataset(pinfomy, start_date, end_date, args.verbose)
+    else:
+        reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
+    if args.verbose:
+        print(f'[INFO] Reformating files: Completed')
+        print('***********************************************************')
+
+def make_upload_daily(pinfo,pinfomy,start_date,end_date):
+    if args.verbose:
+        print(f'[INFO] Uploading files to DU: Started')
+        pinfo.MODE = 'UPLOAD'
+        if pinfomy is not None:
+            if args.verbose:
+                print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+            pinfomy.MODE = 'UPLOAD'
+            upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+            #delete nrt
+            delete.make_delete_daily_dataset(pinfo,'NRT',start_date,end_date,args.verbose)
+        else:
+            upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+        if args.verbose:
+            print(f'[INFO] Uploading files to DU: Completed')
+            print('***********************************************************')
+            print(f'[INFO] Deleting files: Started')
+        pinfo.MODE = 'REFORMAT'
+        pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+        if args.verbose:
+            print(f'[INFO] Deleting files: Completed')
 
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
@@ -116,47 +164,55 @@ def main():
         if args.verbose:
             print(f'[INFO] Working with dataset: {name_products[idataset]}/{name_datasets[idataset]}')
         if pinfo.dinfo['frequency'] == 'd':
-            pinfo.MODE = 'REFORMAT'
-            if args.verbose:
-                print('***********************************************************')
-                print(f'[INFO] Deleting previous files: Started')
-            pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-            if args.verbose:
-                print(f'[INFO] Deleting previous files: Completed')
-                print('***********************************************************')
-                print(f'[INFO] Reformatting files: Started')
             pinfomy = None
             if args.mode == 'DT':
                 pinfomy = pinfo.get_pinfomy_equivalent()
-            if pinfomy is not None:
-                if args.verbose:
-                    print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
-                pinfomy.MODE = 'REFORMAT'
-                reformat.make_reformat_daily_dataset(pinfomy, start_date, end_date, args.verbose)
-            else:
-                reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
-            if args.verbose:
-                print(f'[INFO] Reformating files: Completed')
-                print('***********************************************************')
-                print(f'[INFO] Uploading files to DU: Started')
-            pinfo.MODE = 'UPLOAD'
-            if pinfomy is not None:
-                if args.verbose:
-                    print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
-                pinfomy.MODE = 'UPLOAD'
-                upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
-                #delete nrt
-                delete.make_delete_daily_dataset(pinfo,'NRT',start_date,end_date,args.verbose)
-            else:
-                upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
-            if args.verbose:
-                print(f'[INFO] Uploading files to DU: Completed')
-                print('***********************************************************')
-                print(f'[INFO] Deleting files: Started')
-            pinfo.MODE = 'REFORMAT'
-            pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-            if args.verbose:
-                print(f'[INFO] Deleting files: Completed')
+            if not args.no_reformat:
+                make_reformat_daily(pinfo,pinfomy,start_date,end_date)
+            if not args.no_upload:
+                make_upload_daily(pinfo,pinfomy,start_date,end_date)
+
+            # pinfo.MODE = 'REFORMAT'
+            # if args.verbose:
+            #     print('***********************************************************')
+            #     print(f'[INFO] Deleting previous files: Started')
+            # pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+            # if args.verbose:
+            #     print(f'[INFO] Deleting previous files: Completed')
+            #     print('***********************************************************')
+            #     print(f'[INFO] Reformatting files: Started')
+            # pinfomy = None
+            # if args.mode == 'DT':
+            #     pinfomy = pinfo.get_pinfomy_equivalent()
+            # if pinfomy is not None:
+            #     if args.verbose:
+            #         print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+            #     pinfomy.MODE = 'REFORMAT'
+            #     reformat.make_reformat_daily_dataset(pinfomy, start_date, end_date, args.verbose)
+            # else:
+            #     reformat.make_reformat_daily_dataset(pinfo, start_date, end_date, args.verbose)
+            # if args.verbose:
+            #     print(f'[INFO] Reformating files: Completed')
+            #     print('***********************************************************')
+            #     print(f'[INFO] Uploading files to DU: Started')
+            # pinfo.MODE = 'UPLOAD'
+            # if pinfomy is not None:
+            #     if args.verbose:
+            #         print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+            #     pinfomy.MODE = 'UPLOAD'
+            #     upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+            #     #delete nrt
+            #     delete.make_delete_daily_dataset(pinfo,'NRT',start_date,end_date,args.verbose)
+            # else:
+            #     upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+            # if args.verbose:
+            #     print(f'[INFO] Uploading files to DU: Completed')
+            #     print('***********************************************************')
+            #     print(f'[INFO] Deleting files: Started')
+            # pinfo.MODE = 'REFORMAT'
+            # pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+            # if args.verbose:
+            #     print(f'[INFO] Deleting files: Completed')
 
         if pinfo.dinfo['frequency'] == 'm':
             pinfo.MODE = 'REFORMAT'
