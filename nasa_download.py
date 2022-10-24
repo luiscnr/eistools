@@ -25,7 +25,7 @@ class NASA_DOWNLOAD:
                 'direct_access_folder': 'SNPP-VIIRS',
                 'nrt_wce': "SNPP_VIIRS.DATET\d*\.L2\.OC\.NRT\.nc",
                 'dt_wce': "SNPP_VIIRS.DATET\d*\.L2\.OC\.nc",
-                "nrt_cnr_server_dir": "/store3/OC/VIIRSJ/daily",
+                "nrt_cnr_server_dir": "/store3/OC/VIIRS/daily",
                 "nrt_cnr_server_wce": "DATE_VIIRS_NRT_REGION_oc_proc_L2_",
                 "prefix": "SNPP_VIIRS.DATE"
             }
