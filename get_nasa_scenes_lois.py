@@ -2,13 +2,6 @@ from nasa_download import NASA_DOWNLOAD
 from datetime import datetime as dt
 import argparse
 
-parser = argparse.ArgumentParser(description='NASA Get Scenes. Patch to retrieve DT scenes')
-parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
-parser.add_argument("-sen", "--sensor", help="Specify sensor: VIIRS, VIIRSJ, AQUA", required=True)
-parser.add_argument("-d", "--date", help="Specify a date in yyyymmdd format",required=True)
-parser.add_argument("-R", "--Region", help="specify the Region Label of the area: BlackSea or Mediterranean", required=False)
-args = parser.parse_args()
-
 def main():
 
     try:
@@ -29,4 +22,12 @@ def main():
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description='NASA Get Scenes. Patch to retrieve DT scenes')
+    parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+    parser.add_argument("-sen", "--sensor", help="Specify sensor: VIIRS, VIIRSJ, AQUA", required=True)
+    parser.add_argument("-d", "--date", help="Specify a date in yyyymmdd format", required=True)
+    parser.add_argument("-R", "--Region", help="specify the Region Label of the area: BlackSea or Mediterranean",
+                        required=False)
+    args = parser.parse_args()
+
     main()
