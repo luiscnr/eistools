@@ -13,8 +13,10 @@ class ProductInfo:
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
+        # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
+        #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
+            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202210'
 
         self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
         if not os.path.exists(self.path_reformat_script):
@@ -145,26 +147,35 @@ class ProductInfo:
     def set_product_info(self, product_name):
         self.product_name = product_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
+        valid  = False
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             self.pinfo = json.load(f)
             f.close()
+            valid = True
+        return valid
+
+    def get_product_info_file(self,product_name):
+        fproduct = os.path.join(self.path2info, product_name + '.json')
+        return fproduct
 
     def set_dataset_info(self, product_name, dataset_name):
         self.product_name = product_name
         self.dataset_name = dataset_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
-        # print(fproduct)
+        valid = False
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             self.pinfo = json.load(f)
             if dataset_name in self.pinfo.keys():
                 self.dinfo = self.pinfo[dataset_name]
+                valid = True
             else:
                 print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
             f.close()
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
+        return valid
 
     def get_list_datasets(self, product_name, frequency):
         product_names = []
@@ -659,7 +670,6 @@ class ProductInfo:
                         print(f'[ERROR] Variable: {variable} was not found in reformatted file: {file}')
                         check = False
 
-
             nc.close()
             return check
         except:
@@ -715,7 +725,10 @@ class ProductInfo:
         p = self.dinfo['dataset']
 
         if f == 'D' or f == 'INTERP':
-            path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
+            if 'path_reformat' in self.dinfo:
+                path = self.dinfo['path_reformat']
+            else:
+                path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
             if not os.path.exists(path):
                 print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
                 return None

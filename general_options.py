@@ -31,3 +31,7 @@ def use_dt_suffix():
         return True
     else:
         return False
+
+
+def get_eis():
+    return get_param('GENERAL', 'eis')
