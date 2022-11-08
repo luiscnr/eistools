@@ -277,6 +277,16 @@ class ProductInfo:
                 print(f'{tagprint} Expected year path {path_orig} does not exist')
             return None
 
+    def check_path_reformat(self):
+        if 'path_reformat' in self.dinfo.keys():
+            path = self.dinfo['path_reformat']
+            if os.path.exists(path) and os.path.isdir(path):
+                return path
+            else:
+                return None
+        return None
+
+
     def get_file_path_orig_reformat(self,datehere):
         tagprint = self.get_tag_print()
         if 'path_reformat' in self.dinfo.keys():
@@ -740,12 +750,7 @@ class ProductInfo:
         p = self.dinfo['dataset']
 
         if f == 'D' or f == 'INTERP':
-            print('===========================================================')
-            print(self.dinfo)
-            if 'path_reformat' in self.dinfo.keys():
-                path = self.dinfo['path_reformat']
-            else:
-                path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
+            path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
             if not os.path.exists(path):
                 print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
                 return None

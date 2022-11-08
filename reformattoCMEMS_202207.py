@@ -1,4 +1,6 @@
 import argparse
+import os.path
+import shutil
 from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
@@ -128,6 +130,17 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
                 print(f'[CMD ERROR] {outstr[ierror:]}')
         if err:
             print(f'[CMD ERROR]{err}')
+
+        preformat = pinfo.check_path_reformat()
+        if preformat is not None:
+            file_orig = pinfo.get_file_path_orig(None,date_work)
+            file_dest = pinfo.get_file_path_orig_reformat(date_work)
+            if os.path.exists(file_orig):
+                if verbose:
+                    print(f'[INFO] Moving reformated file to path reformat {preformat}')
+                shutil.copy2(file_orig,file_dest)
+                os.remove(file_orig)
+
             # if err.decode("utf-8").find('ncks: unrecognized option') >= 0:
             #     pass
             # else:
