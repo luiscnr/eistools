@@ -279,7 +279,7 @@ class ProductInfo:
 
     def get_file_path_orig_reformat(self,datehere):
         tagprint = self.get_tag_print()
-        if 'path_reformat' in self.dinfo:
+        if 'path_reformat' in self.dinfo.keys():
             path = self.dinfo['path_reformat']
             name_file = self.dinfo['name_origin']
             date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
@@ -740,7 +740,9 @@ class ProductInfo:
         p = self.dinfo['dataset']
 
         if f == 'D' or f == 'INTERP':
-            if 'path_reformat' in self.dinfo:
+            print('===========================================================')
+            print(self.dinfo)
+            if 'path_reformat' in self.dinfo.keys():
                 path = self.dinfo['path_reformat']
             else:
                 path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
