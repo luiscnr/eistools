@@ -147,7 +147,7 @@ class ProductInfo:
     def set_product_info(self, product_name):
         self.product_name = product_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
-        valid  = False
+        valid = False
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             self.pinfo = json.load(f)
@@ -155,7 +155,7 @@ class ProductInfo:
             valid = True
         return valid
 
-    def get_product_info_file(self,product_name):
+    def get_product_info_file(self, product_name):
         fproduct = os.path.join(self.path2info, product_name + '.json')
         return fproduct
 
@@ -286,8 +286,7 @@ class ProductInfo:
                 return None
         return None
 
-
-    def get_file_path_orig_reformat(self,datehere):
+    def get_file_path_orig_reformat(self, datehere):
         tagprint = self.get_tag_print()
         if 'path_reformat' in self.dinfo.keys():
             path = self.dinfo['path_reformat']
@@ -298,6 +297,16 @@ class ProductInfo:
                 if tagprint is not None:
                     print(f'{tagprint} Expected file orig path {file_path} does not exist')
                 return None
+            return file_path
+        else:
+            return None
+
+    def get_file_path_orig_reformat_name(self, datehere):
+        if 'path_reformat' in self.dinfo.keys():
+            path = self.dinfo['path_reformat']
+            name_file = self.dinfo['name_origin']
+            date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
+            file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
             return file_path
         else:
             return None

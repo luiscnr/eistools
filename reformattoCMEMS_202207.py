@@ -134,11 +134,10 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
         preformat = pinfo.check_path_reformat()
         if preformat is not None:
             file_orig = pinfo.get_file_path_orig(None,date_work)
-            file_dest = pinfo.get_file_path_orig_reformat(date_work)
-            if os.path.exists(file_orig):
+            file_dest = pinfo.get_file_path_orig_reformat_name(date_work)
+            if os.path.exists(file_orig) and file_dest is not None:
                 if verbose:
                     print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
-                
                 shutil.copy2(file_orig,file_dest)
                 os.remove(file_orig)
 
