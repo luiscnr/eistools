@@ -277,6 +277,21 @@ class ProductInfo:
                 print(f'{tagprint} Expected year path {path_orig} does not exist')
             return None
 
+    def get_file_path_orig_reformat(self,datehere):
+        tagprint = self.get_tag_print()
+        if 'path_reformat' in self.dinfo:
+            path = self.dinfo['path_reformat']
+            name_file = self.dinfo['name_origin']
+            date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
+            file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
+            if not os.path.exists(file_path):
+                if tagprint is not None:
+                    print(f'{tagprint} Expected file orig path {file_path} does not exist')
+                return None
+            return file_path
+        else:
+            return None
+
     def get_file_path_orig(self, path, datehere):
         tagprint = self.get_tag_print()
         if path is None:
