@@ -120,7 +120,7 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
             continue
         if verbose:
             print(f'[INFO] CMD: {cmd}')
-        date_work = date_work + timedelta(hours=24)
+
         prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
         out, err = prog.communicate()
         if out:
@@ -141,10 +141,10 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
                 shutil.copy2(file_orig,file_dest)
                 os.remove(file_orig)
 
-            # if err.decode("utf-8").find('ncks: unrecognized option') >= 0:
-            #     pass
-            # else:
-            #     print(f'[CMD ERROR]{err}')
+        date_work = date_work + timedelta(hours=24)
+
+
+           
 
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date, verbose):
