@@ -137,14 +137,15 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
             file_dest = pinfo.get_file_path_orig_reformat(date_work)
             if os.path.exists(file_orig):
                 if verbose:
-                    print(f'[INFO] Moving reformated file to path reformat {preformat}')
+                    print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
+                
                 shutil.copy2(file_orig,file_dest)
                 os.remove(file_orig)
 
         date_work = date_work + timedelta(hours=24)
 
 
-           
+
 
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date, verbose):
