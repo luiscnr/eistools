@@ -212,7 +212,6 @@ def check_datasets(name_products, name_datasets):
         mode_check = 'NRT'
     pinfo = ProductInfo()
     for idataset in range(len(name_products)):
-        print('debug',name_products[idataset], name_datasets[idataset])
         valid = pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
         if not valid:
             return False
@@ -222,7 +221,6 @@ def check_datasets(name_products, name_datasets):
                 f'[ERROR] Dataset {name_datasets[idataset]} is {mode_here},but script was launched in mode {mode_check}')
             return False
         region, sensor, dataset_type, frequency, level = get_params_selection_dataset()
-        print('debug',region,sensor,dataset_type,frequency,level)
         if region is not None:
             region_here = pinfo.dinfo['region']
             if region_here != region:
