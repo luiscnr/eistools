@@ -697,6 +697,11 @@ class ProductInfo:
             check = False
             if nc.title == self.dataset_name and nc.cmems_product_id == self.product_name:
                 check = True
+            else:
+                if nc.title != self.dataset_name:
+                    print(f'[ERROR] title atribute: {nc.title} should be equal to dataset name: {self.dataset_name}')
+                if nc.cmems_product_id == self.product_name:
+                    print(f'[ERROR] cmems_product_id {nc.cmems_product_id} should be equal to product name {self.product_name}')
             if check:
                 variable_list = self.dinfo['variables'].split(',')
                 for variable in variable_list:
