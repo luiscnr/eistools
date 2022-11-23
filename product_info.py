@@ -696,6 +696,8 @@ class ProductInfo:
             return False
         try:
             nc = Dataset(file)
+            print('me llega aqui')
+            print(nc.ncattrs())
             check = False
             if nc.title == self.dataset_name and nc.cmems_product_id == self.product_name:
                 check = True
