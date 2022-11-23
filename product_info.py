@@ -707,7 +707,7 @@ class ProductInfo:
                     print(f'[ERROR] cmems_product_id {nc.cmems_product_id} should be equal to product name {self.product_name}')
             if check:
                 variable_list = self.dinfo['variables'].split(',')
-                print(variable_list)
+               
                 for variable in variable_list:
                     if not variable in nc.variables:
                         print(f'[ERROR] Variable: {variable} was not found in reformatted file: {file}')
