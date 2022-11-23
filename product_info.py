@@ -696,7 +696,6 @@ class ProductInfo:
             return False
         try:
             nc = Dataset(file)
-            print(nc.ncattrs())
             check = False
             if nc.title == self.dataset_name and nc.cmems_product_id == self.product_name:
                 check = True
@@ -707,7 +706,6 @@ class ProductInfo:
                     print(f'[ERROR] cmems_product_id {nc.cmems_product_id} should be equal to product name {self.product_name}')
             if check:
                 variable_list = self.dinfo['variables'].split(',')
-               
                 for variable in variable_list:
                     if not variable in nc.variables:
                         print(f'[ERROR] Variable: {variable} was not found in reformatted file: {file}')
