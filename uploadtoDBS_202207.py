@@ -187,6 +187,8 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
         pfile = pinfo.get_file_path_orig_reformat(date_here)
         if pfile is None:
             pfile = pinfo.get_file_path_orig(path_orig, date_here)
+        if verbose:
+            print(f'[INFO] File: {pfile}')
         CHECK = pinfo.check_file(pfile)
         if verbose:
             print(f'[INFO] Checking origin (local) file: {pfile} --> {CHECK}')
