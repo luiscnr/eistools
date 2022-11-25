@@ -8,6 +8,7 @@ from configparser import RawConfigParser
 import os, hashlib
 import lxml.etree as ET
 import general_options as goptions
+from dataset_selection import DatasetSelection
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -34,72 +35,67 @@ args = parser.parse_args()
 
 def main():
     print('[INFO] Started delete DBS')
+    # ##DATASETS SELECTION
+    # pinfo = ProductInfo()
+    # name_products = []
+    # name_datasets = []
+    # n_datasets = 0
+    #
+    # if args.region:
+    #     region = args.region
+    #     if region == 'BS':
+    #         region = 'BLK'
+    #
+    # if args.mode and args.region and args.level:
+    #     dataset_type = None
+    #     sensor = None
+    #     mode_search = args.mode
+    #     frequency = None
+    #     if args.mode == 'DT':
+    #         mode_search = 'NRT'
+    #     if args.dataset_type:
+    #         dataset_type = args.dataset_type
+    #     if args.sensor:
+    #         sensor = args.sensor
+    #     if args.frequency_product:
+    #         frequency = args.frequency_product
+    #     name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, region, args.level,
+    #                                                                   dataset_type,
+    #                                                                   sensor, frequency)
+    #     n_datasets = len(name_products)
+    # elif args.name_product and args.name_dataset:
+    #     name_products.append(args.name_product)
+    #     name_datasets.append(args.name_dataset)
+    #     n_datasets = 1
+    # elif args.name_product and not args.name_dataset:
+    #     name_products, name_datasets = pinfo.get_list_datasets(args.name_product)
+    #     n_datasets = len(name_products)
+    #
+    # if n_datasets == 0:
+    #     print(f'[ERROR] No datasets selected')
+    #     return
+    #
+    # if args.verbose:
+    #     print(f'[INFO] Number of selected datasets: {n_datasets}')
+    #     for idataset in range(n_datasets):
+    #         print(f'[INFO]  {name_products[idataset]}/{name_datasets[idataset]}')
+
     ##DATASETS SELECTION
-    pinfo = ProductInfo()
-    name_products = []
-    name_datasets = []
-    n_datasets = 0
-
-    if args.region:
-        region = args.region
-        if region == 'BS':
-            region = 'BLK'
-
-    if args.mode and args.region and args.level:
-        dataset_type = None
-        sensor = None
-        mode_search = args.mode
-        frequency = None
-        if args.mode == 'DT':
-            mode_search = 'NRT'
-        if args.dataset_type:
-            dataset_type = args.dataset_type
-        if args.sensor:
-            sensor = args.sensor
-        if args.frequency_product:
-            frequency = args.frequency_product
-        name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, region, args.level,
-                                                                      dataset_type,
-                                                                      sensor, frequency)
-        n_datasets = len(name_products)
-    elif args.name_product and args.name_dataset:
-        name_products.append(args.name_product)
-        name_datasets.append(args.name_dataset)
-        n_datasets = 1
-    elif args.name_product and not args.name_dataset:
-        name_products, name_datasets = pinfo.get_list_datasets(args.name_product)
-        n_datasets = len(name_products)
-
+    name_products, name_datasets = get_datasets()
+    n_datasets = len(name_products)
     if n_datasets == 0:
         print(f'[ERROR] No datasets selected')
         return
-
+    if not check_datasets(name_products, name_datasets):
+        return
     if args.verbose:
         print(f'[INFO] Number of selected datasets: {n_datasets}')
         for idataset in range(n_datasets):
             print(f'[INFO]  {name_products[idataset]}/{name_datasets[idataset]}')
 
-    ##DATES SELECTION
-    if not args.start_date and not args.end_date:
-        print(f'[ERROR] Start date(-sd) is not given.')
-        return
-    start_date_p = args.start_date
-    if args.end_date:
-        end_date_p = args.end_date
-    else:
-        end_date_p = start_date_p
-    start_date = get_date_from_param(start_date_p)
-    end_date = get_date_from_param(end_date_p)
-    if start_date is None:
-        print(
-            f'[ERROR] Start date {start_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
-        return
-    if end_date is None:
-        print(
-            f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
-        return
-    if start_date > end_date:
-        print(f'[ERROR] End date should be greater or equal than start date')
+    # DATE SELECTION
+    start_date, end_date = get_dates()
+    if start_date is None or end_date is None:
         return
     if args.verbose:
         print(f'[INFO] Start date: {start_date} End date: {end_date}')
@@ -107,6 +103,35 @@ def main():
     if args.check_param:
         return
 
+    ##DATES SELECTION
+    # if not args.start_date and not args.end_date:
+    #     print(f'[ERROR] Start date(-sd) is not given.')
+    #     return
+    # start_date_p = args.start_date
+    # if args.end_date:
+    #     end_date_p = args.end_date
+    # else:
+    #     end_date_p = start_date_p
+    # start_date = get_date_from_param(start_date_p)
+    # end_date = get_date_from_param(end_date_p)
+    # if start_date is None:
+    #     print(
+    #         f'[ERROR] Start date {start_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
+    #     return
+    # if end_date is None:
+    #     print(
+    #         f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
+    #     return
+    # if start_date > end_date:
+    #     print(f'[ERROR] End date should be greater or equal than start date')
+    #     return
+    # if args.verbose:
+    #     print(f'[INFO] Start date: {start_date} End date: {end_date}')
+
+    if args.check_param:
+        return
+
+    pinfo = ProductInfo()
     for idataset in range(n_datasets):
         pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
         if args.verbose:
@@ -198,6 +223,8 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             remote_file_name = remote_file_name.replace('nrt', 'dt')
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
+            if date_here>=datemyintref:
+                remote_file_name = remote_file_name.replace('my', 'myint')
             # if dt.now() >= datemyintref:
             #     remote_file_name = remote_file_name.replace('my', 'myint')
 
@@ -347,6 +374,122 @@ def delete_month_folder(pinfo, mode, year, month, verbose):
     ftpdu.close()
     ftpnormal.close()
 
+
+##DATASET SELECTION
+def get_datasets():
+    # name_products = []
+    # name_datasets = []
+    dsel = DatasetSelection(args.mode)
+    if args.name_product and args.name_dataset:
+        name_products = [args.name_product]
+        name_datasets = [args.name_dataset]
+    elif args.name_product and not args.name_dataset:
+        name_products, name_datasets = dsel.get_list_product_datasets_from_product_nane(args.name_product)
+    elif not args.name_product and args.name_dataset:
+        name_products, name_datasets = dsel.get_list_product_datasets_from_dataset_nane(args.name_dataset)
+    else:
+        dsel = DatasetSelection(args.mode)
+        region, sensor, dataset_type, frequency, level = get_params_selection_dataset()
+        dsel.set_params(region, level, dataset_type, sensor, frequency)
+        name_products, name_datasets = dsel.get_list_product_datasets_from_params()
+
+    return name_products, name_datasets
+
+
+def get_params_selection_dataset():
+    region = None
+    sensor = None
+    dataset_type = None
+    frequency = None
+    level = None
+    if args.region:
+        region = args.region
+    if args.sensor:
+        sensor = args.sensor
+    if args.dataset_type:
+        dataset_type = args.dataset_type
+    if args.frequency_product:
+        frequency = args.frequency_product
+    if args.level:
+        level = args.level
+    return region, sensor, dataset_type, frequency, level
+
+
+##DATASETS CHECKING
+def check_datasets(name_products, name_datasets):
+    mode_check = args.mode
+    if args.mode == 'MYINT':
+        mode_check = 'MY'
+    if args.mode == 'DT':
+        mode_check = 'NRT'
+    pinfo = ProductInfo()
+    for idataset in range(len(name_products)):
+        valid = pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
+        if not valid:
+            return False
+        mode_here = pinfo.dinfo['mode']
+        if mode_here != mode_check:
+            print(
+                f'[ERROR] Dataset {name_datasets[idataset]} is {mode_here},but script was launched in mode {mode_check}')
+            return False
+        region, sensor, dataset_type, frequency, level = get_params_selection_dataset()
+        if region is not None:
+            region_here = pinfo.dinfo['region']
+            if region_here != region:
+                print(f'[ERROR] Dataset region is {region_here} but {region} was given in the script')
+                return False
+        if sensor is not None:
+            sensor_here = pinfo.dinfo['sensor'].lower()
+            if sensor_here != sensor:
+                print(f'[ERROR] Dataset sensor is {sensor_here} but {sensor} was given in the script')
+                return False
+        if dataset_type is not None:
+            dataset_type_here = pinfo.dinfo['dataset'].lower()
+            if dataset_type_here != dataset_type:
+                print(f'[ERROR] Dataset dataset_type is {dataset_type_here} but {dataset_type} was given in the script')
+                return False
+        if frequency is not None:
+            frequency_here = pinfo.dinfo['frequency'].lower()
+            if frequency_here != frequency:
+                print(f'[ERROR] Dataset frequency is {frequency_here} but {frequency} was given in the script')
+                return False
+        if level is not None:
+            level_here = pinfo.dinfo['level'].lower()
+            if level_here != level:
+                print(f'[ERROR] Dataset level is {level_here} but {level} was given in the script')
+                return False
+
+
+
+    return True
+
+
+##DATES SELECTION
+def get_dates():
+    start_date = None
+    end_date = None
+    if not args.start_date and not args.end_date:
+        print(f'[ERROR] Start date(-sd) is not given.')
+        return start_date, end_date
+    start_date_p = args.start_date
+    if args.end_date:
+        end_date_p = args.end_date
+    else:
+        end_date_p = start_date_p
+    start_date = get_date_from_param(start_date_p)
+    end_date = get_date_from_param(end_date_p)
+    if start_date is None:
+        print(
+            f'[ERROR] Start date {start_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
+        return None, None
+    if end_date is None:
+        print(
+            f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
+        return None, None
+    if start_date > end_date:
+        print(f'[ERROR] End date should be greater or equal than start date')
+        return None, None
+    return start_date, end_date
 
 def get_date_from_param(dateparam):
     datefin = None
