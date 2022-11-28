@@ -223,6 +223,8 @@ def check_datasets(name_products, name_datasets):
         region, sensor, dataset_type, frequency, level = get_params_selection_dataset()
         if region is not None:
             region_here = pinfo.dinfo['region']
+            if region_here=='BLK' and region=='BS':
+                region = 'BLK'
             if region_here != region:
                 print(f'[ERROR] Dataset region is {region_here} but {region} was given in the script')
                 return False
