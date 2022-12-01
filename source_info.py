@@ -56,10 +56,10 @@ class SourceInfo():
                 mode = 'NR'
             if mode == 'DT':
                 mode = 'NT'
-            path_search = '/EO_DATA/TDIR/'
+            path_search = '/store/TDIR/'
 
         if self.source == 'OLCIP':
-            source_str = 'OLCI'
+            source_str = 'OLCIA'
 
         if self.source == 'S3A_FR' or self.source == 'S3B_FR' or self.source == 'OLCI':
             prename = f'OC_PROC_EIS{self.eis}_{source_str}_{mode}_{region}_{datestr}'

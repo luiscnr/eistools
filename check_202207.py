@@ -29,9 +29,81 @@ parser.add_argument("-dname", "--name_dataset", help="Product name")
 
 args = parser.parse_args()
 
+def do_check():
+    print('check')
+    ftpc = FTPCheck('MY')
+    rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D'
+    lines = []
+    for y in range(1997,2023,1):
+        for m in range(1,13,1):
+            print(y,m)
+            datehere = dt(y,m,15)
+            yearstr = datehere.strftime('%Y')
+            monthstr = datehere.strftime(('%m'))
+            path = f'{rpathbase}/{yearstr}/{monthstr}'
+            ftpc.go_subdir(rpathbase)
+            sizemonth = 0
+            for d in range(1,32,1):
+                try:
+                    datehere = dt(y,m,d)
+                    dateherestr = datehere.strftime('%Y%m%d')
+                    fname = f'{path}/{dateherestr}_cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D.nc'
+                    size = ftpc.get_file_size(fname)
+                    if size>=0:
+                        sizemonth = sizemonth + size
+                except:
+                    pass
+            if sizemonth>0:
+                line = f'{y};{m};{sizemonth}'
+                lines.append(line)
 
+    file_out = '/mnt/c/DATA_LUIS/OCTAC_WORK/EisMarch2023/transp_multi_133.csv'
+    with open(file_out, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+    return True
+
+def do_check2():
+    print('check')
+    ftpc = FTPCheck('MY')
+    dataset = 'cmems_obs-oc_bal_bgc-plankton_my_l4-multi-1km_P1M'
+    rpathbase = f'/Core/OCEANCOLOUR_BAL_BGC_L4_MY_009_134/{dataset}'
+    lines = []
+    for y in range(2016, 2022, 1):
+        datehere = dt(y, 1, 15)
+        yearstr = datehere.strftime('%Y')
+        path = f'{rpathbase}/{yearstr}'
+        ftpc.go_subdir(path)
+        for m in range(1, 13, 1):
+            last_day = calendar.monthrange(y, m)[1]
+            print(y, m, last_day)
+            dateini = dt(y,m,1)
+            datefin = dt(y,m,last_day)
+            dateinistr = dateini.strftime('%Y%m%d')
+            datefinstr = datefin.strftime('%Y%m%d')
+            fname = f'{path}/{dateinistr}-{datefinstr}_{dataset}.nc'
+            print(fname)
+            sizemonth = ftpc.get_file_size(fname)
+            print(sizemonth)
+            if sizemonth > 0:
+                line = f'{y};{m};{sizemonth}'
+                lines.append(line)
+
+    file_out = '/mnt/c/DATA_LUIS/OCTAC_WORK/EisMarch2023/planckton_multi_134.csv'
+    with open(file_out, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+
+    return True
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
+
+    if do_check2():
+        return
 
     ##DATASETS SELECTION
     pinfo = ProductInfo()

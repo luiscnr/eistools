@@ -407,7 +407,7 @@ def get_lines_sources(pinfo, sources, date):
         lines = ['No implemented']
         iscompleted = True
         return lines, iscompleted, missing_str
-    sinfo = SourceInfo('202207')
+    sinfo = SourceInfo('202211')
     slist = sources.split(',')
     ncompleted = 0
     for s in slist:
