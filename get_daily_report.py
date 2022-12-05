@@ -365,7 +365,7 @@ def get_lines_processing_olci(region, date):
         region = 'BS'
     isprocessed = False
     lines = [' OLCI PROCESSING']
-    sinfo = SourceInfo('202207')
+    sinfo = SourceInfo('202211')
     sinfo.start_source('OLCI')
     sinfo.source = 'OLCIP'
     sinfo.get_last_session_id(args.mode, region, date)

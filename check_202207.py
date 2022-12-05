@@ -1,4 +1,5 @@
 import argparse
+import shutil
 from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
@@ -99,10 +100,32 @@ def do_check2():
 
 
     return True
+
+def do_check3():
+    print('STARTED CHECK 3 MODE')
+    dir_dest = '/dst04-data1/OC/OLCI/daily_3.01/'
+    dir_orig = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    start_date = dt(2016,4,1)
+    end_date = dt(2016,12,31)
+    date_here = start_date
+    while date_here<=end_date:
+        yearstr = date_here.strftime('%Y')
+        jjjstr = date_here.strftime('%j')
+        datestr = date_here.strftime(('%Y%j'))
+        namechl = f'O{datestr}-chl-bal-fr.nc'
+        file_orig = os.path.join(dir_orig,yearstr,jjjstr,namechl)
+        dir_dest_day = os.path.join(dir_dest, yearstr, jjjstr)
+        file_dest = os.path.join(dir_dest_day,file_dest)
+        if os.path.exists(file_orig) and os.path.exists(dir_dest_day):
+            print(f'Date: {date_here} Copying: {file_orig} to {dir_dest_day}')
+            shutil.copy(file_orig,file_dest)
+        date_here = date_here + timedelta(hours=24)
+
+    return True
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check2():
+    if do_check3():
         return
 
     ##DATASETS SELECTION
