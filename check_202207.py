@@ -431,7 +431,11 @@ class FTPCheck():
 
     def go_subdir(self, rpath):
         # print('Changing directory to: ', rpath)
-        self.ftpdu.cwd(rpath)
+        try:
+            self.ftpdu.cwd(rpath)
+            return rpath
+        except:
+            return None
 
 
 
@@ -439,10 +443,9 @@ class FTPCheck():
         dateref = dt(year, month, 15)
         rpath = os.path.join('/Core', pinfo.product_name, pinfo.dataset_name, dateref.strftime('%Y'),
                              dateref.strftime('%m'))
-        if self.check_file(rpath):
-            self.go_subdir(rpath)
-        else:
-            rpath = None
+
+        rpath = self.go_subdir(rpath)
+
         return rpath
 
     def check_file(self, fname):
