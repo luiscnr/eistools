@@ -106,7 +106,7 @@ def do_check3():
     dir_dest = '/dst04-data1/OC/OLCI/daily_3.01/'
     dir_orig = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     start_date = dt(2016,4,1)
-    end_date = dt(2020,12,31)
+    end_date = dt(2022,11,22)
     date_here = start_date
     while date_here<=end_date:
         yearstr = date_here.strftime('%Y')
@@ -131,6 +131,40 @@ def do_check3():
 
 
         date_here = date_here + timedelta(hours=24)
+
+    return True
+
+def do_check4():
+    print('STARTED CHECK 4 MODE')
+    start_date = dt(2021, 1, 1)
+    end_date = dt(2022, 11, 22)
+    date_here = start_date
+    dir_dest = '/dst04-data1/OC/OLCI/dailybal_onns'
+    dir_orig = '/dst04-data1/OC/OLCI/daily_3.01'
+    lines = []
+    while date_here <= end_date:
+        yearstr = date_here.strftime('%Y')
+        jjjstr = date_here.strftime('%j')
+        dir_dest_jday = os.path.join(dir_dest,yearstr,jjjstr)
+        line = f'mkdir {dir_dest_jday}'
+        lines.append(line)
+        dir_orig_jday = os.path.join(dir_orig,yearstr,jjjstr)
+        line = f'cp -r {dir_orig_jday}/*bal* {dir_dest_jday}'
+        lines.append(line)
+        line = f'cp -r {dir_orig_jday}/*BAL* {dir_dest_jday}'
+        lines.append(line)
+        line = f'rm {dir_orig_jday}/*bal*'
+        lines.append(line)
+        line = f'rm {dir_orig_jday}/*BAL*'
+        lines.append(line)
+
+        date_here = date_here + timedelta(hours=24)
+
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/UPLOAD/movebalonns.txt'
+    with open(fout, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
 
     return True
 def main():
