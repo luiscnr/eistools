@@ -37,8 +37,8 @@ def main():
     nprocessed = 0
     nuploaded = 0
     for idx in range(len(name_products)):
-        print(name_products[idx], name_datasets[idx], dates[idx],
-              '-------------------------------------------------------')
+        # print(name_products[idx], name_datasets[idx], dates[idx],
+        #       '-------------------------------------------------------')
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
