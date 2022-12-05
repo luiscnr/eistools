@@ -283,6 +283,9 @@ def check_dailyfile_du(mode, pinfo, date, verbose):
     y = date.year
     m = date.month
     rpath = ftpcheck.go_month_subdir(pinfo, y, m)
+    if rpath is None:
+        print(f'[ERROR] Month subdir for year {y} and month {m} was not found in FTP DU for {pinfo.dataset_name}')
+        return None,None,False
     if verbose:
         print(f'[INFO] Remote path: {rpath}')
     remote_name = pinfo.get_remote_file_name(date)
@@ -429,12 +432,16 @@ class FTPCheck():
         # print('Changing directory to: ', rpath)
         self.ftpdu.cwd(rpath)
 
+
+
     def go_month_subdir(self, pinfo, year, month):
         dateref = dt(year, month, 15)
         rpath = os.path.join('/Core', pinfo.product_name, pinfo.dataset_name, dateref.strftime('%Y'),
                              dateref.strftime('%m'))
-
-        self.go_subdir(rpath)
+        if self.check_file(rpath):
+            self.go_subdir(rpath)
+        else:
+            rpath = None
         return rpath
 
     def check_file(self, fname):
