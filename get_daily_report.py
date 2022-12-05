@@ -156,7 +156,7 @@ def main():
     print_email_lines(lines_mail)
 
 
-def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
+def get_start_lines(date,ndatasets, ncompleted, nprocessed, nuploaded):
     lines = []
     datestr = date.strftime('%Y-%m-%d')
     lines.append(f'DAILY TECHNICAL REPORT')
@@ -165,6 +165,19 @@ def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     cmd = f'CMD REPORT: {get_report_cmd(date)}'
     lines.append(cmd)
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
+    if args.mode=='NRT':
+        datep = date.replace(hour=12)-timedelta(days=1)
+        datepstr = datep.strftime('%Y-%m-%d')
+        lines.append(f'PROCESSING DATE: {datepstr}')
+    else:
+        datep = date.replace(hour=12)-timedelta(days=8)
+        datepstr = datep.strftime('%Y-%m-%d')
+        lines.append(f'PROCESSING DATE (MULTI): {datepstr}')
+        lines.append(f'PROCESSING DATE (OLCI): {datepstr}')
+        datep = date.replace(hour=12) - timedelta(days=12)
+        datepstr = datep.strftime('%Y-%m-%d')
+        lines.append(f'PROCESSING DATE (MULTI GAP FREE): {datepstr}')
+
     status = 'OK'
     generalstatus = 'OK'
     if ncompleted < ndatasets:
@@ -457,8 +470,8 @@ def get_list_products_datasets(mode, date):
     if mode == 'NRT':
         date_nrt = date - timedelta(days=1)
     if mode == 'DT':
-        date_dt_multi = date - timedelta(days=20)
-        date_dt_interp = date - timedelta(days=24)
+        date_dt_multi = date - timedelta(days=8)
+        date_dt_interp = date - timedelta(days=12)
         date_dt_olci = date - timedelta(days=8)
 
     # DAILY PRODUCTS

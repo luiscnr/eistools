@@ -136,7 +136,7 @@ def do_check3():
 
 def do_check4():
     print('STARTED CHECK 4 MODE')
-    start_date = dt(2021, 1, 1)
+    start_date = dt(2022, 1, 1)
     end_date = dt(2022, 11, 22)
     date_here = start_date
     dir_dest = '/dst04-data1/OC/OLCI/dailybal_onns'
@@ -153,9 +153,9 @@ def do_check4():
         lines.append(line)
         line = f'cp -r {dir_orig_jday}/*BAL* {dir_dest_jday}'
         lines.append(line)
-        line = f'rm {dir_orig_jday}/*bal*'
+        line = f'rm -f {dir_orig_jday}/*bal*'
         lines.append(line)
-        line = f'rm {dir_orig_jday}/*BAL*'
+        line = f'rm -f {dir_orig_jday}/*BAL*'
         lines.append(line)
 
         date_here = date_here + timedelta(hours=24)
