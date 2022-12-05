@@ -39,6 +39,8 @@ def main():
     for idx in range(len(name_products)):
         print(name_products[idx], name_datasets[idx], dates[idx],
               '-------------------------------------------------------')
+        if idx>18:
+            continue
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
