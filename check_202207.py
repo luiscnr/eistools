@@ -106,19 +106,30 @@ def do_check3():
     dir_dest = '/dst04-data1/OC/OLCI/daily_3.01/'
     dir_orig = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     start_date = dt(2016,4,1)
-    end_date = dt(2016,12,31)
+    end_date = dt(2020,12,31)
     date_here = start_date
     while date_here<=end_date:
         yearstr = date_here.strftime('%Y')
         jjjstr = date_here.strftime('%j')
         datestr = date_here.strftime(('%Y%j'))
+        dir_dest_day = os.path.join(dir_dest, yearstr, jjjstr)
+        #chl
         namechl = f'O{datestr}-chl-bal-fr.nc'
         file_orig = os.path.join(dir_orig,yearstr,jjjstr,namechl)
-        dir_dest_day = os.path.join(dir_dest, yearstr, jjjstr)
         file_dest = os.path.join(dir_dest_day,namechl)
-        if os.path.exists(file_orig) and os.path.exists(dir_dest_day):
+        if os.path.exists(file_orig) and os.path.exists(dir_dest_day) and not os.path.exists(file_dest):
             print(f'Date: {date_here} Copying: {file_orig} to {dir_dest_day}')
             shutil.copy(file_orig,file_dest)
+
+        # kd490
+        namekd = f'O{datestr}-kd490-bal-fr.nc'
+        file_orig = os.path.join(dir_orig, yearstr, jjjstr, namekd)
+        file_dest = os.path.join(dir_dest_day, namekd)
+        if os.path.exists(file_orig) and os.path.exists(dir_dest_day) and not os.path.exists(file_dest):
+            print(f'Date: {date_here} Copying: {file_orig} to {dir_dest_day}')
+            shutil.copy(file_orig, file_dest)
+
+
         date_here = date_here + timedelta(hours=24)
 
     return True
