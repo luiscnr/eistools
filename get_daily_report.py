@@ -44,6 +44,8 @@ def main():
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
+        print('Completed: ',iscompleted)
+        print('Missing str: ',missing_str)
         if iscompleted:
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
