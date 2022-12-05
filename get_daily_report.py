@@ -39,7 +39,7 @@ def main():
     for idx in range(len(name_products)):
         print(name_products[idx], name_datasets[idx], dates[idx],
               '-------------------------------------------------------')
-        if idx<18:
+        if idx<19:
             continue
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
@@ -108,15 +108,15 @@ def main():
                         olciismissing = True
                     sinfo.start_source(source.strip())
                     if args.mode == 'NRT':
-                        cmd = get_specific_cmd(sinfo.get_cmd_nrt(), '202207', dates[idx], pinfo.get_region(), args.mode)
+                        cmd = get_specific_cmd(sinfo.get_cmd_nrt(), '202211', dates[idx], pinfo.get_region(), args.mode)
                     elif args.mode == 'DT':
-                        cmd = get_specific_cmd(sinfo.get_cmd_dt(), '202207', dates[idx], pinfo.get_region(), args.mode)
+                        cmd = get_specific_cmd(sinfo.get_cmd_dt(), '202211', dates[idx], pinfo.get_region(), args.mode)
                     cmdlines.append(cmd)
                 if olciismissing:
-                    cmd = get_specific_cmd(get_olci_processing_cmd(args.mode), '202207', dates[idx], pinfo.get_region(),
+                    cmd = get_specific_cmd(get_olci_processing_cmd(args.mode), '202211', dates[idx], pinfo.get_region(),
                                            args.mode)
                     cmdlines.append(cmd)
-                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(args.mode), '202207', dates[idx], pinfo.get_region(),
+                cmd = get_specific_cmd(pinfo.get_reprocessing_cmd(args.mode), '202211', dates[idx], pinfo.get_region(),
                                        args.mode)
                 cmdlines.append(cmd)
                 cmd = get_upload_cmd(pinfo, dates[idx])

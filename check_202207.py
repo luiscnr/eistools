@@ -284,7 +284,8 @@ def check_dailyfile_du(mode, pinfo, date, verbose):
     m = date.month
     rpath = ftpcheck.go_month_subdir(pinfo, y, m)
     if rpath is None:
-        print(f'[ERROR] Month subdir for year {y} and month {m} was not found in FTP DU for {pinfo.dataset_name}')
+        if verbose:
+            print(f'[ERROR] Month subdir for year {y} and month {m} was not found in FTP DU for {pinfo.dataset_name}')
         return None,None,False
     if verbose:
         print(f'[INFO] Remote path: {rpath}')
