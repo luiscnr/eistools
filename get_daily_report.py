@@ -39,13 +39,9 @@ def main():
     for idx in range(len(name_products)):
         print(name_products[idx], name_datasets[idx], dates[idx],
               '-------------------------------------------------------')
-        if idx<19:
-            continue
         lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],
                                                                                              name_datasets[idx],
                                                                                              dates[idx])
-        print('Completed: ',iscompleted)
-        print('Missing str: ',missing_str)
         if iscompleted:
             ncompleted = ncompleted + 1
             completed_array[idx] = iscompleted
@@ -102,12 +98,10 @@ def main():
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
-                print(missing_sources_str)
                 missing_sources = missing_sources_str.split(',')
                 sinfo = SourceInfo('202211')
                 olciismissing = False
                 for source in missing_sources:
-                    print('la source que da error es: ',source)
                     if source.strip().lower() == 'olci':
                         olciismissing = True
                     sinfo.start_source(source.strip())
