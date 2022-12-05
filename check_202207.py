@@ -115,7 +115,7 @@ def do_check3():
         namechl = f'O{datestr}-chl-bal-fr.nc'
         file_orig = os.path.join(dir_orig,yearstr,jjjstr,namechl)
         dir_dest_day = os.path.join(dir_dest, yearstr, jjjstr)
-        file_dest = os.path.join(dir_dest_day,file_dest)
+        file_dest = os.path.join(dir_dest_day,namechl)
         if os.path.exists(file_orig) and os.path.exists(dir_dest_day):
             print(f'Date: {date_here} Copying: {file_orig} to {dir_dest_day}')
             shutil.copy(file_orig,file_dest)
