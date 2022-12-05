@@ -100,6 +100,7 @@ def main():
             pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
+                print(missing_sources_str)
                 missing_sources = missing_sources_str.split(',')
                 sinfo = SourceInfo('202211')
                 olciismissing = False
