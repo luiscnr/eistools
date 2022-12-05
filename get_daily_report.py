@@ -101,9 +101,10 @@ def main():
             if not completed_array[idx]:
                 missing_sources_str = missing_array[idx]
                 missing_sources = missing_sources_str.split(',')
-                sinfo = SourceInfo('202207')
+                sinfo = SourceInfo('202211')
                 olciismissing = False
                 for source in missing_sources:
+                    print('la source que da error es: ',source)
                     if source.strip().lower() == 'olci':
                         olciismissing = True
                     sinfo.start_source(source.strip())
