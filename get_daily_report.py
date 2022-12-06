@@ -440,7 +440,7 @@ def get_lines_sources(pinfo, sources, date):
         if not source.lower() == 'olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
             date_source = date + timedelta(days=4)
 
-        #print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
+        print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
         try:
             lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date_source)
         except:
@@ -531,7 +531,7 @@ def get_upload_cmd(pinfo, date):
     level = pinfo.get_level().lower()
     sensor = pinfo.get_sensor().lower()
     dtype = pinfo.get_dtype().lower()
-    cmd = f'sh /home/gosuser/Processing/OC_PROC_EIS202207/uploaddu/upload2DBS_202207.sh -m {args.mode} -r {region} -l {level} -s {sensor} -d {dtype} -sd {datestr}'
+    cmd = f'sh /home/gosuser/Processing/OC_PROC_EIS202211/uploaddu/upload2DBS_202207.sh -m {args.mode} -r {region} -l {level} -s {sensor} -d {dtype} -sd {datestr}'
     return cmd
 
 

@@ -16,7 +16,7 @@ class ProductInfo:
         # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
         #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202210'
+            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202211'
 
         self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
         if not os.path.exists(self.path_reformat_script):

@@ -10,7 +10,7 @@ class DatasetSelection():
         # path2script = "/".join(sdir.split("/")[0:-1])
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202210'
+            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202211'
 
         self.dfselection = None
         self.params = {
@@ -24,6 +24,7 @@ class DatasetSelection():
         file = None
         if mode.upper() == 'NRT' or mode.upper() == 'DT':
             file = os.path.join(self.path2info, 'NRTDictionary.csv')
+
         if file is not None and os.path.exists(file):
             try:
                 self.dfselection = pd.read_csv(file, sep=';')
@@ -60,6 +61,7 @@ class DatasetSelection():
                 if v is not None:
                     if v != row[k]:
                         add = False
+                        # print(k, v, row[k])
             if add:
                 product_names.append(row['PNAME'])
                 datasets_names.append(row['DNAME'])
@@ -102,40 +104,41 @@ class DatasetSelection():
                 product_names.append(name_product)
                 datasets_names.append(name_dataset)
 
-        return product_names,datasets_names
+        return product_names, datasets_names
 
-    def get_params_dataset_fromdict(self,name_dataset):
+    def get_params_dataset_fromdict(self, name_dataset):
         params_here = []
         if self.dfselection is None:
             return params_here
         for idx, row in self.dfselection.iterrows():
             name_dataset_here = row['DNAME']
-            if name_dataset==name_dataset_here:
+            if name_dataset == name_dataset_here:
                 for param in self.params:
                     params_here.append(row[param])
         return params_here
 
-    def check_name_dataset(self,name_dataset,params_dataset):
-        #0:region; 1: level; 2: dataset; 3:sensor; 4:frequency
+    def check_name_dataset(self, name_dataset, params_dataset):
+        # 0:region; 1: level; 2: dataset; 3:sensor; 4:frequency
         region = params_dataset[0].lower()
         level = params_dataset[1].lower()
         dataset = params_dataset[2].lower()
         sensor = params_dataset[3].lower()
         freq = params_dataset[4].upper()
-        if sensor=='olci':
+        if sensor == 'olci':
             res = '300m'
         else:
             res = '1km'
         mode = '-'
-        if name_dataset.find('nrt')>0:
+        if name_dataset.find('nrt') > 0:
             mode = 'nrt'
-        elif name_dataset.find('my')>0:
+        elif name_dataset.find('my') > 0:
             mode = 'my'
-        #cmems_obs-oc_arc_bgc-plankton_nrt_l3-multi-1km_P1D
+        # cmems_obs-oc_arc_bgc-plankton_nrt_l3-multi-1km_P1D
 
         expected_name = f'cmems_obs-oc_{region}_bgc-{dataset}_{mode}_{level}-{sensor}-{res}_P1{freq}'
-        if name_dataset==expected_name:
+        if name_dataset == expected_name:
             return True
         else:
-            print(f'[ERROR] Dataset name {name_dataset} differs from expeced file name: {expected_name} according to params')
+            print(
+                f'[ERROR] Dataset name {name_dataset} differs from expeced file name: {expected_name} according to params')
             return False
