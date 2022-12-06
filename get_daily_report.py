@@ -266,7 +266,12 @@ def get_lines_dataset(name_product, name_dataset, date):
     # 1: SOURCES CHECK
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('SOURCES')
-    sources = pinfo.get_sources()
+    if args.mode=='NRT':
+        sources = pinfo.get_sources()
+    elif args.mode=='DT':
+        sources = pinfo.get_sources_dt() ##check if dt sources are different
+        if sources is None:
+            sources = pinfo.get_sources()
     lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
     lines = [*lines, *lines_sources]
     if iscompleted:

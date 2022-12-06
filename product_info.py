@@ -100,14 +100,19 @@ class ProductInfo:
         return self.get_dinfo_param('dataset')
 
     def get_sources(self):
-
         if len(self.dinfo) == 0:
             return None
         try:
-
             return self.dinfo['sources']
         except:
+            return None
 
+    def get_sources_dt(self):
+        if len(self.dinfo) == 0:
+            return None
+        try:
+            return self.dinfo['sources_dt']
+        except:
             return None
 
     def get_reprocessing_cmd(self, mode):
@@ -703,7 +708,8 @@ class ProductInfo:
                 if nc.title != self.dataset_name:
                     print(f'[ERROR] title atribute: {nc.title} should be equal to dataset name: {self.dataset_name}')
                 if nc.cmems_product_id == self.product_name:
-                    print(f'[ERROR] cmems_product_id {nc.cmems_product_id} should be equal to product name {self.product_name}')
+                    print(
+                        f'[ERROR] cmems_product_id {nc.cmems_product_id} should be equal to product name {self.product_name}')
             if check:
                 variable_list = self.dinfo['variables'].split(',')
                 for variable in variable_list:
