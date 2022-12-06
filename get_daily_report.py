@@ -445,7 +445,7 @@ def get_lines_sources(pinfo, sources, date):
         if not source.lower() == 'olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
             date_source = date + timedelta(days=4)
 
-        print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
+        #print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
         try:
             lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date_source)
         except:
