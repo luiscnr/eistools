@@ -432,11 +432,16 @@ def get_lines_sources(pinfo, sources, date):
         source = s.strip()
         date_source = date
 
-        if source.lower()=='olci' and args.mode=='DT' :
-            if pinfo.get_sensor().lower()=='multi':
-                date_source = date + timedelta(days=12)
-            if pinfo.get_sensor().lower()=='gapfree_multi':
-                date_source = date + timedelta(days=16)
+        # if source.lower()=='olci' and args.mode=='DT' : con multi -20 y gap_freee -24
+        #     if pinfo.get_sensor().lower()=='multi':
+        #         date_source = date + timedelta(days=12)
+        #     if pinfo.get_sensor().lower()=='gapfree_multi':
+        #         date_source = date + timedelta(days=16)
+
+        if source.lower()=='olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
+            date_source = date + timedelta(days=4)
+
+        #this situation is not reached becaused gapfree includes only olci
         if not source.lower() == 'olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
             date_source = date + timedelta(days=4)
 
