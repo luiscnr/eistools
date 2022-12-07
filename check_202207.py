@@ -30,31 +30,32 @@ parser.add_argument("-dname", "--name_dataset", help="Product name")
 
 args = parser.parse_args()
 
+
 def do_check():
     print('check')
     ftpc = FTPCheck('MY')
     rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D'
     lines = []
-    for y in range(1997,2023,1):
-        for m in range(1,13,1):
-            print(y,m)
-            datehere = dt(y,m,15)
+    for y in range(1997, 2023, 1):
+        for m in range(1, 13, 1):
+            print(y, m)
+            datehere = dt(y, m, 15)
             yearstr = datehere.strftime('%Y')
             monthstr = datehere.strftime(('%m'))
             path = f'{rpathbase}/{yearstr}/{monthstr}'
             ftpc.go_subdir(rpathbase)
             sizemonth = 0
-            for d in range(1,32,1):
+            for d in range(1, 32, 1):
                 try:
-                    datehere = dt(y,m,d)
+                    datehere = dt(y, m, d)
                     dateherestr = datehere.strftime('%Y%m%d')
                     fname = f'{path}/{dateherestr}_cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D.nc'
                     size = ftpc.get_file_size(fname)
-                    if size>=0:
+                    if size >= 0:
                         sizemonth = sizemonth + size
                 except:
                     pass
-            if sizemonth>0:
+            if sizemonth > 0:
                 line = f'{y};{m};{sizemonth}'
                 lines.append(line)
 
@@ -65,6 +66,7 @@ def do_check():
             f.write('\n')
 
     return True
+
 
 def do_check2():
     print('check')
@@ -80,8 +82,8 @@ def do_check2():
         for m in range(1, 13, 1):
             last_day = calendar.monthrange(y, m)[1]
             print(y, m, last_day)
-            dateini = dt(y,m,1)
-            datefin = dt(y,m,last_day)
+            dateini = dt(y, m, 1)
+            datefin = dt(y, m, last_day)
             dateinistr = dateini.strftime('%Y%m%d')
             datefinstr = datefin.strftime('%Y%m%d')
             fname = f'{path}/{dateinistr}-{datefinstr}_{dataset}.nc'
@@ -98,28 +100,28 @@ def do_check2():
             f.write(line)
             f.write('\n')
 
-
     return True
+
 
 def do_check3():
     print('STARTED CHECK 3 MODE')
     dir_dest = '/dst04-data1/OC/OLCI/daily_3.01/'
     dir_orig = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    start_date = dt(2016,4,1)
-    end_date = dt(2022,11,22)
+    start_date = dt(2016, 4, 1)
+    end_date = dt(2022, 11, 22)
     date_here = start_date
-    while date_here<=end_date:
+    while date_here <= end_date:
         yearstr = date_here.strftime('%Y')
         jjjstr = date_here.strftime('%j')
         datestr = date_here.strftime(('%Y%j'))
         dir_dest_day = os.path.join(dir_dest, yearstr, jjjstr)
-        #chl
+        # chl
         namechl = f'O{datestr}-chl-bal-fr.nc'
-        file_orig = os.path.join(dir_orig,yearstr,jjjstr,namechl)
-        file_dest = os.path.join(dir_dest_day,namechl)
+        file_orig = os.path.join(dir_orig, yearstr, jjjstr, namechl)
+        file_dest = os.path.join(dir_dest_day, namechl)
         if os.path.exists(file_orig) and os.path.exists(dir_dest_day) and not os.path.exists(file_dest):
             print(f'Date: {date_here} Copying: {file_orig} to {dir_dest_day}')
-            shutil.copy(file_orig,file_dest)
+            shutil.copy(file_orig, file_dest)
 
         # kd490
         namekd = f'O{datestr}-kd490-bal-fr.nc'
@@ -129,10 +131,10 @@ def do_check3():
             print(f'Date: {date_here} Copying: {file_orig} to {dir_dest_day}')
             shutil.copy(file_orig, file_dest)
 
-
         date_here = date_here + timedelta(hours=24)
 
     return True
+
 
 def do_check4():
     print('STARTED CHECK 4 MODE')
@@ -145,10 +147,10 @@ def do_check4():
     while date_here <= end_date:
         yearstr = date_here.strftime('%Y')
         jjjstr = date_here.strftime('%j')
-        dir_dest_jday = os.path.join(dir_dest,yearstr,jjjstr)
+        dir_dest_jday = os.path.join(dir_dest, yearstr, jjjstr)
         line = f'mkdir {dir_dest_jday}'
         lines.append(line)
-        dir_orig_jday = os.path.join(dir_orig,yearstr,jjjstr)
+        dir_orig_jday = os.path.join(dir_orig, yearstr, jjjstr)
         line = f'cp -r {dir_orig_jday}/*bal* {dir_dest_jday}'
         lines.append(line)
         line = f'cp -r {dir_orig_jday}/*BAL* {dir_dest_jday}'
@@ -167,10 +169,98 @@ def do_check4():
             f.write('\n')
 
     return True
+
+
+def do_check5():
+    print('check5')
+    ftpc = FTPCheck('MY')
+    rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D'
+    start_date = dt(2016, 4, 26)
+    end_date = dt(2016, 12, 31)
+    datehere = start_date
+    lines = []
+    yearprev = -1
+    monthprev = -1
+    while datehere <= end_date:
+        if datehere.year != yearprev or datehere.month != monthprev:
+            print(datehere.year, datehere.month)
+            yearprev = datehere.year
+            monthprev = datehere.month
+            yearstr = datehere.strftime('%Y')
+            monthstr = datehere.strftime(('%m'))
+            path = f'{rpathbase}/{yearstr}/{monthstr}'
+            ftpc.go_subdir(path)
+        dateherestr = datehere.strftime('%Y%m%d')
+
+        file = f'{dateherestr}_cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D.nc'
+        existe = ftpc.check_file(file)
+        if not existe:
+            lines.append(dateherestr)
+        datehere = datehere + timedelta(days=1)
+
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
+    with open(fout, 'w') as f:
+        for line in lines:
+            f.write(line)
+            f.write('\n')
+
+    return True
+
+def do_check6():
+    print('check6')
+    #fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
+    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2016.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016.csv'
+    f1 = open(fdates,'r')
+    linesout = []
+    for line in f1:
+        dateherestr = line.strip()
+        print(dateherestr)
+        datehere = dt.strptime(dateherestr,'%Y%m%d')
+        yearstr = datehere.strftime('%Y')
+        jjjstr = datehere.strftime('%j')
+        #check polymer
+        dirpolymer = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER/{yearstr}/{jjjstr}'
+        flist = os.listdir(dirpolymer)
+        npolymer = len(flist)
+        #check water
+        dirwater = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER/{yearstr}/{jjjstr}'
+        flist = os.listdir(dirwater)
+        nwater = len(flist)
+        #check reproc
+        dirreproc = f'/store/COP2-OC-TAC/BAL_Evolutions/{yearstr}/{jjjstr}'
+        prenamea = f'Oa{yearstr}/{jjjstr}'
+        namea = f'Oa{yearstr}/{jjjstr}--bal-fr.nc'
+        prenamemerge = f'O{yearstr}/{jjjstr}'
+        nresamplea=0
+        msa = 0
+        nmerge=0
+        for name in os.listdir(dirreproc):
+            if name==namea:
+                msa = 1
+            elif name.startswith(prenamea):
+                nresamplea = nresamplea +1
+            elif name.strip(prenamemerge):
+                nmerge = nmerge +1
+        lineout = f'{dateherestr};{npolymer};{nwater};{nresamplea};{msa};{nmerge}'
+        linesout.append(lineout)
+
+    f1.close()
+
+    print('Saving...')
+    with open(fout, 'w') as f:
+        for line in linesout:
+            f.write(line)
+            f.write('\n')
+
+    print('DONE')
+
+    return True
+
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check3():
+    if do_check6():
         return
 
     ##DATASETS SELECTION
@@ -286,7 +376,7 @@ def check_dailyfile_du(mode, pinfo, date, verbose):
     if rpath is None:
         if verbose:
             print(f'[ERROR] Month subdir for year {y} and month {m} was not found in FTP DU for {pinfo.dataset_name}')
-        return None,None,False
+        return None, None, False
     if verbose:
         print(f'[INFO] Remote path: {rpath}')
     remote_name = pinfo.get_remote_file_name(date)
@@ -436,8 +526,6 @@ class FTPCheck():
             return rpath
         except:
             return None
-
-
 
     def go_month_subdir(self, pinfo, year, month):
         dateref = dt(year, month, 15)
