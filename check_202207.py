@@ -249,6 +249,9 @@ def do_check6():
 
     print('Saving...')
     with open(fout, 'w') as f:
+        line = 'date;npolymer;nwater;nresamplea;msa;nmerge'
+        f.write(line)
+        f.write('\n')
         for line in linesout:
             f.write(line)
             f.write('\n')
