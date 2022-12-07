@@ -228,7 +228,7 @@ def do_check6():
         flist = os.listdir(dirwater)
         nwater = len(flist)
         #check reproc
-        dirreproc = f'/store/COP2-OC-TAC/BAL_Evolutions/{yearstr}/{jjjstr}'
+        dirreproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC{yearstr}/{jjjstr}'
         prenamea = f'Oa{yearstr}/{jjjstr}'
         namea = f'Oa{yearstr}/{jjjstr}--bal-fr.nc'
         prenamemerge = f'O{yearstr}/{jjjstr}'
