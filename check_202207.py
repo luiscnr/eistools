@@ -229,9 +229,9 @@ def do_check6():
         nwater = len(flist)
         #check reproc
         dirreproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
-        prenamea = f'Oa{yearstr}/{jjjstr}'
-        namea = f'Oa{yearstr}/{jjjstr}--bal-fr.nc'
-        prenamemerge = f'O{yearstr}/{jjjstr}'
+        prenamea = f'Oa{yearstr}{jjjstr}'
+        namea = f'Oa{yearstr}{jjjstr}--bal-fr.nc'
+        prenamemerge = f'O{yearstr}{jjjstr}'
         nresamplea=0
         msa = 0
         nmerge=0
