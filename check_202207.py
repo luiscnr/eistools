@@ -175,8 +175,8 @@ def do_check5():
     print('check5')
     ftpc = FTPCheck('MY')
     rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D'
-    start_date = dt(2016, 4, 26)
-    end_date = dt(2016, 12, 31)
+    start_date = dt(2017, 1, 1)
+    end_date = dt(2017, 12, 31)
     datehere = start_date
     lines = []
     yearprev = -1
@@ -198,7 +198,7 @@ def do_check5():
             lines.append(dateherestr)
         datehere = datehere + timedelta(days=1)
 
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2017.csv'
     with open(fout, 'w') as f:
         for line in lines:
             f.write(line)
@@ -209,8 +209,8 @@ def do_check5():
 def do_check6():
     print('check6')
     #fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
-    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2016.csv'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016.csv'
+    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2017.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2017.csv'
     f1 = open(fdates,'r')
     linesout = []
     for line in f1:
@@ -253,6 +253,50 @@ def do_check6():
         f.write(line)
         f.write('\n')
         for line in linesout:
+            f.write(line)
+            f.write('\n')
+
+    print('DONE')
+
+    return True
+
+def do_check7():
+    print('docheck7 prepare sh.txt to correct bal missings')
+    finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check2016.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct2016.sh.txt'
+    linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
+                   'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
+
+    f1 = open(finput, 'r')
+    for line in f1:
+
+        vals = line.strip().split(';')
+        if vals[0]=='date':
+            continue
+        datehere = dt.strptime(vals[0],'%Y%m%d')
+        yearstr = datehere.strftime('%Y')
+        jjjstr = datehere.strftime('%j')
+        dateherestr = datehere.strftime('%Y-%m-%d')
+        npolymer = int(vals[1])
+        nwater = int(vals[2])
+        if npolymer==nwater and npolymer>0:
+            lineout = f'rm /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}/*'
+            linesoutput.append(lineout)
+            linebase = f'python /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy/main.py -ac BALALL -c /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/CONFIG -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -o /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC  -sd {dateherestr} -ed {dateherestr} -v'
+            lineout = linebase.replace('CONFIG','aceasy_config.ini')
+            linesoutput.append(lineout)
+            lineout = linebase.replace('CONFIG', 'aceasy_config_ms_onlya.ini')
+            linesoutput.append(lineout)
+            lineout = linebase.replace('CONFIG', 'aceasy_config_merge_onlya.ini')
+            linesoutput.append(lineout)
+            lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
+            linesoutput.append(lineout)
+
+    f1.close()
+
+    print('Saving...')
+    with open(fout, 'w') as f:
+        for line in linesoutput:
             f.write(line)
             f.write('\n')
 
