@@ -175,8 +175,8 @@ def do_check5():
     print('check5')
     ftpc = FTPCheck('MY')
     rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D'
-    start_date = dt(2017, 1, 1)
-    end_date = dt(2017, 12, 31)
+    start_date = dt(2018, 1, 1)
+    end_date = dt(2018, 5, 15) #15/05/2018
     datehere = start_date
     lines = []
     yearprev = -1
@@ -198,7 +198,7 @@ def do_check5():
             lines.append(dateherestr)
         datehere = datehere + timedelta(days=1)
 
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2017.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2018a.csv'
     with open(fout, 'w') as f:
         for line in lines:
             f.write(line)
@@ -209,8 +209,8 @@ def do_check5():
 def do_check6():
     print('check6')
     #fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
-    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2017.csv'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2017.csv'
+    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2018a.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2018a.csv'
     f1 = open(fdates,'r')
     linesout = []
     for line in f1:
@@ -262,8 +262,8 @@ def do_check6():
 
 def do_check7():
     print('docheck7 prepare sh.txt to correct bal missings')
-    finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check2016.csv'
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct2016.sh.txt'
+    finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check2017.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct2017.sh.txt'
     linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
                    'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
 
