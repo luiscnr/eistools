@@ -326,7 +326,7 @@ def do_check7():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check5():
+    if do_check6():
         return
 
     ##DATASETS SELECTION
