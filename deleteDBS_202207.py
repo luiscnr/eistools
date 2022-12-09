@@ -205,7 +205,7 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
     ftpdu.go_month_subdir(rpath, year, month)
 
     rpathnormal, sdir = pinfo.get_remote_path_normal(year, month)
-    print(rpathnormal,sdir)
+    #print(rpathnormal,sdir)
     gomonth = ftpnormal.go_month_subdir(rpathnormal, year, month)
     if not gomonth:
         print(f'[INFO] No directory found for year {year} and month {month}')

@@ -174,9 +174,10 @@ def do_check4():
 def do_check5():
     print('check5')
     ftpc = FTPCheck('MY')
-    rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D'
-    start_date = dt(2018, 1, 1)
-    end_date = dt(2018, 5, 15) #15/05/2018
+    rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D'
+    # limit a-b 15/05/2018
+    start_date = dt(2018, 5, 16)
+    end_date = dt(2020, 12, 31)
     datehere = start_date
     lines = []
     yearprev = -1
@@ -192,13 +193,13 @@ def do_check5():
             ftpc.go_subdir(path)
         dateherestr = datehere.strftime('%Y%m%d')
 
-        file = f'{dateherestr}_cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D.nc'
+        file = f'{dateherestr}_cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D.nc'
         existe = ftpc.check_file(file)
         if not existe:
             lines.append(dateherestr)
         datehere = datehere + timedelta(days=1)
 
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2018a.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2018-2020.csv'
     with open(fout, 'w') as f:
         for line in lines:
             f.write(line)
@@ -209,8 +210,8 @@ def do_check5():
 def do_check6():
     print('check6')
     #fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
-    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2018a.csv'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2018a.csv'
+    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2018-2020.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2018-2020.csv'
     f1 = open(fdates,'r')
     linesout = []
     for line in f1:
@@ -230,26 +231,44 @@ def do_check6():
         #check reproc
         dirreproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
         prenamea = f'Oa{yearstr}{jjjstr}'
+        prenamea_split = f'Oa{yearstr}{jjjstr}-'
         namea = f'Oa{yearstr}{jjjstr}--bal-fr.nc'
+        prenameb = f'Ob{yearstr}{jjjstr}'
+        prenameb_split = f'Ob{yearstr}{jjjstr}-'
+        nameb = f'Ob{yearstr}{jjjstr}--bal-fr.nc'
         prenamemerge = f'O{yearstr}{jjjstr}'
         nresamplea=0
+        nresampleb=0
         msa = 0
+        msb = 0
+        nsplita=0
+        nsplitb=0
         nmerge=0
         for name in os.listdir(dirreproc):
             if name==namea:
                 msa = 1
+            elif name==nameb:
+                msb = 1
             elif name.startswith(prenamea):
-                nresamplea = nresamplea +1
+                if name.startswith(prenamea_split):
+                    nsplita = nsplita +1
+                else:
+                    nresamplea = nresamplea + 1
+            elif name.startswith(prenameb):
+                if name.startswith(prenameb_split):
+                    nsplitb = nsplitb +1
+                else:
+                    nresampleb = nresampleb + 1
             elif name.strip(prenamemerge):
                 nmerge = nmerge +1
-        lineout = f'{dateherestr};{npolymer};{nwater};{nresamplea};{msa};{nmerge}'
+        lineout = f'{dateherestr};{npolymer};{nwater};{nresamplea};{nresampleb};{msa};{msb};{nsplita};{nsplitb};{nmerge}'
         linesout.append(lineout)
 
     f1.close()
 
     print('Saving...')
     with open(fout, 'w') as f:
-        line = 'date;npolymer;nwater;nresamplea;msa;nmerge'
+        line = 'date;npolymer;nwater;nresamplea;nresampleb;msa;msb;nsplita;nsplitb;nmerge'
         f.write(line)
         f.write('\n')
         for line in linesout:
@@ -307,7 +326,7 @@ def do_check7():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check6():
+    if do_check5():
         return
 
     ##DATASETS SELECTION
