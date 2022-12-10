@@ -342,13 +342,13 @@ def do_check7():
                 lineout = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
                 linesoutput.append(lineout)
                 lineout = f'python (home/Luis.Gonzalezvilas/aceasy/main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
-                inesoutput.append(lineout)
+                linesoutput.append(lineout)
 
         if nwater<npolymer:
             print('CASO ESPECIAL->',datehere)
     f1.close()
 
-    
+
     print('Saving...')
     with open(fout, 'w') as f:
         for line in linesoutput:
