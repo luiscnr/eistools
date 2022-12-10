@@ -341,7 +341,7 @@ def do_check7():
             if dowithtrim:
                 lineout = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
                 linesoutput.append(lineout)
-                lineout = f'python (home/Luis.Gonzalezvilas/aceasy/main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
+                lineout = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
                 linesoutput.append(lineout)
 
         if nwater<npolymer:
