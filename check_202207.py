@@ -176,8 +176,8 @@ def do_check5():
     ftpc = FTPCheck('MY')
     rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D'
     # limit a-b 15/05/2018
-    start_date = dt(2018, 5, 16)
-    end_date = dt(2020, 12, 31)
+    start_date = dt(2021, 1, 1)
+    end_date = dt(2022, 9, 30)
     datehere = start_date
     lines = []
     yearprev = -1
@@ -199,7 +199,7 @@ def do_check5():
             lines.append(dateherestr)
         datehere = datehere + timedelta(days=1)
 
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2018-2020.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2021-2022.csv'
     with open(fout, 'w') as f:
         for line in lines:
             f.write(line)
@@ -210,8 +210,8 @@ def do_check5():
 def do_check6():
     print('check6')
     #fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
-    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2018-2020.csv'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2018-2020.csv'
+    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2021-2022.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2021-2022.csv'
     f1 = open(fdates,'r')
     linesout = []
     for line in f1:
@@ -281,8 +281,8 @@ def do_check6():
 
 def do_check7():
     print('docheck7 prepare sh.txt to correct bal missings')
-    finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check2017.csv'
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct2017.sh.txt'
+    finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check2018-2020.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct2018-2020.sh.txt'
     linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
                    'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
 
@@ -298,18 +298,31 @@ def do_check7():
         dateherestr = datehere.strftime('%Y-%m-%d')
         npolymer = int(vals[1])
         nwater = int(vals[2])
+        nsplita = int(vals[7])
+        nsplitb = int(vals[8])
         if npolymer==nwater and npolymer>0:
-            lineout = f'rm /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}/*'
-            linesoutput.append(lineout)
             linebase = f'python /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy/main.py -ac BALALL -c /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/CONFIG -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -o /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC  -sd {dateherestr} -ed {dateherestr} -v'
-            lineout = linebase.replace('CONFIG','aceasy_config.ini')
-            linesoutput.append(lineout)
-            lineout = linebase.replace('CONFIG', 'aceasy_config_ms_onlya.ini')
-            linesoutput.append(lineout)
-            lineout = linebase.replace('CONFIG', 'aceasy_config_merge_onlya.ini')
-            linesoutput.append(lineout)
-            lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
-            linesoutput.append(lineout)
+            if nsplita==28 and nsplitb==0:
+                lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
+                linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
+                linesoutput.append(lineout)
+            elif nsplita==0 and nsplitb==28:
+                lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
+                linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
+                linesoutput.append(lineout)
+            else:
+                lineout = f'rm /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}/*'
+                linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG','aceasy_config.ini')
+                linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG', 'aceasy_config_ms.ini')
+                linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
+                linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
+                linesoutput.append(lineout)
 
     f1.close()
 
