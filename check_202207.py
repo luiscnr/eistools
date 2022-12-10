@@ -281,10 +281,16 @@ def do_check6():
 
 def do_check7():
     print('docheck7 prepare sh.txt to correct bal missings')
-    finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check2018-2020.csv'
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct2018-2020.sh.txt'
-    linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
-                   'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
+    # finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check_all.csv'
+    # fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct_all.sh.txt'
+
+    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check_all.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
+
+    # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
+    #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
+
+    linesoutput = ['conda activate polymer']
 
     f1 = open(finput, 'r')
     for line in f1:
@@ -301,6 +307,7 @@ def do_check7():
         nsplita = int(vals[7])
         nsplitb = int(vals[8])
         if npolymer==nwater and npolymer>0:
+            continue
             linebase = f'python /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy/main.py -ac BALALL -c /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/CONFIG -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -o /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC  -sd {dateherestr} -ed {dateherestr} -v'
             if nsplita==28 and nsplitb==0:
                 lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
@@ -323,9 +330,25 @@ def do_check7():
                 linesoutput.append(lineout)
                 lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
                 linesoutput.append(lineout)
+        if npolymer==0 and nwater==0:
+            dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
+            dowithtrim = False
+            if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
+                files = os.listdir(dir_trim)
+                if len(files)>=0:
+                    dowithtrim = True
 
+            if dowithtrim:
+                lineout = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
+                linesoutput.append(lineout)
+                lineout = f'python (home/Luis.Gonzalezvilas/aceasy/main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
+                inesoutput.append(lineout)
+
+        if nwater<npolymer:
+            print('CASO ESPECIAL->',datehere)
     f1.close()
 
+    
     print('Saving...')
     with open(fout, 'w') as f:
         for line in linesoutput:
@@ -339,7 +362,7 @@ def do_check7():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check6():
+    if do_check7():
         return
 
     ##DATASETS SELECTION
