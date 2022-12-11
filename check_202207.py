@@ -207,28 +207,29 @@ def do_check5():
 
     return True
 
+
 def do_check6():
     print('check6')
-    #fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
+    # fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
     fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2021-2022.csv'
     fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2021-2022.csv'
-    f1 = open(fdates,'r')
+    f1 = open(fdates, 'r')
     linesout = []
     for line in f1:
         dateherestr = line.strip()
         print(dateherestr)
-        datehere = dt.strptime(dateherestr,'%Y%m%d')
+        datehere = dt.strptime(dateherestr, '%Y%m%d')
         yearstr = datehere.strftime('%Y')
         jjjstr = datehere.strftime('%j')
-        #check polymer
+        # check polymer
         dirpolymer = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER/{yearstr}/{jjjstr}'
         flist = os.listdir(dirpolymer)
         npolymer = len(flist)
-        #check water
+        # check water
         dirwater = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER/{yearstr}/{jjjstr}'
         flist = os.listdir(dirwater)
         nwater = len(flist)
-        #check reproc
+        # check reproc
         dirreproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
         prenamea = f'Oa{yearstr}{jjjstr}'
         prenamea_split = f'Oa{yearstr}{jjjstr}-'
@@ -237,30 +238,30 @@ def do_check6():
         prenameb_split = f'Ob{yearstr}{jjjstr}-'
         nameb = f'Ob{yearstr}{jjjstr}--bal-fr.nc'
         prenamemerge = f'O{yearstr}{jjjstr}'
-        nresamplea=0
-        nresampleb=0
+        nresamplea = 0
+        nresampleb = 0
         msa = 0
         msb = 0
-        nsplita=0
-        nsplitb=0
-        nmerge=0
+        nsplita = 0
+        nsplitb = 0
+        nmerge = 0
         for name in os.listdir(dirreproc):
-            if name==namea:
+            if name == namea:
                 msa = 1
-            elif name==nameb:
+            elif name == nameb:
                 msb = 1
             elif name.startswith(prenamea):
                 if name.startswith(prenamea_split):
-                    nsplita = nsplita +1
+                    nsplita = nsplita + 1
                 else:
                     nresamplea = nresamplea + 1
             elif name.startswith(prenameb):
                 if name.startswith(prenameb_split):
-                    nsplitb = nsplitb +1
+                    nsplitb = nsplitb + 1
                 else:
                     nresampleb = nresampleb + 1
             elif name.strip(prenamemerge):
-                nmerge = nmerge +1
+                nmerge = nmerge + 1
         lineout = f'{dateherestr};{npolymer};{nwater};{nresamplea};{nresampleb};{msa};{msb};{nsplita};{nsplitb};{nmerge}'
         linesout.append(lineout)
 
@@ -279,26 +280,28 @@ def do_check6():
 
     return True
 
+
 def do_check7():
     print('docheck7 prepare sh.txt to correct bal missings')
     # finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check_all.csv'
     # fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct_all.sh.txt'
 
     finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check_all.csv'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
+    # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
 
-    linesoutput = ['conda activate polymer']
+    linesoutput = ['']
 
     f1 = open(finput, 'r')
     for line in f1:
 
         vals = line.strip().split(';')
-        if vals[0]=='date':
+        if vals[0] == 'date':
             continue
-        datehere = dt.strptime(vals[0],'%Y%m%d')
+        datehere = dt.strptime(vals[0], '%Y%m%d')
         yearstr = datehere.strftime('%Y')
         jjjstr = datehere.strftime('%j')
         dateherestr = datehere.strftime('%Y-%m-%d')
@@ -306,15 +309,22 @@ def do_check7():
         nwater = int(vals[2])
         nsplita = int(vals[7])
         nsplitb = int(vals[8])
-        if npolymer==nwater and npolymer>0:
+        if npolymer == nwater and npolymer > 0:
+            file_end = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}/CMEMS2_O{yearstr}{jjjstr}-rrs-bal-fr.nc'
+            if os.path.exists(file_end):
+                lr, lo, lp, lt = get_lines_upload(dateherestr)
+                linesoutput.append(lr)
+                linesoutput.append(lo)
+                linesoutput.append(lp)
+                linesoutput.append(lt)
             continue
             linebase = f'python /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy/main.py -ac BALALL -c /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/CONFIG -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -o /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC  -sd {dateherestr} -ed {dateherestr} -v'
-            if nsplita==28 and nsplitb==0:
+            if nsplita == 28 and nsplitb == 0:
                 lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
                 linesoutput.append(lineout)
                 lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
                 linesoutput.append(lineout)
-            elif nsplita==0 and nsplitb==28:
+            elif nsplita == 0 and nsplitb == 28:
                 lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
                 linesoutput.append(lineout)
                 lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
@@ -322,7 +332,7 @@ def do_check7():
             else:
                 lineout = f'rm /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}/*'
                 linesoutput.append(lineout)
-                lineout = linebase.replace('CONFIG','aceasy_config.ini')
+                lineout = linebase.replace('CONFIG', 'aceasy_config.ini')
                 linesoutput.append(lineout)
                 lineout = linebase.replace('CONFIG', 'aceasy_config_ms.ini')
                 linesoutput.append(lineout)
@@ -330,12 +340,12 @@ def do_check7():
                 linesoutput.append(lineout)
                 lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
                 linesoutput.append(lineout)
-        if npolymer==0 and nwater==0:
+        if npolymer == 0 and nwater == 0:
             dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
             dowithtrim = False
             if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
                 files = os.listdir(dir_trim)
-                if len(files)>=0:
+                if len(files) >= 0:
                     dowithtrim = True
 
             if dowithtrim:
@@ -344,10 +354,9 @@ def do_check7():
                 lineout = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
                 linesoutput.append(lineout)
 
-        if nwater<npolymer:
-            print('CASO ESPECIAL->',datehere)
+        if nwater < npolymer:
+            print('CASO ESPECIAL->', datehere)
     f1.close()
-
 
     print('Saving...')
     with open(fout, 'w') as f:
@@ -358,6 +367,7 @@ def do_check7():
     print('DONE')
 
     return True
+
 
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
@@ -465,6 +475,14 @@ def get_date_from_param(dateparam):
             pass
 
     return datefin
+
+
+def get_lines_upload(dateherestr):
+    lr = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    lo = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    lp = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    lt = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    return lr, lo, lp, lt
 
 
 # IMPORTANT: PINFO MUST CONTAIN PRODUCT NAME AND DATASET NAME
