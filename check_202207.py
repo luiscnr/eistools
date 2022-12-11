@@ -341,6 +341,7 @@ def do_check7():
                 lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
                 linesoutput.append(lineout)
         if npolymer == 0 and nwater == 0:
+            continue
             dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
             dowithtrim = False
             if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
