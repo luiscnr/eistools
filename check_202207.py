@@ -177,7 +177,7 @@ def do_check5():
     rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D'
     # limit a-b 15/05/2018
     start_date = dt(2016, 4, 26)
-    end_date = dt(2022, 12, 31)
+    end_date = dt(2022, 9, 30)
     datehere = start_date
     lines = []
     yearprev = -1
@@ -199,7 +199,7 @@ def do_check5():
             lines.append(dateherestr)
         datehere = datehere + timedelta(days=1)
 
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016-2022.csv'
+    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016-2022_2.csv'
     with open(fout, 'w') as f:
         for line in lines:
             f.write(line)
@@ -211,8 +211,8 @@ def do_check5():
 def do_check6():
     print('check6')
     # fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
-    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2016-2022.csv'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022.csv'
+    fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2016-2022_2.csv'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_2.csv'
     f1 = open(fdates, 'r')
     linesout = []
     for line in f1:
@@ -413,7 +413,7 @@ def do_check7():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check7():
+    if do_check6():
         return
 
     ##DATASETS SELECTION
