@@ -287,10 +287,10 @@ def do_check7():
     # finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check_all.csv'
     # fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct_all.sh.txt'
 
-    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_2.csv'
+    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_1.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dos3b.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dopolymer.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -324,16 +324,25 @@ def do_check7():
         #     linesoutput.append(lp)
         #     linesoutput.append(lt)
 
-        daterefob = datetime.datetime(2018,5,8)
-        if datehere>daterefob and nsplita==28 and nmerge==28:
-            line_s3b = f'sh /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/s3olci_daily_proc_202211.sh {dateherestr} FR NT BAL S3B SRUN --noupload --nopng -v >> /dev/null 2>&1'
-            linesoutput.append(line_s3b)
+        # daterefob = datetime.datetime(2018,5,8)
+        # if datehere>daterefob and nsplita==28 and nmerge==28:
+        #     line_s3b = f'sh /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/s3olci_daily_proc_202211.sh {dateherestr} FR NT BAL S3B SRUN --noupload --nopng -v >> /dev/null 2>&1'
+        #     linesoutput.append(line_s3b)
 
         if npolymer == 0:
             # line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
             # linesoutput.append(line_trim_delete)
-            line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
+            #line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
             #linesoutput.append(line_trim)
+            dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
+            dopolymer = False
+            if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
+                files = os.listdir(dir_trim)
+                if len(files) > 0:
+                    dopolymer = True
+            if dopolymer:
+                line_polymer = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
+                linesoutput.append(line_polymer)
         if npolymer > 0:
             continue
 
