@@ -312,11 +312,11 @@ def do_check7():
         nsplitb = int(vals[8])
 
         dir_reproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
-        f1 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-optics-bal-fr.nc')
-        f2 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-rrs-bal-fr.nc')
-        f3 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-transp-bal-fr.nc')
-        f4 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-plankton-bal-fr.nc')
-        if os.path.exists(f1) and os.path.exists(f2) and os.path.exists(f3) and os.path.exists(f4):
+        fa = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-optics-bal-fr.nc')
+        fb = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-rrs-bal-fr.nc')
+        fc = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-transp-bal-fr.nc')
+        fd = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-plankton-bal-fr.nc')
+        if os.path.exists(fa) and os.path.exists(fb) and os.path.exists(fc) and os.path.exists(fd):
             lr, lo, lp, lt = get_lines_upload(dateherestr)
             linesoutput.append(lr)
             linesoutput.append(lo)
