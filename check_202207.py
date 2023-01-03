@@ -1,4 +1,5 @@
 import argparse
+import datetime
 import shutil
 from datetime import datetime as dt
 from datetime import timedelta
@@ -289,7 +290,7 @@ def do_check7():
     finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_pending_upload.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dos3b.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -310,19 +311,23 @@ def do_check7():
         nwater = int(vals[2])
         nsplita = int(vals[7])
         nsplitb = int(vals[8])
+        nmerge = int(vals[9])
+        # dir_reproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
+        # fa = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-optics-bal-fr.nc')
+        # fb = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-rrs-bal-fr.nc')
+        # fc = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-transp-bal-fr.nc')
+        # fd = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-plankton-bal-fr.nc')
+        # if os.path.exists(fa) and os.path.exists(fb) and os.path.exists(fc) and os.path.exists(fd):
+        #     lr, lo, lp, lt = get_lines_upload(dateherestr)
+        #     linesoutput.append(lr)
+        #     linesoutput.append(lo)
+        #     linesoutput.append(lp)
+        #     linesoutput.append(lt)
 
-        dir_reproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
-        fa = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-optics-bal-fr.nc')
-        fb = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-rrs-bal-fr.nc')
-        fc = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-transp-bal-fr.nc')
-        fd = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-plankton-bal-fr.nc')
-        if os.path.exists(fa) and os.path.exists(fb) and os.path.exists(fc) and os.path.exists(fd):
-            lr, lo, lp, lt = get_lines_upload(dateherestr)
-            linesoutput.append(lr)
-            linesoutput.append(lo)
-            linesoutput.append(lp)
-            linesoutput.append(lt)
-
+        daterefob = datetime.datetime(2018,5,8)
+        if datehere>daterefob and nsplita==28 and nmerge==28:
+            line_s3b = f'sh /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/s3olci_daily_proc_202211.sh {dateherestr} FR NT BAL S3B SRUN --noupload --nopng -v >> /dev/null 2>&1'
+            linesoutput.append(line_s3b)
 
         if npolymer == 0:
             # line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
@@ -413,7 +418,7 @@ def do_check7():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check6():
+    if do_check7():
         return
 
     ##DATASETS SELECTION
