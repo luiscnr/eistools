@@ -286,10 +286,10 @@ def do_check7():
     # finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check_all.csv'
     # fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct_all.sh.txt'
 
-    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check_all.csv'
+    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_extra.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_no_trim.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -310,6 +310,15 @@ def do_check7():
         nwater = int(vals[2])
         nsplita = int(vals[7])
         nsplitb = int(vals[8])
+
+        if npolymer==0:
+            line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
+            linesoutput.append(line_trim_delete)
+
+        if npolymer>0:
+            continue
+
+
         if npolymer == nwater and npolymer > 0:
             continue
 
@@ -392,7 +401,7 @@ def do_check7():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check6():
+    if do_check7():
         return
 
     ##DATASETS SELECTION
