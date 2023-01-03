@@ -312,9 +312,10 @@ def do_check7():
         nsplitb = int(vals[8])
 
         if npolymer==0:
-            line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
-            linesoutput.append(line_trim_delete)
-
+            #line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
+            #linesoutput.append(line_trim_delete)
+            line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
+            linesoutput.append(line_trim)
         if npolymer>0:
             continue
 
