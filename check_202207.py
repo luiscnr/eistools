@@ -289,7 +289,7 @@ def do_check7():
     finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_no_trim.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_pending_upload.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -311,14 +311,26 @@ def do_check7():
         nsplita = int(vals[7])
         nsplitb = int(vals[8])
 
-        if npolymer==0:
-            #line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
-            #linesoutput.append(line_trim_delete)
-            line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
-            linesoutput.append(line_trim)
-        if npolymer>0:
-            continue
+        dir_reproc = f'/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}'
+        f1 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-optics-bal-fr.nc')
+        f2 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-rrs-bal-fr.nc')
+        f3 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-transp-bal-fr.nc')
+        f4 = os.path.join(dir_reproc, f'CMEMS2_O{yearstr}{jjjstr}-plankton-bal-fr.nc')
+        if os.path.exists(f1) and os.path.exists(f2) and os.path.exists(f3) and os.path.exists(f4):
+            lr, lo, lp, lt = get_lines_upload(dateherestr)
+            linesoutput.append(lr)
+            linesoutput.append(lo)
+            linesoutput.append(lp)
+            linesoutput.append(lt)
 
+
+        if npolymer == 0:
+            # line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
+            # linesoutput.append(line_trim_delete)
+            line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
+            #linesoutput.append(line_trim)
+        if npolymer > 0:
+            continue
 
         if npolymer == nwater and npolymer > 0:
             continue
@@ -331,7 +343,7 @@ def do_check7():
                 linesoutput.append(lo)
                 linesoutput.append(lp)
                 linesoutput.append(lt)
-            #other corrections
+            # other corrections
             linebase = f'python /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy/main.py -ac BALALL -c /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/CONFIG -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -o /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC  -sd {dateherestr} -ed {dateherestr} -v'
             if nsplita == 28 and nsplitb == 0:
                 lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
@@ -376,13 +388,12 @@ def do_check7():
                 flist = os.listdir(dirwater)
                 nwaternew = len(flist)
                 if 0 < npolymernew == nwaternew:
-                    l1,l2,l3,l4,l5 = get_lines_correction(dateherestr, yearstr, jjjstr)
+                    l1, l2, l3, l4, l5 = get_lines_correction(dateherestr, yearstr, jjjstr)
                     linesoutput.append(l1)
                     linesoutput.append(l2)
                     linesoutput.append(l3)
                     linesoutput.append(l4)
                     linesoutput.append(l5)
-
 
         if nwater < npolymer:
             print('CASO ESPECIAL->', datehere)
@@ -515,14 +526,14 @@ def get_lines_upload(dateherestr):
     return lr, lo, lp, lt
 
 
-def get_lines_correction(dateherestr,yearstr,jjjstr):
+def get_lines_correction(dateherestr, yearstr, jjjstr):
     linebase = f'python /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy/main.py -ac BALALL -c /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/CONFIG -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -o /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC  -sd {dateherestr} -ed {dateherestr} -v'
     l1 = f'rm /store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC/{yearstr}/{jjjstr}/*'
     l2 = linebase.replace('CONFIG', 'aceasy_config.ini')
     l3 = linebase.replace('CONFIG', 'aceasy_config_ms.ini')
     l4 = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
     l5 = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
-    return l1,l2,l3,l4,l5
+    return l1, l2, l3, l4, l5
 
 
 # IMPORTANT: PINFO MUST CONTAIN PRODUCT NAME AND DATASET NAME
