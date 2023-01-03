@@ -287,7 +287,7 @@ def do_check7():
     # finput = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/check_all.csv'
     # fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/correct_all.sh.txt'
 
-    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022.csv'
+    finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_2.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
     fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dos3b.sh.txt'
