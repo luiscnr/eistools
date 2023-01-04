@@ -290,7 +290,7 @@ def do_check7():
     finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_1.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dopolymer.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dowater.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -334,15 +334,25 @@ def do_check7():
             # linesoutput.append(line_trim_delete)
             #line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
             #linesoutput.append(line_trim)
-            dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
-            dopolymer = False
-            if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
-                files = os.listdir(dir_trim)
+            # dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
+            # dopolymer = False
+            # if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
+            #     files = os.listdir(dir_trim)
+            #     if len(files) > 0:
+            #         dopolymer = True
+            # if dopolymer:
+            #     line_polymer = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
+            #     linesoutput.append(line_polymer)
+            dir_polymer = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER/{yearstr}/{jjjstr}'
+            dowater = False
+            if os.path.isdir(dir_polymer) and os.path.exists(dir_polymer):
+                files = os.listdir(dir_polymer)
                 if len(files) > 0:
-                    dopolymer = True
-            if dopolymer:
-                line_polymer = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
-                linesoutput.append(line_polymer)
+                    dowater = True
+            if dowater:
+                line_water = f'python main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
+                linesoutput.append(line_water)
+
         if npolymer > 0:
             continue
 
