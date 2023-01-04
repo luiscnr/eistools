@@ -290,7 +290,7 @@ def do_check7():
     finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_1.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_dowater.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_ref_upload.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -329,6 +329,14 @@ def do_check7():
         #     line_s3b = f'sh /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/s3olci_daily_proc_202211.sh {dateherestr} FR NT BAL S3B SRUN --noupload --nopng -v >> /dev/null 2>&1'
         #     linesoutput.append(line_s3b)
 
+        if nmerge==28:
+            lr, lo, lp, lt = get_lines_upload(dateherestr)
+            linesoutput.append(lr)
+            linesoutput.append(lo)
+            linesoutput.append(lp)
+            linesoutput.append(lt)
+
+
         if npolymer == 0:
             # line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
             # linesoutput.append(line_trim_delete)
@@ -344,14 +352,14 @@ def do_check7():
             #     line_polymer = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
             #     linesoutput.append(line_polymer)
             dir_polymer = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER/{yearstr}/{jjjstr}'
-            dowater = False
-            if os.path.isdir(dir_polymer) and os.path.exists(dir_polymer):
-                files = os.listdir(dir_polymer)
-                if len(files) > 0:
-                    dowater = True
-            if dowater:
-                line_water = f'python main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
-                linesoutput.append(line_water)
+            # dowater = False
+            # if os.path.isdir(dir_polymer) and os.path.exists(dir_polymer):
+            #     files = os.listdir(dir_polymer)
+            #     if len(files) > 0:
+            #         dowater = True
+            # if dowater:
+            #     line_water = f'python main.py -ac BALMLP -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER -sd {dateherestr} -ed {dateherestr} -v'
+            #     linesoutput.append(line_water)
 
         if npolymer > 0:
             continue
@@ -543,10 +551,14 @@ def get_date_from_param(dateparam):
 
 
 def get_lines_upload(dateherestr):
-    lr = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
-    lo = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
-    lp = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
-    lt = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    # lr = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    # lo = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    # lp = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    # lt = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v -noreformat'
+    lr = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v'
+    lo = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v'
+    lp = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v'
+    lt = f'/usr/local/anaconda/anaconda3/bin/python /home/gosuser/Processing/OC_PROC_EIS202207_NRTNASA_EDS/uploaddu/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_BAL_BGC_L3_MY_009_133  -dname  cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D -sd {dateherestr} -ed {dateherestr} -v'
     return lr, lo, lp, lt
 
 
