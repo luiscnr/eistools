@@ -290,7 +290,7 @@ def do_check7():
     finput = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_1.csv'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_polymer.sh.txt'
     # fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_all_upload.sh.txt'
-    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_resample.sh.txt'
+    fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/correct_mosaic.sh.txt'
 
     # linesoutput = ['source /home/gosuser/load_miniconda3.source', 'conda activate OC_202209',
     #                'cd /home/gosuser/Processing/OC_PROC_EIS202211/s3olciProcessing/aceasy', '']
@@ -367,10 +367,10 @@ def do_check7():
                 if len(files) > 0:
                     doresto = True
             if doresto:
-                lineout = linebase.replace('CONFIG', 'aceasy_config.ini')
-                linesoutput.append(lineout)
-                # lineout = linebase.replace('CONFIG', 'aceasy_config_ms.ini')
+                # lineout = linebase.replace('CONFIG', 'aceasy_config.ini')
                 # linesoutput.append(lineout)
+                lineout = linebase.replace('CONFIG', 'aceasy_config_ms.ini')
+                linesoutput.append(lineout)
                 # lineout = linebase.replace('CONFIG', 'aceasy_config_merge.ini')
                 # linesoutput.append(lineout)
                 # lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
