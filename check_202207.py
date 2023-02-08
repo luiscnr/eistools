@@ -33,9 +33,10 @@ args = parser.parse_args()
 
 
 def do_check():
-    print('check')
+    print('check, computing monthly sizes')
     ftpc = FTPCheck('MY')
-    rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D'
+    rpathbase = '/Core/OCEANCOLOUR_GLO_BGC_L3_MY_009_107/c3s_obs-oc_glo_bgc-reflectance_my_l3-multi-4km_P1M'
+    # rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_107/c3s_obs-oc_glo_bgc-reflectance_my_l3-multi-4km_P1M'
     lines = []
     for y in range(1997, 2023, 1):
         for m in range(1, 13, 1):
@@ -50,7 +51,8 @@ def do_check():
                 try:
                     datehere = dt(y, m, d)
                     dateherestr = datehere.strftime('%Y%m%d')
-                    fname = f'{path}/{dateherestr}_cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D.nc'
+                    fname = f'{path}/{dateherestr}_c3s_obs-oc_glo_bgc-reflectance_my_l3-multi-4km_P1D.nc'
+                    # print(fname)
                     size = ftpc.get_file_size(fname)
                     if size >= 0:
                         sizemonth = sizemonth + size
@@ -60,7 +62,7 @@ def do_check():
                 line = f'{y};{m};{sizemonth}'
                 lines.append(line)
 
-    file_out = '/mnt/c/DATA_LUIS/OCTAC_WORK/EisMarch2023/transp_multi_133.csv'
+    file_out = '/mnt/c/DATA_LUIS/OCTAC_WORK/EisMarch2023/reflectance_multi_107.csv'
     with open(file_out, 'w') as f:
         for line in lines:
             f.write(line)
@@ -70,7 +72,7 @@ def do_check():
 
 
 def do_check2():
-    print('check')
+    print('check 2 computing monthly sizes')
     ftpc = FTPCheck('MY')
     dataset = 'cmems_obs-oc_bal_bgc-plankton_my_l4-multi-1km_P1M'
     rpathbase = f'/Core/OCEANCOLOUR_BAL_BGC_L4_MY_009_134/{dataset}'
@@ -101,6 +103,54 @@ def do_check2():
             f.write(line)
             f.write('\n')
 
+    return True
+
+def do_check_last_date():
+    print('Check last date of upload file')
+    #input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/cop_grey_list_L3.txt'
+    input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/cop_grey_list_interp_L4.txt'
+    #input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/cop_grey_list_monthly_L4.txt'
+    ftpc = FTPCheck('MY')
+    #dataset = 'cmems_obs-oc_med_bgc-transp_my_l3-multi-1km_P1D' #PRODUCT 142
+    dataset = 'cmems_obs-oc_med_bgc-plankton_my_l4-gapfree-multi-1km_P1D' #PRODUDCT 144
+    #dataset = 'cmems_obs-oc_med_bgc-plankton_my_l4-multi-1km_P1M' #PRODUCT 144
+
+    #rpathbase = f'/Core/OCEANCOLOUR_MED_BGC_L3_MY_009_143/{dataset}'
+    rpathbase = f'/Core/OCEANCOLOUR_MED_BGC_L4_MY_009_144/{dataset}'
+
+    is_monthly = False
+
+    f1 = open(input_file)
+    for line in f1:
+        datestr = line.strip()
+        datehere = dt.strptime(datestr,'%Y-%m-%d')
+        yearstr = datehere.strftime('%Y')
+        monthstr = datehere.strftime('%m')
+        if is_monthly:
+            path = f'{rpathbase}/{yearstr}'
+        else:
+            path = f'{rpathbase}/{yearstr}/{monthstr}'
+        ftpc.go_subdir(path)
+
+        if is_monthly:
+            last_day = calendar.monthrange(datehere.year, datehere.month)[1]
+            dateini = dt(datehere.year, datehere.month, 1)
+            datefin = dt(datehere.year, datehere.month, last_day)
+            dateinistr = dateini.strftime('%Y%m%d')
+            datefinstr = datefin.strftime('%Y%m%d')
+            fname = f'{path}/{dateinistr}-{datefinstr}_{dataset}.nc'
+        else:
+            dateherestr = datehere.strftime('%Y%m%d')
+            fname = f'{path}/{dateherestr}_{dataset}.nc'
+        datehere_modified = ftpc.get_last_modified(fname)
+        if datehere_modified is None:
+            print(datehere,'->',datehere_modified)
+        else:
+            if datehere_modified<dt(2023,1,31,0,0,0):
+                print(datehere, '->', datehere_modified)
+
+    f1.close()
+    print('DONE')
     return True
 
 
@@ -173,7 +223,7 @@ def do_check4():
 
 
 def do_check5():
-    print('check5')
+    print('check5, checking missing dates in baltic')
     ftpc = FTPCheck('MY')
     rpathbase = '/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D'
     # limit a-b 15/05/2018
@@ -210,7 +260,7 @@ def do_check5():
 
 
 def do_check6():
-    print('check6')
+    print('check6, preparing BAL correction for single days')
     # fdates = '/mnt/c/DATA_LUIS/OCTAC_WORK/POLYMER_PROCESSING/NOAVAILABLE/dates2016.csv'
     fdates = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/dates2016-2022_2.csv'
     fout = '/store/COP2-OC-TAC/BAL_Evolutions/NotAv/check2016-2022_2.csv'
@@ -340,8 +390,8 @@ def do_check7():
         if npolymer == 0:
             # line_trim_delete = f'rm -rf /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}/*'
             # linesoutput.append(line_trim_delete)
-            #line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
-            #linesoutput.append(line_trim)
+            # line_trim = f'/usr/local/anaconda/anaconda3/bin/python trims3basic.py -s /dst04-data1/OC/OLCI/sources_baseline_2.23 -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -sd {dateherestr} -ed {dateherestr} -geo BAL -wce EFR -v'
+            # linesoutput.append(line_trim)
             # dir_trim = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM/{yearstr}/{jjjstr}'
             # dopolymer = False
             # if os.path.isdir(dir_trim) and os.path.exists(dir_trim):
@@ -351,7 +401,7 @@ def do_check7():
             # if dopolymer:
             #     line_polymer = f'python /home/Luis.Gonzalezvilas/aceasy/main.py -ac POLYMER -c /home/Luis.Gonzalezvilas/aceasy/aceasy_config_vm.ini -i /store/COP2-OC-TAC/BAL_Evolutions/POLYMER_TRIM -o /store/COP2-OC-TAC/BAL_Evolutions/POLYMER -tp /home/Luis.Gonzalezvilas/TEMPDATA/unzip_folder -sd {dateherestr} -ed {dateherestr} -v'
             #     linesoutput.append(line_polymer)
-            #dir_polymer = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER/{yearstr}/{jjjstr}'
+            # dir_polymer = f'/store/COP2-OC-TAC/BAL_Evolutions/POLYMER/{yearstr}/{jjjstr}'
             # dowater = False
             # if os.path.isdir(dir_polymer) and os.path.exists(dir_polymer):
             #     files = os.listdir(dir_polymer)
@@ -375,8 +425,6 @@ def do_check7():
                 # linesoutput.append(lineout)
                 lineout = linebase.replace('CONFIG', 'aceasy_config_reformat.ini')
                 linesoutput.append(lineout)
-
-
 
         if npolymer > 0:
             continue
@@ -459,10 +507,74 @@ def do_check7():
     return True
 
 
+def do_check8():
+    print('CHECK 8: Med grey list')
+    # input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/cop_grey_list_L3.txt'
+    # input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/cop_grey_list_interp_L4.txt'
+    input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/cop_grey_list_monthly_L4.txt'
+
+    # output_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/upload_grey_list_L3.sh.txt'
+    # output_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/upload_grey_list_interp_L4.sh.txt'
+    output_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/MED_GREY_LIST/upload_grey_list_monthly_L4.sh.txt'
+
+    output_lines = []
+    # prename = 'python /home/gosuser/OCTACManager/daily_checking/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_MED_BGC_L3_MY_009_143 -dname'
+    prename = 'python /home/gosuser/OCTACManager/daily_checking/eistools/reformat_uploadtoDBS_202207.py -m MY -pname OCEANCOLOUR_MED_BGC_L4_MY_009_144 -dname'
+
+    # datasets = ['cmems_obs-oc_med_bgc-reflectance_my_l3-multi-1km_P1D','cmems_obs-oc_med_bgc-plankton_my_l3-multi-1km_P1D','cmems_obs-oc_med_bgc-transp_my_l3-multi-1km_P1D','cmems_obs-oc_med_bgc-optics_my_l3-multi-1km_P1D']
+    # datasets = ['cmems_obs-oc_med_bgc-plankton_my_l4-gapfree-multi-1km_P1D']
+    datasets = ['cmems_obs-oc_med_bgc-plankton_my_l4-multi-1km_P1M']
+
+    f1 = open(input_file)
+    for line in f1:
+        datestr = line.strip()
+        for dataset in datasets:
+            output_line = f'{prename} {dataset} -sd {datestr} -ed {datestr} -v'
+            output_lines.append(output_line)
+        output_lines.append('')
+    f1.close()
+
+    f2 = open(output_file, 'w')
+    for line in output_lines:
+        f2.write(line)
+        f2.write('\n')
+    f2.close()
+
+    print('DONE')
+    return True
+
+
+def do_check9():
+    print('STARTED copy daily files from BAL EVOLUTION to daily')
+    output_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION/copytodaily.sh.txt'
+    lines_output = []
+    input_dir = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    output_dir = '/dst04-data1/OC/OLCI/daily_3.01'
+    dateref = dt(2021, 1, 1)
+    dateend = dt(2022, 11, 30)
+    while dateref <= dateend:
+        yearstr = dateref.strftime('%Y')
+        jjjstr = dateref.strftime('%j')
+        datestr = dateref.strftime('%Y%j')
+        input_dir_day = os.path.join(input_dir, yearstr, jjjstr)
+        output_dir_day = os.path.join(output_dir, yearstr, jjjstr)
+        cmd = f'cp {input_dir_day}/O{datestr}*.nc {output_dir_day}'
+        lines_output.append(cmd)
+        dateref = dateref + timedelta(hours=25)
+
+    f2 = open(output_file, 'w')
+    for line in lines_output:
+        f2.write(line)
+        f2.write('\n')
+    f2.close()
+    print('DONE')
+
+    return True
+
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check7():
+    if do_check_last_date():
         return
 
     ##DATASETS SELECTION
@@ -775,6 +887,17 @@ class FTPCheck():
         except:
             tgb = -1
         return tgb
+
+    def get_last_modified(self, fname):
+        try:
+            cmd = f'MDTM {fname}'
+            timestamp = self.ftpdu.voidcmd(cmd)[4:].strip()
+            from dateutil import parser
+            time = parser.parse(timestamp)
+            return time
+        except:
+            return None
+
 
 
 # Press the green button in the gutter to run the script.

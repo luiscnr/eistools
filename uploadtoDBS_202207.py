@@ -63,7 +63,7 @@ def main():
                 if args.verbose:
                     print(f'[INFO] Deleting files: Completed')
         if pinfo.dinfo['frequency'] == 'm':
-            upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+            upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date,args.verbose)
         if pinfo.dinfo['frequency'] == 'c':
             upload_climatology_dataset_pinfo(pinfo, args.mode, start_date, end_date)
 

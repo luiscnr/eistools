@@ -73,6 +73,7 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
             print(f'[INFO] Uploading files to DU: Completed')
             print('***********************************************************')
             print(f'[INFO] Deleting files: Started')
+
         pinfo.MODE = 'REFORMAT'
         pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
         if args.verbose:
