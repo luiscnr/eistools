@@ -16,7 +16,7 @@ class ProductInfo:
         # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
         #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202211'
+            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/PRODUCT_INFO_EIS202303'
 
         self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
         if not os.path.exists(self.path_reformat_script):
@@ -1117,6 +1117,31 @@ class ProductInfo:
                             'product': 'OCEANCOLOUR_BLK_BGC_L4_NRT_009_152',
                             'dataset': 'cmems_obs-oc_blk_bgc-transp_nrt_l4-olci-300m_P1M',
                             'frequency': 'm'
+                        }
+                    }
+                }
+            },
+            'arc': {
+                'l3': {
+                    'plankton': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_ARC_BGC_L3_NRT_009_121',
+                            'dataset': 'cmems_obs-oc_arc_bgc-plankton_nrt_l3-olci-300m_P1D_202303',
+                            'frequency': 'd'
+                        }
+                    },
+                    'reflectance': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_ARC_BGC_L3_NRT_009_121',
+                            'dataset': 'cmems_obs-oc_arc_bgc-reflectance_nrt_l3-olci-300m_P1D_202303',
+                            'frequency': 'd'
+                        }
+                    },
+                    'transp': {
+                        'olci': {
+                            'product': 'OCEANCOLOUR_ARC_BGC_L3_NRT_009_121',
+                            'dataset': 'cmems_obs-oc_arc_bgc-transp_nrt_l3-olci-300m_P1D_202303',
+                            'frequency': 'd'
                         }
                     }
                 }
