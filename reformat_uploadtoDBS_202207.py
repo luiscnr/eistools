@@ -59,25 +59,34 @@ def make_reformat_daily(pinfo, pinfomy, start_date, end_date):
 def make_upload_daily(pinfo, pinfomy, start_date, end_date):
     if args.verbose:
         print(f'[INFO] Uploading files to DU: Started')
-        pinfo.MODE = 'UPLOAD'
-        if pinfomy is not None:
-            if args.verbose:
-                print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
-            pinfomy.MODE = 'UPLOAD'
-            upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
-            # delete nrt
-            delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
-        else:
-            upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+    delete_nrt = False
+    pinfo.MODE = 'UPLOAD'
+    if pinfomy is not None:
         if args.verbose:
-            print(f'[INFO] Uploading files to DU: Completed')
-            print('***********************************************************')
-            print(f'[INFO] Deleting files: Started')
+            print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
+        pinfomy.MODE = 'UPLOAD'
+        upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+        delete_nrt = True
+        # delete nrt
+        # delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
+    else:
+        upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
 
-        pinfo.MODE = 'REFORMAT'
-        pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-        if args.verbose:
-            print(f'[INFO] Deleting files: Completed')
+    #delete nrt if neeed
+    if delete_nrt:
+        start_date_nrt = start_date - timedelta(days=1)
+        end_date_nrt = end_date - timedelta(days=1)
+        upload.delete_nrt_daily_dataset(pinfo,start_date_nrt,end_date_nrt)
+
+    if args.verbose:
+        print(f'[INFO] Uploading files to DU: Completed')
+        print('***********************************************************')
+        print(f'[INFO] Deleting files: Started')
+
+    pinfo.MODE = 'REFORMAT'
+    pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+    if args.verbose:
+        print(f'[INFO] Deleting files: Completed')
 
 
 def main():

@@ -346,10 +346,8 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
             else:
                 upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
     if delete_nrt:
-        print(start_date,end_date)
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
-        print(start_date_nrt,end_date_nrt)
         delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt)
 
 
