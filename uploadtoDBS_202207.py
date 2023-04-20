@@ -314,7 +314,7 @@ def upload_daily_dataset(product, dataset, mode, start_date, end_date, verbose):
 
 
 def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
-    detete_nrt = False
+    delete_nrt = False
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
