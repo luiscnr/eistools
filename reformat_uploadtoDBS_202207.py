@@ -76,7 +76,7 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
     if delete_nrt:
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
-        upload.delete_nrt_daily_dataset(pinfo,start_date_nrt,end_date_nrt)
+        upload.delete_nrt_daily_dataset(pinfo,start_date_nrt,end_date_nrt,args.verbose)
 
     if args.verbose:
         print(f'[INFO] Uploading files to DU: Completed')
