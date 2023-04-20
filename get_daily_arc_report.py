@@ -20,12 +20,17 @@ def main():
         print(
             f'[ERROR] Date {args.date} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
         return
+    name_products, name_datasets, dates_processing = get_list_products_datasets(args.mode, date)
+
+
+    # DOWNLOAD
+    date_processing = dates_processing[0]
     lines = []
-    status, lines_download = get_lines_download(args.mode,date)
+    status, lines_download = get_lines_download(args.mode,date_processing)
     lines = [*lines, *lines_download]
     for line in lines:
         print(line)
-    #name_products, name_datasets, dates = get_list_products_datasets(args.mode, date)
+
 
     #
     # lines_download = get_lines_download(args.mode, date)
@@ -42,6 +47,35 @@ def main():
     # nuploaded = 0
     # for idx in range(len(name_products)):
     #     lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],name_datasets[idx],dates[idx])
+
+
+def get_list_products_datasets(mode, date):
+    pinfo = ProductInfo()
+    name_products = []
+    name_datasets = []
+    dates = []
+    regions = ['ARC']
+    levels = ['L3']
+    sensors = ['olci']
+    if mode == 'NRT':
+        date_nrt = date - timedelta(days=1)
+    if mode == 'DT':
+        date_dt = date - timedelta(days=8)
+
+    # DAILY PRODUCTS
+    for region in regions:
+        for level in levels:
+            for sensor in sensors:
+                name_p, name_d = pinfo.get_list_datasets_params('NRT', region, level, None, sensor, 'd')
+                if mode == 'NRT':
+                    dates_d = [date_nrt] * len(name_p)
+                if mode == 'DT':
+                    dates_d = [date_dt] * len(name_p)
+                name_products = [*name_products, *name_p]
+                name_datasets = [*name_datasets, *name_d]
+                dates = [*dates, *dates_d]
+
+    return name_products, name_datasets, dates
 
 
 def get_lines_download(mode, date):
