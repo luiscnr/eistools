@@ -314,6 +314,7 @@ def upload_daily_dataset(product, dataset, mode, start_date, end_date, verbose):
 
 
 def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
+    detete_nrt = False
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -341,10 +342,35 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
                     print(
                         f'[INFO] Upload to equivalent MY (myint) product: {pinfomy.product_name} : datataset: {pinfomy.dataset_name}')
                 upload_daily_dataset_impl(pinfomy, 'MY', year, month, day_ini, day_fin, verbose)
-                # delete also nrt
-                delete.delete_daily_dataset_impl(pinfo, 'NRT', year, month, day_ini, day_fin, verbose)
+                delete_nrt = True
             else:
                 upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
+    if delete_nrt:
+        start_date_nrt = start_date - timedelta(day=1)
+        end_date_nrt = end_date - timedelta(day=1)
+        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt)
+
+
+# method for deleting nrt datasets after uploading to mying
+def delete_nrt_daily_dataset(pinfo, start_date, end_date, verbose):
+    year_ini = start_date.year
+    year_fin = end_date.year
+    for year in range(year_ini, year_fin + 1):
+        month_ini = 1
+        month_fin = 12
+        if year == year_ini:
+            month_ini = start_date.month
+        if year == year_fin:
+            month_fin = end_date.month
+        for month in range(month_ini, month_fin + 1):
+            day_ini = 1
+            if year == year_ini and month == month_ini:
+                day_ini = start_date.day
+            day_fin = monthrange(year, month)[1]
+            if year == year_fin and month == month_fin:
+                day_fin = end_date.day
+            # delete also nrt
+            delete.delete_daily_dataset_impl(pinfo, 'NRT', year, month, day_ini, day_fin, verbose)
 
 
 def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
