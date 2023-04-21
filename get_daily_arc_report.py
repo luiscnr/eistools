@@ -93,14 +93,14 @@ def get_lines_download(mode, date):
     if os.path.exists(dir_date):
         lines.append(f'[INFO] File list:{flist}')
     else:
-        lines.append(f'[INFO] #Granules found in the Arctic area: 0')
-        lines.append(f'[INFO] #Granules downloaded: 0')
-        lines.append(f'[STATUS] WARNING')
-        return 1, lines
+        #if file doesn't exist, some problem has occurred
+        lines.append(f'[ERROR] File list was not created. ')
+        lines.append(f'[STATUS] FAIL')
+        return 0, lines
     timeliness = '_NR_'
     if mode == 'DT':
         timeliness = '_NT_'
-    wce = f'_OL_2_WRF__{str_date}'
+    wce = f'_OL_2_WFR__{str_date}'
     nexpected = 0
     ndownloaded = 0
     missingFiles = []
@@ -117,24 +117,25 @@ def get_lines_download(mode, date):
     f1.close()
 
     if nexpected == 0 and ndownloaded == 0:
-        ##non-expected situation
-        lines.append(f'  # Granules found in the Arctic area: 0')
-        lines.append(f'  # Granules downloaded: 0')
-        lines.append('  Status: WARNING')
+        ##situation when granules were not found
+        lines.append(f'[WARNING] No granules found in the Arctic area')
+        lines.append(f'[WARNING] Granules downloaded: 0')
+        lines.append(f'[STATUS] WARNING')
         return 1, lines
 
-    lines.append(f'  # Granules found in the Arctic area: {nexpected}')
-    lines.append(f'  # Granules downloaded: {ndownloaded}')
+    lines.append(f'[INFO] #Granules found in the Arctic area: {nexpected}')
+    lines.append(f'[INFO] #Granules downloaded: {ndownloaded}')
     if ndownloaded == nexpected:
-        lines.append('  Status: OK')
+        lines.append('[STATUS] OK')
         return 2, lines
     elif ndownloaded == 0:
-        lines.append('  Status: FAIL')
+        lines.append('[ERROR] 0 granules were downloaded')
+        lines.append('[STATUS] FAIL')
         return 0, lines
     elif ndownloaded < nexpected:
-        lines.append('  WARNING: Some expected granules are missing')
-        lines.append('  Status: WARNING')
-        return 1, lines
+        lines.append('[WARNING] Some expected granules are missing')
+        lines.append('[STATUS] WARNING')
+        return 0, lines
 
 
 def get_lines_dataset(name_product, name_dataset, date):
