@@ -43,6 +43,20 @@ def main():
     status_integration, lines_integration = get_lines_integration(args.mode, date_processing)
     lines = [*lines, *lines_integration, *sep]
 
+    # PROCESSING
+    status_processing, lines_processing = get_lines_processing(args.mode, date_processing)
+    lines = [*lines, *lines_processing, *sep]
+
+    # GLOBAL STATUS
+    if status_integration == 0 or status_processing == 0 or status_resampling == 0 or status_downloaded == 0:
+        global_status = 'ERROR'
+    elif status_integration == 1 and status_processing == 1 and status_resampling == 1 and status_downloaded == 1:
+        global_status = 'OK'
+    else:
+        global_status = 'WARNING'
+    line_status = [f'GLOBAL STATUS: {global_status}']
+    lines = [*line_status, *sep, *lines]
+
     for line in lines:
         print(line)
 
@@ -211,7 +225,15 @@ def get_lines_integration(mode, date):
     status_transp = 1
     if os.path.exists(fkd):
         lines.append(f'[INFO] Transparence file: {fkd}')
-        lines.append(f'[STATUS] OK')
+        bands = ['KD490']
+        isvalid, lines_file = get_check_netcdf_file(fkd, 'KD490', bands)
+        lines = [*lines, *lines_file]
+        if isvalid:
+            lines.append(f'[STATUS] OK')
+        else:
+            status_transp = 0
+            lines.append(f'[STATUS] FAIL')
+
     else:
         lines.append(f'[INFO] Transparence file: {fkd} does not exist')
         lines.append(f'[STATUS] FAIL')
@@ -220,6 +242,40 @@ def get_lines_integration(mode, date):
     status = 1
     if status_reflectance == 0 or status_transp == 0:
         status = 0
+    return status, lines
+
+
+def get_lines_processing(mode, date):
+    lines = ['PROCESSING']
+    dir_base = '/store/COP2-OC-TAC/arc/integrated'
+    str_year = date.strftime('%Y')
+    str_day = date.strftime('%j')
+    str_date = f'{str_year}{str_day}'
+    dir_date = os.path.join(dir_base, str_year, str_day)
+    if os.path.exists(dir_date):
+        lines.append(f'[INFO] Processing path:{dir_date}')
+    else:
+        lines.append(f'[ERROR] Processing path: {dir_date} does not exist')
+        lines.append(f'[STATUS] FAIL')
+        return 0, lines
+
+    fplankton = os.path.join(dir_date, f'O{str_date}_plankton-arc-fr.nc')
+    status = 1
+    if os.path.exists(fplankton):
+        lines.append(f'[INFO] Plankton file: {fplankton}')
+        bands = ['CHL']
+        isvalid, lines_file = get_check_netcdf_file(fplankton, 'CHL', bands)
+        lines = [*lines, *lines_file]
+        if isvalid:
+            lines.append(f'[STATUS] OK')
+        else:
+            status = 0
+            lines.append(f'[STATUS] FAIL')
+    else:
+        lines.append(f'[INFO] Plankton file: {fplankton} does not exist')
+        lines.append(f'[STATUS] FAIL')
+        status = 0
+
     return status, lines
 
 
@@ -265,7 +321,10 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
             nvalh, avgh, minh, maxh = compute_statistics(variable)
 
         if nvalh > 0:
-            lineband = f'[INFO]->{band}: Avg: {avgh} Min: {minh} Max: {maxh}'
+            if band.startswith('RRS'):
+                lineband = f'[INFO]->{band}: Avg: {avgh:.4f} Min: {minh} Max: {maxh}'
+            else:
+                lineband = f'[INFO]->{band}: Avg: {avgh:.2f} Min: {minh} Max: {maxh}'
             lines.append(lineband)
         elif nvalh == 0:
             lineband = f'[INFO]->{band}: No valid pixels'
@@ -281,7 +340,7 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
 
 
 def compute_statistics(variable):
-    #print(variable)
+    # print(variable)
     width = variable.shape[1]
     height = variable.shape[2]
     ystep = 1000
@@ -295,11 +354,8 @@ def compute_statistics(variable):
         for x in range(0, width, xstep):
             try:
                 limits = get_limits(y, x, ystep, xstep, height, width)
-                #print(limits)
                 array_lim = ma.array(variable[0, limits[0]:limits[1], limits[2]:limits[3]])
-                #print(array_lim.shape)
                 nvalid = ma.count(array_lim)
-                #print('AQUI',nvalid)
                 nvalid_all = nvalid_all + nvalid
                 if nvalid > 0:
                     min_values.append(ma.min(array_lim))
