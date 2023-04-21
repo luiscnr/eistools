@@ -3,7 +3,8 @@ from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
 import os
-
+import warnings
+warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
 parser.add_argument("-sd", "--date", help="Date.")
@@ -188,7 +189,12 @@ def get_lines_integration(mode, date):
     if os.path.exists(freflectance):
         lines.append(f'[INFO] Reflectance file: {freflectance}')
         isvalid, lines_file = get_check_netcdf_file(freflectance,[])
-        lines.append(f'[STATUS] OK')
+        lines = [*lines,*lines_file]
+        if isvalid:
+            lines.append(f'[STATUS] OK')
+        else:
+            status_reflectance = 0
+            lines.append(f'[STATUS] FAIL')
     else:
         lines.append(f'[INFO] Reflectance file: {freflectance} does not exist')
         lines.append(f'[STATUS] FAIL')
@@ -210,22 +216,37 @@ def get_lines_integration(mode, date):
     return status, lines
 
 
-def get_check_netcdf_file(file_nc,bands):
+def get_check_netcdf_file(file_nc,band_valid,bands):
     from netCDF4 import Dataset
     import numpy.ma as ma
-    import numpy as np
     lines = []
-    print('estamos aqui')
-    # try:
-    dataset = Dataset(file_nc)
-    print('1')
-    sensor_mask = ma.array(dataset.variables['RRS400'])
-    print('2')
-    nvalid = ma.count(sensor_mask)
-    print(nvalid)
-    # except:
-    #     lines.append(f'[ERROR] File {file_nc} is not a valid NetCDF4 file')
-    #     return False,lines
+    try:
+        dataset = Dataset(file_nc)
+    except:
+        lines.append(f'[ERROR] File {file_nc} is not a valid NetCDF4 file')
+        return False,lines
+    try:
+        array = ma.array(dataset.variables[band_valid])
+        nvalid = ma.count(array)
+        lines.append(f'[INFO] Number of valid pixels: {nvalid}')
+    except:
+        lines.append(f'[ERROR] Band: {band_valid} in file {file_nc} is not valid')
+        return False, lines
+
+    for band in bands:
+        try:
+            array = ma.array(dataset.variables[band])
+            avg = ma.mean(array)
+            std = ma.std(array)
+            min = ma.min(array)
+            max = ma.max(array)
+            lineband = f'[INFO]->{band}: Avg: {avg} Std: {std} Min: {min} Max: {max}'
+            lines.append(lineband)
+        except:
+            lines.append(f'[ERROR] Band: {band} in file {file_nc} is not valid')
+            return False,lines
+
+
 
     return True, lines
 
