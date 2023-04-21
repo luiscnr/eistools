@@ -23,19 +23,24 @@ def main():
     name_products, name_datasets, dates_processing = get_list_products_datasets(args.mode, date)
 
     sep = ['----------------------------------------------------------------------------------------------------------']
+
     # DOWNLOAD
     date_processing = dates_processing[0]
     lines = []
-    status_downloaded, lines_download, downloaded_files = get_lines_download(args.mode,date_processing)
-    lines = [*lines, *lines_download,*sep]
-
+    status_downloaded, lines_download, downloaded_files = get_lines_download(args.mode, date_processing)
+    lines = [*lines, *lines_download, *sep]
 
     # RESAMPLING
-    status_resampling, lines_resampling = get_lines_resampling(args.mode,date_processing,downloaded_files)
+    status_resampling, lines_resampling = get_lines_resampling(args.mode, date_processing, downloaded_files)
     lines = [*lines, *lines_resampling, *sep]
+
+    # INTEGRATION
+    status_integration, lines_integration = get_lines_integration(args.mode, date_processing)
+    lines = [*lines, *lines_integration, *sep]
 
     for line in lines:
         print(line)
+
 
 def get_list_products_datasets(mode, date):
     pinfo = ProductInfo()
@@ -82,7 +87,7 @@ def get_lines_download(mode, date):
     if os.path.exists(dir_date):
         lines.append(f'[INFO] File list:{flist}')
     else:
-        #if file doesn't exist, some problem has occurred
+        # if file doesn't exist, some problem has occurred
         lines.append(f'[ERROR] File list was not created. ')
         lines.append(f'[STATUS] FAIL')
         return 0, lines, downloadedFiles
@@ -128,21 +133,22 @@ def get_lines_download(mode, date):
         lines.append('[STATUS] WARNING')
         return -1, lines, downloadedFiles
 
+
 def get_lines_resampling(mode, date, downloadedFiles):
     lines = ['RESAMPLING']
     dir_base = '/store/COP2-OC-TAC/arc/resampled'
     str_year = date.strftime('%Y')
     str_month = date.strftime('%m')
     str_day = date.strftime('%d')
-    dir_date = os.path.join(dir_base,str_year,str_month,str_day)
+    dir_date = os.path.join(dir_base, str_year, str_month, str_day)
     if os.path.exists(dir_date):
-        lines.append(f'[INFO] Source path:{dir_date}')
+        lines.append(f'[INFO] Resampling path:{dir_date}')
     else:
-        lines.append(f'[ERROR] Source path: {dir_date} does not exist')
+        lines.append(f'[ERROR] Resampling path: {dir_date} does not exist')
         lines.append(f'[STATUS] FAIL')
         return 0, lines
     nfiles = len(downloadedFiles)
-    if nfiles==0:
+    if nfiles == 0:
         lines.append(f'[WARNING] No granules available for resampling')
         lines.append(f'[STATUS] WARNING')
         return 2, lines
@@ -150,7 +156,7 @@ def get_lines_resampling(mode, date, downloadedFiles):
     nresampled = 0
     for name in downloadedFiles:
         name_resampled = f'{name.strip()[:-5]}_resampled.nc'
-        file_resampled = os.path.join(dir_date,name_resampled)
+        file_resampled = os.path.join(dir_date, name_resampled)
         if os.path.exists(file_resampled):
             nresampled = nresampled + 1
     lines.append(f'[INFO] #Granules available in the Arctic area: {nfiles}')
@@ -163,8 +169,44 @@ def get_lines_resampling(mode, date, downloadedFiles):
         lines.append('[STATUS] FAIL')
         return 0, lines
 
+def get_lines_integration(mode, date):
+    lines = ['RESAMPLING']
+    dir_base = '/store/COP2-OC-TAC/arc/integration'
+    str_year = date.strftime('%Y')
+    str_day = date.strftime('%j')
+    str_date = f'{str_year}{str_day}'
+    dir_date = os.path.join(dir_base, str_year, str_day)
+    if os.path.exists(dir_date):
+        lines.append(f'[INFO] Integration path:{dir_date}')
+    else:
+        lines.append(f'[ERROR] Integration path: {dir_date} does not exist')
+        lines.append(f'[STATUS] FAIL')
+        return 0, lines
 
+    freflectance = os.path.join(dir_date,f'O{str_date}_rrs-arc-fr.nc')
+    status_reflectance = 1
+    if os.path.exists(freflectance):
+        lines.append(f'[INFO] Reflectance file: {freflectance}')
+        lines.append(f'[STATUS] OK')
+    else:
+        lines.append(f'[INFO] Reflectance file: {freflectance} does not exist')
+        lines.append(f'[STATUS] FAIL')
+        status_reflectance = 0
 
+    fkd = os.path.join(dir_date, f'O{str_date}_transp-arc-fr.nc')
+    status_transp = 1
+    if os.path.exists(fkd):
+        lines.append(f'[INFO] Transparence file: {fkd}')
+        lines.append(f'[STATUS] OK')
+    else:
+        lines.append(f'[INFO] Transparence file: {fkd} does not exist')
+        lines.append(f'[STATUS] FAIL')
+        status_transp = 0
+
+    status = 1
+    if status_reflectance==0 or status_transp==0:
+        status = 0
+    return status, lines
 
 
 def get_lines_dataset(name_product, name_dataset, date):
