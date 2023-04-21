@@ -107,6 +107,9 @@ def get_lines_download(mode, date):
     f1 = open(flist)
     for line in f1:
         name = line.strip()
+        print(name)
+        print(wce)
+        print(timeliness)
         if name.find(wce) > 0 and name.find(timeliness) > 0:
             nexpected = nexpected + 1
             fdownloaded = os.path.join(dir_date, name)
