@@ -22,32 +22,19 @@ def main():
         return
     name_products, name_datasets, dates_processing = get_list_products_datasets(args.mode, date)
 
-
+    sep = ['----------------------------------------------------------------------------------------------------------']
     # DOWNLOAD
     date_processing = dates_processing[0]
     lines = []
-    status, lines_download = get_lines_download(args.mode,date_processing)
-    lines = [*lines, *lines_download]
+    status_downloaded, lines_download, downloaded_files = get_lines_download(args.mode,date_processing)
+    lines = [*lines, *lines_download,*sep]
+
+
+    # RESAMPLING
+    status_resampling, lines_resampling = get_lines_resampling(args.mode,date_processing,downloaded_files)
+
     for line in lines:
         print(line)
-
-
-    #
-    # lines_download = get_lines_download(args.mode, date)
-    # lines = [*lines, *lines_download]
-    # ndatasets = len(name_datasets)
-    # completed_array = [False] * ndatasets
-    # missing_array = [''] * ndatasets
-    # processed_array = [0] * ndatasets
-    # uploaded_array = [False] * ndatasets
-    #
-    # # checking
-    # ncompleted = 0
-    # nprocessed = 0
-    # nuploaded = 0
-    # for idx in range(len(name_products)):
-    #     lines_dataset, iscompleted, isprocessed, isuploaded, missing_str = get_lines_dataset(name_products[idx],name_datasets[idx],dates[idx])
-
 
 def get_list_products_datasets(mode, date):
     pinfo = ProductInfo()
@@ -80,15 +67,16 @@ def get_list_products_datasets(mode, date):
 
 def get_lines_download(mode, date):
     lines = ['DOWNLOAD']
+    downloadedFiles = []
     dir_base = '/store/COP2-OC-TAC/arc/sources'
     str_date = date.strftime('%Y%m%d')
     dir_date = os.path.join(dir_base, str_date)
     if os.path.exists(dir_date):
-        lines.append(f'[INFO] Source path:{dir_base}')
+        lines.append(f'[INFO] Source path:{dir_date}')
     else:
-        lines.append(f'[ERROR] Source path: {dir_base} does not exist')
+        lines.append(f'[ERROR] Source path: {dir_date} does not exist')
         lines.append(f'[STATUS] FAIL')
-        return 0, lines
+        return 0, lines, downloadedFiles
     flist = os.path.join(dir_date, 'eum_filelist.txt')
     if os.path.exists(dir_date):
         lines.append(f'[INFO] File list:{flist}')
@@ -96,7 +84,7 @@ def get_lines_download(mode, date):
         #if file doesn't exist, some problem has occurred
         lines.append(f'[ERROR] File list was not created. ')
         lines.append(f'[STATUS] FAIL')
-        return 0, lines
+        return 0, lines, downloadedFiles
     timeliness = '_NR_'
     if mode == 'DT':
         timeliness = '_NT_'
@@ -104,17 +92,16 @@ def get_lines_download(mode, date):
     nexpected = 0
     ndownloaded = 0
     missingFiles = []
+
     f1 = open(flist)
     for line in f1:
         name = line.strip()
-        # print(name)
-        # print(wce)
-        # print(timeliness)
         if name.find(wce) > 0 and name.find(timeliness) > 0 and name.find('OL_2_WFR') > 0:
             nexpected = nexpected + 1
+
             fdownloaded = os.path.join(dir_date, f'{name}.zip')
-            print(fdownloaded)
             if os.path.exists(fdownloaded):
+                downloadedFiles.append(name)
                 ndownloaded = ndownloaded + 1
             else:
                 missingFiles.append(name)
@@ -125,21 +112,43 @@ def get_lines_download(mode, date):
         lines.append(f'[WARNING] No granules found in the Arctic area')
         lines.append(f'[WARNING] Granules downloaded: 0')
         lines.append(f'[STATUS] WARNING')
-        return 1, lines
+        return 2, lines, downloadedFiles
 
     lines.append(f'[INFO] #Granules found in the Arctic area: {nexpected}')
     lines.append(f'[INFO] #Granules downloaded: {ndownloaded}')
     if ndownloaded == nexpected:
         lines.append('[STATUS] OK')
-        return 2, lines
+        return 1, lines, downloadedFiles
     elif ndownloaded == 0:
         lines.append('[ERROR] 0 granules were downloaded')
         lines.append('[STATUS] FAIL')
-        return 0, lines
+        return 0, lines, downloadedFiles
     elif ndownloaded < nexpected:
         lines.append('[WARNING] Some expected granules are missing')
         lines.append('[STATUS] WARNING')
+        return -1, lines, downloadedFiles
+
+def get_lines_resampling(mode, date, downloadedFiles):
+    lines = ['RESAMPLING']
+    dir_base = '/store/COP2-OC-TAC/arc/resampled'
+    str_year = date.strftime('%Y')
+    str_month = date.strftime('%m')
+    str_day = date.strftime('%d')
+    dir_date = os.path.join(dir_base,str_year,str_month,str_day)
+    if os.path.exists(dir_date):
+        lines.append(f'[INFO] Source path:{dir_date}')
+    else:
+        lines.append(f'[ERROR] Source path: {dir_date} does not exist')
+        lines.append(f'[STATUS] FAIL')
         return 0, lines
+    nfiles = len(downloadedFiles)
+    if nfiles==0:
+        lines.append(f'[WARNING] No granules available for resampling')
+        lines.append(f'[STATUS] WARNING')
+        return 2, lines, downloadedFiles
+
+    for name in downloadedFiles:
+        print(name)
 
 
 def get_lines_dataset(name_product, name_dataset, date):
