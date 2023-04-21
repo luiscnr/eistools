@@ -280,8 +280,8 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
 
 
 def compute_statistics(variable):
-    width = variable.shape[0]
-    height = variable.shape[1]
+    width = variable.shape[1]
+    height = variable.shape[2]
     ystep = 1000
     xstep = 1000
     import numpy.ma as ma
@@ -293,11 +293,11 @@ def compute_statistics(variable):
         for x in range(0, width, xstep):
             try:
                 limits = get_limits(y, x, ystep, xstep, height, width)
-                print(limits)
+                #print(limits)
                 array_lim = ma.array(variable[0, limits[0]:limits[1], limits[2]:limits[3]])
-                print(array_lim.shape)
+                #print(array_lim.shape)
                 nvalid = ma.count(array_lim)
-                print('AQUI',nvalid)
+                #print('AQUI',nvalid)
                 nvalid_all = nvalid_all + nvalid
                 if nvalid > 0:
                     min_values.append(ma.min(array_lim))
