@@ -213,6 +213,7 @@ def get_lines_integration(mode, date):
 def get_check_netcdf_file(file_nc,bands):
     from netCDF4 import Dataset
     import numpy.ma as ma
+    import numpy as np
     lines = []
     print('estamos aqui')
     try:
@@ -220,7 +221,7 @@ def get_check_netcdf_file(file_nc,bands):
         print('1')
         sensor_mask = ma.array(dataset.variables['SENSORMASK'])
         print('2')
-        nvalid = ma.sum(sensor_mask[sensor_mask>=1])
+        nvalid = ma.sum(sensor_mask>=1)
         print(nvalid)
     except:
         lines.append(f'[ERROR] File {file_nc} is not a valid NetCDF4 file')
