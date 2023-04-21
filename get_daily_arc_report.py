@@ -293,8 +293,11 @@ def compute_statistics(variable):
         for x in range(0, width, xstep):
             try:
                 limits = get_limits(y, x, ystep, xstep, height, width)
+                print(limits)
                 array_lim = ma.array(variable[0, limits[0]:limits[1], limits[2]:limits[3]])
+                print(array_lim.shape)
                 nvalid = ma.count(array_lim)
+                print('AQUI',nvalid)
                 nvalid_all = nvalid_all + nvalid
                 if nvalid > 0:
                     min_values.append(ma.min(array_lim))
