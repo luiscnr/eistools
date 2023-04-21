@@ -214,9 +214,12 @@ def get_check_netcdf_file(file_nc,bands):
     from netCDF4 import Dataset
     import numpy.ma as ma
     lines = []
+    print('estamos aqui')
     try:
         dataset = Dataset(file_nc)
+        print('1')
         sensor_mask = ma.array(dataset.variables['SENSORMASK'])
+        print('2')
         nvalid = ma.sum(sensor_mask[sensor_mask>=1])
         print(nvalid)
     except:
