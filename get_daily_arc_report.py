@@ -262,7 +262,7 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
             maxh = max_v
         else:
             variable = dataset.variables[band]
-            nvalh, avgh, minh, maxx = compute_statistics(band)
+            nvalh, avgh, minh, maxx = compute_statistics(variable)
 
         if nvalh > 0:
             lineband = f'[INFO]->{band}: Avg: {avgh} Min: {minh} Max: {maxh}'
