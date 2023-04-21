@@ -238,6 +238,7 @@ def get_check_netcdf_file(file_nc,band_valid,bands):
     for band in bands:
         # try:
         array = ma.array(dataset.variables[band])
+        array = array[array.mask == False]
         print('1')
         avg = array.mean()
         print('avg')
