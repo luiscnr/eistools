@@ -32,6 +32,7 @@ def main():
 
     # RESAMPLING
     status_resampling, lines_resampling = get_lines_resampling(args.mode,date_processing,downloaded_files)
+    lines = [*lines, *lines_resampling, *sep]
 
     for line in lines:
         print(line)
@@ -146,10 +147,28 @@ def get_lines_resampling(mode, date, downloadedFiles):
         lines.append(f'[STATUS] WARNING')
         return 2, lines
 
+    nresampled = 0
     for name in downloadedFiles:
-        print(name)
+        name_resampled = f'{name.strip()[:-5]}_resampled.nc'
+        file_resampled = os.path.join(dir_date,name_resampled)
+        if os.path.exists(file_resampled):
+            nresampled = nresampled + 1
+    lines.append(f'[INFO] #Granules available in the Arctic area: {nfiles}')
+    lines.append(f'[INFO] #Granules resampled: {nresampled}')
+    if nresampled == nfiles:
+        lines.append('[STATUS] OK')
+        return 1, lines
+    elif nresampled == 0:
+        lines.append('[ERROR] 0 granules were resampled')
+        lines.append('[STATUS] FAIL')
+        return 0, lines
+    elif nresampled < nfiles:
+        lines.append('[WARNING] Some granules were not resampled')
+        lines.append('[STATUS] WARNING')
+        return -1, lines
 
-    return 1, lines
+
+
 
 def get_lines_dataset(name_product, name_dataset, date):
     lines = []
