@@ -280,6 +280,7 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
 
 
 def compute_statistics(variable):
+    print(variable)
     width = variable.shape[1]
     height = variable.shape[2]
     ystep = 1000
