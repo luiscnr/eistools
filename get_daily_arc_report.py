@@ -322,12 +322,12 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
 
         if nvalh > 0:
             if band.startswith('RRS'):
-                lineband = f'[INFO]->{band}: Avg: {avgh:.4f} Min: {minh} Max: {maxh}'
+                lineband = f'[INFO]  ->{band}: Avg: {avgh:.4f} Min: {minh:.4f} Max: {maxh:.4f}'
             else:
-                lineband = f'[INFO]->{band}: Avg: {avgh:.2f} Min: {minh} Max: {maxh}'
+                lineband = f'[INFO]  ->{band}: Avg: {avgh:.2f} Min: {minh:.2f} Max: {maxh:.2f}'
             lines.append(lineband)
         elif nvalh == 0:
-            lineband = f'[INFO]->{band}: No valid pixels'
+            lineband = f'[INFO]  ->{band}: No valid pixels'
             lines.append(lineband)
         elif nvalh == -1:
             lines.append(f'[ERROR] Band: {band} in file {file_nc} is not valid')
