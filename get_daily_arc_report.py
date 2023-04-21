@@ -239,13 +239,13 @@ def get_check_netcdf_file(file_nc,band_valid,bands):
         try:
             array = ma.array(dataset.variables[band])
             print('1')
-            avg = ma.mean(array)
+            avg = array.mean()
             print('avg')
-            std = ma.std(array)
+            std = array.std()
             print('std')
-            min = ma.min(array)
+            min = array.min()
             print('min')
-            max = ma.max(array)
+            max = array.max()
             print('max')
             lineband = f'[INFO]->{band}: Avg: {avg} Std: {std} Min: {min} Max: {max}'
             lines.append(lineband)
