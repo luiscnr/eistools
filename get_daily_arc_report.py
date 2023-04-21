@@ -219,9 +219,9 @@ def get_check_netcdf_file(file_nc,bands):
     # try:
     dataset = Dataset(file_nc)
     print('1')
-    sensor_mask = ma.array(dataset.variables['SENSORMASK'])
+    sensor_mask = ma.array(dataset.variables['RRS400'])
     print('2')
-    nvalid = np.sum(sensor_mask>=1)
+    nvalid = ma.count(sensor_mask)
     print(nvalid)
     # except:
     #     lines.append(f'[ERROR] File {file_nc} is not a valid NetCDF4 file')
