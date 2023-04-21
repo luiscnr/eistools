@@ -188,7 +188,8 @@ def get_lines_integration(mode, date):
     status_reflectance = 1
     if os.path.exists(freflectance):
         lines.append(f'[INFO] Reflectance file: {freflectance}')
-        isvalid, lines_file = get_check_netcdf_file(freflectance,[])
+        bands = ['RRS400','RRS412_5','RRS442_5','RRS490','RRS510','RRS560','RRS620','RRS665','RRS673_75','RRS681_25','RRS708_75']
+        isvalid, lines_file = get_check_netcdf_file(freflectance,'RRS442_5',bands)
         lines = [*lines,*lines_file]
         if isvalid:
             lines.append(f'[STATUS] OK')
