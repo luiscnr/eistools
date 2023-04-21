@@ -84,18 +84,18 @@ def get_lines_download(mode, date):
     str_date = date.strftime('%Y%m%d')
     dir_date = os.path.join(dir_base, str_date)
     if os.path.exists(dir_date):
-        lines.append(f'Source path:{dir_base}')
+        lines.append(f'[INFO] Source path:{dir_base}')
     else:
-        lines.append(f'  [ERROR] Source path: {dir_base} does not exist')
-        lines.append('  Status: FAIL')
+        lines.append(f'[ERROR] Source path: {dir_base} does not exist')
+        lines.append(f'[STATUS] FAIL')
         return 0, lines
     flist = os.path.join(dir_date, 'eum_filelist.txt')
     if os.path.exists(dir_date):
-        lines.append(f'File list:{flist}')
+        lines.append(f'[INFO] File list:{flist}')
     else:
-        lines.append(f'  # Granules found in the Arctic area: 0')
-        lines.append(f'  # Granules downloaded: 0')
-        lines.append('  Status: WARNING')
+        lines.append(f'[INFO] #Granules found in the Arctic area: 0')
+        lines.append(f'[INFO] #Granules downloaded: 0')
+        lines.append(f'[STATUS] WARNING')
         return 1, lines
     timeliness = '_NR_'
     if mode == 'DT':
