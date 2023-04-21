@@ -171,7 +171,7 @@ def get_lines_resampling(mode, date, downloadedFiles):
 
 def get_lines_integration(mode, date):
     lines = ['RESAMPLING']
-    dir_base = '/store/COP2-OC-TAC/arc/integration'
+    dir_base = '/store/COP2-OC-TAC/arc/integrated'
     str_year = date.strftime('%Y')
     str_day = date.strftime('%j')
     str_date = f'{str_year}{str_day}'
