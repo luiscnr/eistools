@@ -261,6 +261,7 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
             minh = min_v
             maxh = max_v
         else:
+            variable = dataset.variables[band]
             nvalh, avgh, minh, maxx = compute_statistics(band)
 
         if nvalh > 0:
@@ -280,7 +281,7 @@ def get_check_netcdf_file(file_nc, band_valid, bands):
 
 
 def compute_statistics(variable):
-    print(variable)
+    #print(variable)
     width = variable.shape[1]
     height = variable.shape[2]
     ystep = 1000
