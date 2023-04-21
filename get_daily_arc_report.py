@@ -187,6 +187,7 @@ def get_lines_integration(mode, date):
     status_reflectance = 1
     if os.path.exists(freflectance):
         lines.append(f'[INFO] Reflectance file: {freflectance}')
+        isvalid, lines_file = get_check_netcdf_file(freflectance,[])
         lines.append(f'[STATUS] OK')
     else:
         lines.append(f'[INFO] Reflectance file: {freflectance} does not exist')
@@ -208,6 +209,21 @@ def get_lines_integration(mode, date):
         status = 0
     return status, lines
 
+
+def get_check_netcdf_file(file_nc,bands):
+    from netCDF4 import Dataset
+    import numpy.ma as ma
+    lines = []
+    try:
+        dataset = Dataset(file_nc)
+        sensor_mask = ma.array(dataset.variables['SENSORMASK'])
+        nvalid = ma.sum(sensor_mask[sensor_mask>=1])
+        print(nvalid)
+    except:
+        lines.append(f'[ERROR] File {file_nc} is not a valid NetCDF4 file')
+        return False,lines
+
+    return True, lines
 
 def get_lines_dataset(name_product, name_dataset, date):
     lines = []
