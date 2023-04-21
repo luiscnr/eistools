@@ -100,17 +100,17 @@ def get_lines_download(mode, date):
     timeliness = '_NR_'
     if mode == 'DT':
         timeliness = '_NT_'
-    wce = f'_OL_2_WFR__{str_date}'
+    wce = f'{str_date}'
     nexpected = 0
     ndownloaded = 0
     missingFiles = []
     f1 = open(flist)
     for line in f1:
         name = line.strip()
-        print(name)
-        print(wce)
-        print(timeliness)
-        if name.find(wce) > 0 and name.find(timeliness) > 0:
+        # print(name)
+        # print(wce)
+        # print(timeliness)
+        if name.find(wce) > 0 and name.find(timeliness) > 0 and name.find('OL_2_WFR') > 0:
             nexpected = nexpected + 1
             fdownloaded = os.path.join(dir_date, name)
             if os.path.exists(fdownloaded):
