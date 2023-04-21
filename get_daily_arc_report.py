@@ -98,7 +98,6 @@ def get_lines_download(mode, date):
         name = line.strip()
         if name.find(wce) > 0 and name.find(timeliness) > 0 and name.find('OL_2_WFR') > 0:
             nexpected = nexpected + 1
-
             fdownloaded = os.path.join(dir_date, f'{name}.zip')
             if os.path.exists(fdownloaded):
                 downloadedFiles.append(name)
@@ -145,11 +144,12 @@ def get_lines_resampling(mode, date, downloadedFiles):
     if nfiles==0:
         lines.append(f'[WARNING] No granules available for resampling')
         lines.append(f'[STATUS] WARNING')
-        return 2, lines, downloadedFiles
+        return 2, lines
 
     for name in downloadedFiles:
         print(name)
 
+    return 1, lines
 
 def get_lines_dataset(name_product, name_dataset, date):
     lines = []
