@@ -236,23 +236,23 @@ def get_check_netcdf_file(file_nc,band_valid,bands):
         return False, lines
 
     for band in bands:
-        try:
-            array = ma.array(dataset.variables[band])
-            print('1')
-            avg = array.mean()
-            print('avg')
-            std = array.std()
-            print('std')
-            min = array.min()
-            print('min')
-            max = array.max()
-            print('max')
-            lineband = f'[INFO]->{band}: Avg: {avg} Std: {std} Min: {min} Max: {max}'
-            lines.append(lineband)
-        except:
-            lines.append(f'[ERROR] Band: {band} in file {file_nc} is not valid')
-            dataset.close()
-            return False,lines
+        # try:
+        array = ma.array(dataset.variables[band])
+        print('1')
+        avg = array.mean()
+        print('avg')
+        std = array.std()
+        print('std')
+        min = array.min()
+        print('min')
+        max = array.max()
+        print('max')
+        lineband = f'[INFO]->{band}: Avg: {avg} Std: {std} Min: {min} Max: {max}'
+        lines.append(lineband)
+        # except:
+        #     lines.append(f'[ERROR] Band: {band} in file {file_nc} is not valid')
+        #     dataset.close()
+        #     return False,lines
     dataset.close()
 
 
