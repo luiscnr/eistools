@@ -1,9 +1,13 @@
 import argparse
 from datetime import datetime as dt
 from datetime import timedelta
+
+import numpy as np
+
 from product_info import ProductInfo
 import os
 import warnings
+
 warnings.filterwarnings("ignore")
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
@@ -170,6 +174,7 @@ def get_lines_resampling(mode, date, downloadedFiles):
         lines.append('[STATUS] FAIL')
         return 0, lines
 
+
 def get_lines_integration(mode, date):
     lines = ['RESAMPLING']
     dir_base = '/store/COP2-OC-TAC/arc/integrated'
@@ -184,13 +189,14 @@ def get_lines_integration(mode, date):
         lines.append(f'[STATUS] FAIL')
         return 0, lines
 
-    freflectance = os.path.join(dir_date,f'O{str_date}_rrs-arc-fr.nc')
+    freflectance = os.path.join(dir_date, f'O{str_date}_rrs-arc-fr.nc')
     status_reflectance = 1
     if os.path.exists(freflectance):
         lines.append(f'[INFO] Reflectance file: {freflectance}')
-        bands = ['RRS400','RRS412_5','RRS442_5','RRS490','RRS510','RRS560','RRS620','RRS665','RRS673_75','RRS681_25','RRS708_75']
-        isvalid, lines_file = get_check_netcdf_file(freflectance,'RRS442_5',bands)
-        lines = [*lines,*lines_file]
+        bands = ['RRS400', 'RRS412_5', 'RRS442_5', 'RRS490', 'RRS510', 'RRS560', 'RRS620', 'RRS665', 'RRS673_75',
+                 'RRS681_25', 'RRS708_75']
+        isvalid, lines_file = get_check_netcdf_file(freflectance, 'RRS442_5', bands)
+        lines = [*lines, *lines_file]
         if isvalid:
             lines.append(f'[STATUS] OK')
         else:
@@ -212,50 +218,112 @@ def get_lines_integration(mode, date):
         status_transp = 0
 
     status = 1
-    if status_reflectance==0 or status_transp==0:
+    if status_reflectance == 0 or status_transp == 0:
         status = 0
     return status, lines
 
 
-def get_check_netcdf_file(file_nc,band_valid,bands):
+def get_check_netcdf_file(file_nc, band_valid, bands):
     from netCDF4 import Dataset
-    import numpy.ma as ma
     lines = []
     try:
         dataset = Dataset(file_nc)
     except:
         lines.append(f'[ERROR] File {file_nc} is not a valid NetCDF4 file')
-        return False,lines
-    try:
-        array = ma.array(dataset.variables[band_valid])
-        nvalid = ma.count(array)
-        lines.append(f'[INFO] Number of valid pixels: {nvalid}')
-    except:
+        return False, lines
+
+    if band_valid not in dataset.variables:
+        lines.append(f'[ERROR] Band: {band_valid} is not available in file {file_nc}')
+        dataset.close()
+        return False, lines
+
+    var_valid = dataset.variables[band_valid]
+    nvalid, avg_v, min_v, max_v = compute_statistics(var_valid)
+    if nvalid == -1:
         dataset.close()
         lines.append(f'[ERROR] Band: {band_valid} in file {file_nc} is not valid')
         return False, lines
+    else:
+        lines.append(f'[INFO] Number of valid pixels: {nvalid}')
+
+    if nvalid == 0:
+        dataset.close()
+        return True, lines
 
     for band in bands:
-        try:
-            array = ma.array(dataset.variables[band])
-            print('1')
-            avg = array.mean()
-            print('avg')
-            std = array.std()
-            print('std')
-            min = array.min()
-            print('min')
-            max = array.max()
-            print('max')
-            lineband = f'[INFO]->{band}: Avg: {avg} Std: {std} Min: {min} Max: {max}'
+        if band not in dataset.variables:
+            lines.append(f'[ERROR] Band: {band_valid} is not available in file {file_nc}')
+            dataset.close()
+            return False, lines
+        if band == band_valid:
+            nvalh = nvalid
+            avgh = avg_v
+            minh = min_v
+            maxh = max_v
+        else:
+            nvalh, avgh, minh, maxx = compute_statistics(band)
+
+        if nvalh > 0:
+            lineband = f'[INFO]->{band}: Avg: {avgh} Min: {minh} Max: {maxh}'
             lines.append(lineband)
-        except:
+        elif nvalh == 0:
+            lineband = f'[INFO]->{band}: No valid pixels'
+            lines.append(lineband)
+        elif nvalh == -1:
             lines.append(f'[ERROR] Band: {band} in file {file_nc} is not valid')
-        
+            dataset.close()
+            return False, lines
+
     dataset.close()
 
-
     return True, lines
+
+
+def compute_statistics(variable):
+    width = variable.shape[0]
+    height = variable.shape[1]
+    ystep = 1000
+    xstep = 1000
+    import numpy.ma as ma
+    min_values = []
+    max_values = []
+    avg_values = []
+    nvalid_all = 0
+    for y in range(0, height, ystep):
+        for x in range(0, width, xstep):
+            try:
+                limits = get_limits(y, x, ystep, xstep, height, width)
+                array_lim = ma.array(variable[0, limits[0]:limits[1], limits[2]:limits[3]])
+                nvalid = ma.count(array_lim)
+                nvalid_all = nvalid_all + nvalid
+                if nvalid > 0:
+                    min_values.append(ma.min(array_lim))
+                    max_values.append(ma.max(array_lim))
+                    avg_values.append(ma.mean(array_lim))
+            except:
+                return -1, -1, -1, -1
+    if nvalid_all == 0:
+        return nvalid_all, -1, -1, -1
+    else:
+        avgv = ma.mean(ma.array([avg_values]))
+        minv = ma.min(ma.array([min_values]))
+        maxv = ma.max(ma.array([max_values]))
+        return nvalid_all, avgv, minv, maxv
+
+
+def get_limits(y, x, ystep, xstep, ny, nx):
+    yini = y
+    xini = x
+    yfin = y + ystep
+    xfin = x + xstep
+    if yfin > ny:
+        yfin = ny
+    if xfin > nx:
+        xfin = nx
+
+    limits = [yini, yfin, xini, xfin]
+    return limits
+
 
 def get_lines_dataset(name_product, name_dataset, date):
     lines = []
