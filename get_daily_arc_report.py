@@ -154,18 +154,15 @@ def get_lines_resampling(mode, date, downloadedFiles):
         if os.path.exists(file_resampled):
             nresampled = nresampled + 1
     lines.append(f'[INFO] #Granules available in the Arctic area: {nfiles}')
-    lines.append(f'[INFO] #Granules resampled: {nresampled}')
-    if nresampled == nfiles:
+    lines.append(f'[INFO] #Granules resampled (with >10000 valid pixels): {nresampled}')
+    if nresampled > 0:
         lines.append('[STATUS] OK')
         return 1, lines
     elif nresampled == 0:
-        lines.append('[ERROR] 0 granules were resampled')
+        lines.append('[ERROR] No granules were resampled')
         lines.append('[STATUS] FAIL')
         return 0, lines
-    elif nresampled < nfiles:
-        lines.append('[WARNING] Some granules were not resampled')
-        lines.append('[STATUS] WARNING')
-        return -1, lines
+
 
 
 
