@@ -112,7 +112,7 @@ def get_lines_download(mode, date):
         # print(timeliness)
         if name.find(wce) > 0 and name.find(timeliness) > 0 and name.find('OL_2_WFR') > 0:
             nexpected = nexpected + 1
-            fdownloaded = os.path.join(dir_date, name,'.zip')
+            fdownloaded = os.path.join(dir_date, f'{name}.zip')
             print(fdownloaded)
             if os.path.exists(fdownloaded):
                 ndownloaded = ndownloaded + 1
