@@ -313,6 +313,11 @@ def get_lines_upload(products, datasets, dates):
         else:
             lines.append('[ERROR]  ->Upload failed')
             status = 0
+    if status==1:
+        lines.append(f'[STATUS] OK')
+    else:
+        lines.append(f'[STATUS] FAIL')
+
 
     return status, lines
 
