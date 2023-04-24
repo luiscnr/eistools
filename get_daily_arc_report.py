@@ -101,7 +101,7 @@ def get_lines_ini(report_date,processing_date):
     lines.append(f'PROCESSING DATE: {processing_date_str}')
     lines.append(f'CMD REPORT:sh /store/COP2-OC-TAC/arc/operational_code/lancia_check.sh {args.mode} {report_date_str}')
     lines.append(' ')
-    
+
     return lines
 def get_lines_download(mode, date):
     lines = ['DOWNLOAD']
@@ -203,7 +203,7 @@ def get_lines_resampling(date, downloadedFiles):
 
 
 def get_lines_integration(date):
-    lines = ['RESAMPLING']
+    lines = ['INTEGRATION']
     dir_base = '/store/COP2-OC-TAC/arc/integrated'
     str_year = date.strftime('%Y')
     str_day = date.strftime('%j')
