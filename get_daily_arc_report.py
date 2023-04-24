@@ -25,11 +25,12 @@ def main():
             f'[ERROR] Date {args.date} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
         return
     name_products, name_datasets, dates_processing = get_list_products_datasets(args.mode, date)
+    date_processing = dates_processing[0]
+    lines_ini = get_lines_ini(date,dates_processing[0])
 
     sep = ['----------------------------------------------------------------------------------------------------------']
 
     # DOWNLOAD
-    date_processing = dates_processing[0]
     lines = []
     status_downloaded, lines_download, downloaded_files = get_lines_download(args.mode, date_processing)
     lines = [*lines, *lines_download, *sep]
@@ -58,7 +59,7 @@ def main():
     else:
         global_status = 'WARNING'
     line_status = [f'GLOBAL STATUS: {global_status}']
-    lines = [*line_status, *sep, *lines]
+    lines = [*lines_ini,*line_status, *sep, *lines]
 
     for line in lines:
         print(line)
@@ -92,7 +93,16 @@ def get_list_products_datasets(mode, date):
 
     return name_products, name_datasets, dates
 
-
+def get_lines_ini(report_date,processing_date):
+    report_date_str = processing_date.strftime('%Y-%m-%d')
+    processing_date_str = processing_date.strftime('%Y-%m-%d')
+    lines = ['ARCTIC DAILY TECHNICAL REPORT']
+    lines.append(f'MODE: {args.mode}')
+    lines.append(f'PROCESSING DATE: {processing_date_str}')
+    lines.append(f'CMD REPORT:sh /store/COP2-OC-TAC/arc/operational_code/lancia_check.sh {args.mode} {report_date_str}')
+    lines.append(' ')
+    
+    return lines
 def get_lines_download(mode, date):
     lines = ['DOWNLOAD']
     downloadedFiles = []
