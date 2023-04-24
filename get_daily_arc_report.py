@@ -1,8 +1,7 @@
 import argparse
 from datetime import datetime as dt
 from datetime import timedelta
-
-import numpy as np
+import check_202207 as checkftp
 
 from product_info import ProductInfo
 import os
@@ -36,21 +35,25 @@ def main():
     lines = [*lines, *lines_download, *sep]
 
     # RESAMPLING
-    status_resampling, lines_resampling = get_lines_resampling(args.mode, date_processing, downloaded_files)
+    status_resampling, lines_resampling = get_lines_resampling(date_processing, downloaded_files)
     lines = [*lines, *lines_resampling, *sep]
 
     # INTEGRATION
-    status_integration, lines_integration = get_lines_integration(args.mode, date_processing)
+    status_integration, lines_integration = get_lines_integration(date_processing)
     lines = [*lines, *lines_integration, *sep]
 
     # PROCESSING
-    status_processing, lines_processing = get_lines_processing(args.mode, date_processing)
+    status_processing, lines_processing = get_lines_processing(date_processing)
     lines = [*lines, *lines_processing, *sep]
 
+    # UPLOAD
+    status_upload, lines_upload = get_lines_upload(name_products, name_datasets, dates_processing)
+    lines = [*lines, *lines_upload, *sep]
+
     # GLOBAL STATUS
-    if status_integration == 0 or status_processing == 0 or status_resampling == 0 or status_downloaded == 0:
+    if status_integration == 0 or status_processing == 0 or status_resampling == 0 or status_downloaded == 0 or status_upload==0:
         global_status = 'ERROR'
-    elif status_integration == 1 and status_processing == 1 and status_resampling == 1 and status_downloaded == 1:
+    elif status_integration == 1 and status_processing == 1 and status_resampling == 1 and status_downloaded == 1 and status_upload==1:
         global_status = 'OK'
     else:
         global_status = 'WARNING'
@@ -153,7 +156,7 @@ def get_lines_download(mode, date):
         return -1, lines, downloadedFiles
 
 
-def get_lines_resampling(mode, date, downloadedFiles):
+def get_lines_resampling(date, downloadedFiles):
     lines = ['RESAMPLING']
     dir_base = '/store/COP2-OC-TAC/arc/resampled'
     str_year = date.strftime('%Y')
@@ -189,7 +192,7 @@ def get_lines_resampling(mode, date, downloadedFiles):
         return 0, lines
 
 
-def get_lines_integration(mode, date):
+def get_lines_integration(date):
     lines = ['RESAMPLING']
     dir_base = '/store/COP2-OC-TAC/arc/integrated'
     str_year = date.strftime('%Y')
@@ -245,7 +248,7 @@ def get_lines_integration(mode, date):
     return status, lines
 
 
-def get_lines_processing(mode, date):
+def get_lines_processing(date):
     lines = ['PROCESSING']
     dir_base = '/store/COP2-OC-TAC/arc/integrated'
     str_year = date.strftime('%Y')
@@ -275,6 +278,41 @@ def get_lines_processing(mode, date):
         lines.append(f'[INFO] Plankton file: {fplankton} does not exist')
         lines.append(f'[STATUS] FAIL')
         status = 0
+
+    return status, lines
+
+
+def get_lines_upload(products, datasets, dates):
+    lines = ['UPLOAD']
+    status = 1
+    for idx in range(len(products)):
+        pinfo = ProductInfo()
+        pinfo.set_dataset_info(products[idx], datasets[idx])
+        date = dates[idx]
+        upload_mode = args.mode
+        if args.mode == 'DT':
+            pinfomy = pinfo.get_pinfomy_equivalent()
+            if not pinfomy is None:
+                upload_mode = 'MYINT'
+        if args.mode == 'NRT' and date < pinfo.get_last_nrt_date():
+            upload_mode = 'DT'
+            pinfomy = pinfo.get_pinfomy_equivalent()
+            if not pinfomy is None:
+                upload_mode = 'MYINT'
+
+        if upload_mode == 'MYINT':
+            rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
+        else:
+            rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
+
+        lines.append(f'[INFO]{products[idx]}/{datasets[idx]}')
+        lines.append(f'[INFO]  ->Upload mode:  {upload_mode.lower()}')
+        lines.append(f'[INFO]  ->Path: {rpath}/{remote_file_name}')
+        if isuploaded:
+            lines.append('[INFO]  ->Upload completed')
+        else:
+            lines.append('[ERROR]  ->Upload failed')
+            status = 0
 
     return status, lines
 
