@@ -94,7 +94,7 @@ def get_list_products_datasets(mode, date):
     return name_products, name_datasets, dates
 
 def get_lines_ini(report_date,processing_date):
-    report_date_str = processing_date.strftime('%Y-%m-%d')
+    report_date_str = report_date.strftime('%Y-%m-%d')
     processing_date_str = processing_date.strftime('%Y-%m-%d')
     lines = ['ARCTIC DAILY TECHNICAL REPORT']
     lines.append(f'MODE: {args.mode}')
