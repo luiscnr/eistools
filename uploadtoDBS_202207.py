@@ -98,15 +98,24 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
     if args.verbose:
         print(f'[INFO] Uploading files to DU: Started')
     pinfo.MODE = 'UPLOAD'
+    delete_nrt = False
+
     if pinfomy is not None:
         if args.verbose:
             print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
         pinfomy.MODE = 'UPLOAD'
         upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+        delete_nrt = True
         # delete nrt
-        delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
+        # delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
     else:
         upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+
+    # delete nrt if neeed
+    if delete_nrt:
+        start_date_nrt = start_date - timedelta(days=1)
+        end_date_nrt = end_date - timedelta(days=1)
+        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt, args.verbose)
 
     if args.verbose:
         print(f'[INFO] Uploading files to DU: Completed')
