@@ -26,7 +26,7 @@ def main():
         return
     name_products, name_datasets, dates_processing = get_list_products_datasets(args.mode, date)
     date_processing = dates_processing[0]
-    lines_ini = get_lines_ini(date,dates_processing[0])
+    lines_ini = get_lines_ini(date, dates_processing[0])
 
     sep = ['----------------------------------------------------------------------------------------------------------']
 
@@ -52,14 +52,14 @@ def main():
     lines = [*lines, *lines_upload, *sep]
 
     # GLOBAL STATUS
-    if status_integration == 0 or status_processing == 0 or status_resampling == 0 or status_downloaded == 0 or status_upload==0:
+    if status_integration == 0 or status_processing == 0 or status_resampling == 0 or status_downloaded == 0 or status_upload == 0:
         global_status = 'ERROR'
-    elif status_integration == 1 and status_processing == 1 and status_resampling == 1 and status_downloaded == 1 and status_upload==1:
+    elif status_integration == 1 and status_processing == 1 and status_resampling == 1 and status_downloaded == 1 and status_upload == 1:
         global_status = 'OK'
     else:
         global_status = 'WARNING'
     line_status = [f'GLOBAL STATUS: {global_status}']
-    lines = [*lines_ini,*line_status, *sep, *lines]
+    lines = [*lines_ini, *line_status, *sep, *lines]
 
     for line in lines:
         print(line)
@@ -93,7 +93,8 @@ def get_list_products_datasets(mode, date):
 
     return name_products, name_datasets, dates
 
-def get_lines_ini(report_date,processing_date):
+
+def get_lines_ini(report_date, processing_date):
     report_date_str = report_date.strftime('%Y-%m-%d')
     processing_date_str = processing_date.strftime('%Y-%m-%d')
     lines = ['ARCTIC DAILY TECHNICAL REPORT']
@@ -103,6 +104,8 @@ def get_lines_ini(report_date,processing_date):
     lines.append(' ')
 
     return lines
+
+
 def get_lines_download(mode, date):
     lines = ['DOWNLOAD']
     downloadedFiles = []
@@ -116,7 +119,7 @@ def get_lines_download(mode, date):
         lines.append(f'[STATUS] FAIL')
         return 0, lines, downloadedFiles
     flist = os.path.join(dir_date, 'eum_filelist.txt')
-    if os.path.exists(dir_date):
+    if os.path.exists(flist):
         lines.append(f'[INFO] File list:{flist}')
     else:
         # if file doesn't exist, some problem has occurred
@@ -323,11 +326,10 @@ def get_lines_upload(products, datasets, dates):
         else:
             lines.append('[ERROR]  ->Upload failed')
             status = 0
-    if status==1:
+    if status == 1:
         lines.append(f'[STATUS] OK')
     else:
         lines.append(f'[STATUS] FAIL')
-
 
     return status, lines
 
