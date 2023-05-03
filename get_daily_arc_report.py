@@ -100,7 +100,7 @@ def get_lines_ini(report_date, processing_date):
     lines = ['ARCTIC DAILY TECHNICAL REPORT']
     lines.append(f'MODE: {args.mode}')
     lines.append(f'PROCESSING DATE: {processing_date_str}')
-    lines.append(f'CMD REPORT:sh /store/COP2-OC-TAC/arc/operational_code/lancia_check.sh {args.mode} {report_date_str}')
+    lines.append(f'CMD REPORT:sh /store/COP2-OC-TAC/arc/operational_code/lancia_check_date.sh {args.mode} {report_date_str}')
     lines.append(' ')
 
     return lines
