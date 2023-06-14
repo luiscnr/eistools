@@ -28,7 +28,7 @@ parser.add_argument("-dname", "--name_dataset", help="Product name")
 parser.add_argument("-csize", "--size_file", help="Output file with size information. Files are deleted ")
 parser.add_argument("-csizeopt", "--size_opt", help="Options to check file size without reformat",
                     choices=['olci_rrs', 'olci_plankton', 'olci_transp', 'olci_m_rrs', 'olci_m_plankton',
-                             'olci_m_transp'])
+                             'olci_m_transp','multi_rrs','multi_plankton','multi_transp','multi_optics'])
 
 args = parser.parse_args()
 

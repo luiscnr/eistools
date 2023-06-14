@@ -468,6 +468,52 @@ class ProductInfo:
 
         return tamgb
 
+    def get_size_file_path_orig_multi(self, path, datehere, dtype):
+        tagprint = self.get_tag_print()
+        tamgb = -1
+        if path is None:
+            path = self.get_path_orig(datehere.year)
+        if path is None:
+            return tamgb
+        path_jday = os.path.join(path, datehere.strftime('%j'))
+        if not os.path.exists(path_jday):
+            if tagprint is not None:
+                print(f'{tagprint} Expected jday path {path_jday} does not exist')
+            return tamgb
+
+        if dtype == 'rrs':
+            varlist = ['rrs412', 'rrs443', 'rrs490', 'rrs510', 'rrs555', 'rrs670' ]
+        if dtype == 'plankton':
+            varlist = ['chl','pft']
+        if dtype == 'transp':
+            varlist = ['kd490']
+        if dtype == 'optics':
+            varlist = ['adg443','bbp443','aph443']
+        datestr = datehere.strftime('%Y%j')
+        area = self.dinfo['region'].lower()
+        if area == 'blk':
+            area = 'bs'
+        tam = 0
+
+        for var in varlist:
+            fname = f'X{datestr}-{var}-{area}-fr.nc'
+            fpath = os.path.join(path_jday, fname)
+            # print(fpath,'->',os.path.exists(fpath))
+            if os.path.exists(fpath):
+                tam = tam + os.path.getsize(fpath)
+                # print(tam)
+            else:
+                tamgb = -1
+                break
+        if tam > 0:
+            tamkb = tam / 1024
+            tammb = tamkb / 1024
+            tamgb = tammb / 1024
+            print('final: ', tamgb)
+
+        return tamgb
+
+
     def get_list_file_path_orig(self, start_date, end_date):
         filelist = []
         for y in range(start_date.year, end_date.year + 1):
@@ -529,6 +575,14 @@ class ProductInfo:
                             tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'plankton')
                         elif opt == 'olci_transp':
                             tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'transp')
+                        elif opt == 'multi_rrs':
+                            tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'rrs')
+                        elif opt == 'multi_plankton':
+                            tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'plankton')
+                        elif opt == 'multi_transp':
+                            tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'transp')
+                        elif opt == 'multi_optics':
+                            tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'optics')
                         if tgb > 0:
                             df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
