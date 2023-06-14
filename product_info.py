@@ -481,12 +481,12 @@ class ProductInfo:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
             return tamgb
 
-
-
         if dtype == 'rrs':
             varlist = ['rrs412', 'rrs443', 'rrs490', 'rrs510', 'rrs555', 'rrs670' ]
         if dtype == 'plankton':
             varlist = ['chl','pft']
+        if dtype == 'gapfree':
+            varlist = ['chl_interp']
         if dtype == 'transp':
             varlist = ['kd490']
         if dtype == 'optics':
@@ -515,6 +515,50 @@ class ProductInfo:
 
         return tamgb
 
+
+    def get_size_file_path_orig_multi_monthly(self, path, datehere, dtype):
+        tamgb = -1
+        if path is None:
+            path = self.get_path_orig(datehere.year)
+        if path is None:
+            return tamgb
+        y = datehere.year
+        m = datehere.month
+        day_ini = 1
+        day_fin = calendar.monthrange(y, m)[1]
+        date_here_ini = dt(y, m, day_ini)
+        date_here_fin = dt(y, m, day_fin)
+        ystr = date_here_ini.strftime('%Y')
+        dini = date_here_ini.strftime('%j')
+        dfin = date_here_fin.strftime('%j')
+        datestr = f'{ystr}{dini}{dfin}'
+        if dtype == 'rrs':
+            varlist = ['rrs400', 'rrs412_5', 'rrs442_5', 'rrs490', 'rrs510', 'rrs560', 'rrs620', 'rrs665', 'rrs673_75',
+                       'rrs681_25', 'rrs708_75']
+        if dtype == 'plankton':
+            varlist = ['chl']
+        if dtype == 'transp':
+            varlist = ['kd490']
+        area = self.dinfo['region'].lower()
+        if area == 'blk':
+            area = 'bs'
+        tam = 0
+
+        for var in varlist:
+            fname = f'X{datestr}-{var}_monthly-{area}-hr.nc'
+            fpath = os.path.join(path, fname)
+            if os.path.exists(fpath):
+                tam = tam + os.path.getsize(fpath)
+            else:
+                tamgb = -1
+                break
+        if tam > 0:
+            tamkb = tam / 1024
+            tammb = tamkb / 1024
+            tamgb = tammb / 1024
+            print('final: ', tamgb)
+
+        return tamgb
 
     def get_list_file_path_orig(self, start_date, end_date):
         filelist = []
@@ -585,6 +629,8 @@ class ProductInfo:
                             tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'transp')
                         elif opt == 'multi_optics':
                             tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'optics')
+                        elif opt == 'multi_gapfree':
+                            tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'gapfree')
                         if tgb > 0:
                             df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                             df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
@@ -612,8 +658,10 @@ class ProductInfo:
                     tgb = self.get_size_file_path_orig_olci_monthly(path_ref, datehere, 'rrs')
                 elif opt == 'olci_m_plankton':
                     tgb = self.get_size_file_path_orig_olci_monthly(path_ref, datehere, 'plankton')
-                elif opt == 'olci__m_transp':
+                elif opt == 'olci_m_transp':
                     tgb = self.get_size_file_path_orig_olci_monthly(path_ref, datehere, 'transp')
+                elif opt == 'multi_m_plankton':
+                    tgb = self.get_size_file_path_orig_multi_monthly(path_ref, datehere, 'plankton')
                 if tgb > 0:
                     df.loc[m, 'N'] = df.loc[m, 'N'] + 1
                     df.loc[m, 'Size'] = df.loc[m, 'Size'] + tgb
