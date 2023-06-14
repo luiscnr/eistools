@@ -499,7 +499,7 @@ class ProductInfo:
         tam = 0
 
         for var in varlist:
-            fname = f'X{datestr}-{var}-{area}-fr.nc'
+            fname = f'X{datestr}-{var}-{area}-hr.nc'
             fpath = os.path.join(path_jday, fname)
             print(fpath,'->',os.path.exists(fpath))
             if os.path.exists(fpath):
