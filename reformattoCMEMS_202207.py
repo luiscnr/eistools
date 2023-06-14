@@ -82,7 +82,7 @@ def main():
                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
         if pinfo.dinfo['frequency'] == 'm':
             if not args.size_opt:
-                make_reformat_monthly_dataset(pinfo, start_date, end_date)
+                make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)
             if args.size_file:
                 file_size = args.size_file
                 opt = None
