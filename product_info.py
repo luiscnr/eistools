@@ -479,7 +479,10 @@ class ProductInfo:
         if not os.path.exists(path_jday):
             if tagprint is not None:
                 print(f'{tagprint} Expected jday path {path_jday} does not exist')
+            print('aqui no deberia llegar')
             return tamgb
+
+        print('el dtype es',dtype)
 
         if dtype == 'rrs':
             varlist = ['rrs412', 'rrs443', 'rrs490', 'rrs510', 'rrs555', 'rrs670' ]
@@ -498,7 +501,7 @@ class ProductInfo:
         for var in varlist:
             fname = f'X{datestr}-{var}-{area}-fr.nc'
             fpath = os.path.join(path_jday, fname)
-            # print(fpath,'->',os.path.exists(fpath))
+            print(fpath,'->',os.path.exists(fpath))
             if os.path.exists(fpath):
                 tam = tam + os.path.getsize(fpath)
                 # print(tam)
@@ -558,7 +561,7 @@ class ProductInfo:
 
                 for d in range(day_ini, day_fin + 1):
                     datehere = dt(y, m, d)
-
+                    print(datehere)
                     if opt is None:
                         file = self.get_file_path_orig(path_ref, datehere)
                         if not file is None and os.path.exists(file):
@@ -576,7 +579,9 @@ class ProductInfo:
                         elif opt == 'olci_transp':
                             tgb = self.get_size_file_path_orig_olci(path_ref, datehere, 'transp')
                         elif opt == 'multi_rrs':
+                            print('me llega aqui...',path_ref)
                             tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'rrs')
+                            print('----------------')
                         elif opt == 'multi_plankton':
                             tgb = self.get_size_file_path_orig_multi(path_ref, datehere, 'plankton')
                         elif opt == 'multi_transp':
