@@ -24,6 +24,8 @@ class DatasetSelection():
         file = None
         if mode.upper() == 'NRT' or mode.upper() == 'DT':
             file = os.path.join(self.path2info, 'NRTDictionary.csv')
+        if mode.upper() == 'MY' or mode.upper() == 'MYINT':
+            file = os.path.join(self.path2info, 'MYDictionary.csv')
 
         if file is not None and os.path.exists(file):
             try:
