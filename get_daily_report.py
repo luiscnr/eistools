@@ -272,7 +272,8 @@ def get_lines_dataset(name_product, name_dataset, date):
         sources = pinfo.get_sources_dt() ##check if dt sources are different
         if sources is None:
             sources = pinfo.get_sources()
-    lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, sources, date)
+    ##TO BE CHECKED
+    lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, None, date)
     lines = [*lines, *lines_sources]
     if iscompleted:
         lines.append('Sources status: OK')
