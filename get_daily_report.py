@@ -235,9 +235,9 @@ def save_attach_info_file(lines):
 
 def get_attach_info_file():
     if args.mode == 'NRT':
-        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/NRTProduct.txt'
+        finfo = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES/NRTProduct.txt'
     if args.mode == 'DT':
-        finfo = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/DTProduct.txt'
+        finfo = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES/DTProduct.txt'
     return finfo
 
 
