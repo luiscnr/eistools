@@ -472,7 +472,7 @@ def get_lines_sources(pinfo, sources, date):
 
 def get_list_products_datasets(mode, date):
     pinfo = ProductInfo()
-    print(f'PATH TO PRODUCT INFO: {pinfo.path2info}')
+
     name_products = []
     name_datasets = []
     dates = []
@@ -504,8 +504,7 @@ def get_list_products_datasets(mode, date):
                 name_datasets = [*name_datasets, *name_d]
                 dates = [*dates, *dates_d]
 
-    print(name_products)
-    print(name_datasets)
+
     return name_products, name_datasets, dates
 
 
