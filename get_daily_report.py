@@ -219,7 +219,7 @@ def append_lines_to_reproc_file(date, lines):
 
 
 def get_reproc_filename(date):
-    path_base = '/home/gosuser/OCTACManager/daily_checking/REPROC_FILES/PENDING'
+    path_base = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES/PENDING'
     datestr = date.strftime('%Y%m%d')
     freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}.sh')
     return freproc
@@ -472,6 +472,7 @@ def get_lines_sources(pinfo, sources, date):
 
 def get_list_products_datasets(mode, date):
     pinfo = ProductInfo()
+    print(f'PATH TO PRODUCT INFO: {pinfo.path2info}')
     name_products = []
     name_datasets = []
     dates = []
@@ -503,6 +504,8 @@ def get_list_products_datasets(mode, date):
                 name_datasets = [*name_datasets, *name_d]
                 dates = [*dates, *dates_d]
 
+    print(name_products)
+    print(name_datasets)
     return name_products, name_datasets, dates
 
 
@@ -543,7 +546,7 @@ def get_upload_cmd(pinfo, date):
 
 def get_report_cmd(date):
     datestr = date.strftime('%Y-%m-%d')
-    cmd = f'sh /home/gosuser/OCTACManager/daily_checking/send_report_email_{args.mode}_202207.sh {datestr}'
+    cmd = f'sh /store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/launch_check.sh {args.mode} {datestr}'
     return cmd
 
 
