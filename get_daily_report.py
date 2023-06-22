@@ -266,12 +266,12 @@ def get_lines_dataset(name_product, name_dataset, date):
     # 1: SOURCES CHECK
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('SOURCES')
-    if args.mode=='NRT':
-        sources = pinfo.get_sources()
-    elif args.mode=='DT':
-        sources = pinfo.get_sources_dt() ##check if dt sources are different
-        if sources is None:
-            sources = pinfo.get_sources()
+    # if args.mode=='NRT':
+    #     sources = pinfo.get_sources()
+    # elif args.mode=='DT':
+    #     sources = pinfo.get_sources_dt() ##check if dt sources are different
+    #     if sources is None:
+    #         sources = pinfo.get_sources()
     ##TO BE CHECKED
     lines_sources, iscompleted, missing_str = get_lines_sources(pinfo, None, date)
     lines = [*lines, *lines_sources]
@@ -284,16 +284,16 @@ def get_lines_dataset(name_product, name_dataset, date):
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('PROCESSING')
     isprocessed = 0
-    if pinfo.get_sensor().lower() == 'multi':  ##PREVIOUS OLCI PROCESSING
-        try:
-            lines_oprocessing, isoprocessed = get_lines_processing_olci(pinfo.get_region(), date)
-        except:
-            lines_oprocessing = [
-                f'Exception raised with processing OLCI for multi. Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
-            isoprocessed = False
-        lines = [*lines, *lines_oprocessing]
-        if not isoprocessed:
-            isprocessed = isprocessed + 2
+    # if pinfo.get_sensor().lower() == 'multi':  ##PREVIOUS OLCI PROCESSING
+    #     try:
+    #         lines_oprocessing, isoprocessed = get_lines_processing_olci(pinfo.get_region(), date)
+    #     except:
+    #         lines_oprocessing = [
+    #             f'Exception raised with processing OLCI for multi. Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
+    #         isoprocessed = False
+    #     lines = [*lines, *lines_oprocessing]
+    #     if not isoprocessed:
+    #         isprocessed = isprocessed + 2
 
     try:
         lines_processing, isgprocessed = get_lines_processing(pinfo, date)
@@ -349,14 +349,15 @@ def get_lines_processing(pinfo, date):
         lines.append(f'  Status: NO IMPLEMENTED')
         isprocessed = True
         return lines, isprocessed
-    session_id = pinfo.get_session_id(args.mode, date)
+    #session_id = pinfo.get_session_id(args.mode, date)
+    session_id = None
     if session_id is None:
         if pinfo.get_sensor() == 'OLCI':
             lines.append(f'  Session ID: N/A')
         else:
             lines.append('  Warning: Session ID was not found')
     else:
-        sinfo = SourceInfo('202207')
+        sinfo = SourceInfo('202311')
         sinfo.start_source('MULTI')
         sinfo.sessionid = session_id
         lines.append(f'  Session ID: {session_id}')
