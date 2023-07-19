@@ -1,3 +1,4 @@
+import time
 from datetime import datetime as dt
 import os, re
 import urllib.request
@@ -46,14 +47,14 @@ class NASA_DOWNLOAD:
             }
         }
 
-    def get_path_orig(self,sensor,date_here):
+    def get_path_orig(self, sensor, date_here):
         path = self.sensors[sensor]['nrt_cnr_server_dir']
         path_date = os.path.join(path, date_here.strftime('%Y'), date_here.strftime('%j'))
         return path_date
 
-    def get_list_files_orig(self,sensor,date_here):
+    def get_list_files_orig(self, sensor, date_here):
         path = self.sensors[sensor]['nrt_cnr_server_dir']
-        path_date = os.path.join(path,date_here.strftime('%Y'),date_here.strftime('%j'))
+        path_date = os.path.join(path, date_here.strftime('%Y'), date_here.strftime('%j'))
 
         dest_list = {}
 
@@ -64,27 +65,25 @@ class NASA_DOWNLOAD:
             if not name.startswith(prefix) or not name.endswith(suffix):
                 continue
 
-            datestr = name[name.find(prefix)+len(prefix):name.find(suffix)]
+            datestr = name[name.find(prefix) + len(prefix):name.find(suffix)]
             suffix_dt = self.sensors[sensor]['suffix_dt']
             name_output = self.sensors[sensor]['prefix']
-            datefile = dt.strptime(datestr,'%Y%j%H%M%S')
-            name_output = name_output.replace('DATE',datefile.strftime('%Y%m%dT%H%M%S'))
+            datefile = dt.strptime(datestr, '%Y%j%H%M%S')
+            name_output = name_output.replace('DATE', datefile.strftime('%Y%m%dT%H%M%S'))
             name_output = f'{name_output}{suffix_dt}'
-            #dest_list.append(name_output)
+            # dest_list.append(name_output)
             dest_list[name] = name_output
 
         return dest_list
 
-    def get_date_with01(self,name_file,sensor):
+    def get_date_with01(self, name_file, sensor):
         prefix = self.sensors[sensor]['prefix']
         suffix = self.sensors[sensor]['suffix_dt']
         datestr = name_file[prefix.find('DATE'):name_file.find(suffix)]
-        datestr = dt.strptime(datestr,'%Y%m%dT%H%M%S').replace(second=1).strftime('%Y%m%dT%H%M%S')
-        name_file_out = prefix.replace('DATE',datestr)
+        datestr = dt.strptime(datestr, '%Y%m%dT%H%M%S').replace(second=1).strftime('%Y%m%dT%H%M%S')
+        name_file_out = prefix.replace('DATE', datestr)
         name_file_out = f'{name_file_out}{suffix}'
         return name_file_out
-
-
 
     def get_url_date(self, sensor, date_here):
         year_str = date_here.strftime('%Y')
@@ -93,11 +92,11 @@ class NASA_DOWNLOAD:
                            jday_str)
         return url
 
-    def get_url_download(self,name_file):
-        url = os.path.join(self.url_download,name_file)
+    def get_url_download(self, name_file):
+        url = os.path.join(self.url_download, name_file)
         return url
 
-    def download_file(self,name_file,file_out):
+    def download_file(self, name_file, file_out):
         url = self.get_url_download(name_file)
         r = requests.get(url, allow_redirects=True)
         open(file_out, 'wb').write(r.content)
@@ -116,8 +115,8 @@ class NASA_DOWNLOAD:
     def get_expected_prefix_files_from_nrt_cnr_server(self, sensor, date_here, region):
         path_log = self.get_folder_nrt_cnr_server(sensor, date_here)
         wce = self.get_wce_nrt_cnr_server(sensor, date_here, region)
-        #print(path_log)
-        #print(wce)
+        # print(path_log)
+        # print(wce)
         lprefix = []
         for name in os.listdir(path_log):
             if name.startswith(wce):
@@ -131,12 +130,42 @@ class NASA_DOWNLOAD:
             return None
         return lprefix
 
+    def check_dt_files(self, date_here, sensor):
+        datestr = date_here.strftime('%Y%m%d')
+        ssl._create_default_https_context = ssl._create_unverified_context
+        url_date = self.get_url_date(sensor, date_here)
+
+
+        wce = self.sensors[sensor]['dt_wce']
+        wce = wce.replace('DATE', datestr)
+
+        this_try = 1
+        while this_try<=5:
+            try:
+                r = requests.get(url_date,timeout=10)
+            except:
+                this_try = this_try + 1
+                time.sleep(10)
+                continue
+            if r.status_code==200:
+                list = re.findall(wce,r.text)
+                r.close()
+                return len(list)
+            this_try = this_try + 1
+            time.sleep(10)
+        return -1
+
+
+
+
+
+
     def get_list_files(self, date_here, sensor, region, mode):
 
         datestr = date_here.strftime('%Y%m%d')
         ssl._create_default_https_context = ssl._create_unverified_context
         url_date = self.get_url_date(sensor, date_here)
-        #print(url_date)
+        # print(url_date)
         request = urllib.request.Request(url_date)
         response = urllib.request.urlopen(request)
         page = response.read()
@@ -150,8 +179,7 @@ class NASA_DOWNLOAD:
         wce = wce.replace('DATE', datestr)
 
         all_scenes = list(re.findall(wce, page))
-        #print(all_scenes)
-
+        # print(all_scenes)
 
         if region is None:
             return all_scenes
@@ -167,5 +195,3 @@ class NASA_DOWNLOAD:
         scenes = list(set(scenes))
 
         print(' '.join(scenes))
-
-
