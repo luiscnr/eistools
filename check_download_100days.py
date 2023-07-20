@@ -12,8 +12,8 @@ args = parser.parse_args()
 
 
 def check_next_day():
-    # sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+    sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    #sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         print(f'NONE;File: {file_json} does not exist')
@@ -88,7 +88,8 @@ def check_sensor_dates(jdict):
 
 
 def check_mail():
-    sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+    sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    #sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         print(f'[ERROR] File: {file_json} does not exist')
