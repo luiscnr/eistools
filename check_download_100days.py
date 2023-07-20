@@ -7,7 +7,7 @@ from datetime import timedelta
 import numpy as np
 
 parser = argparse.ArgumentParser(description='NASA CHECK')
-parser.add_argument("-m", "--mode", help="Mode", choices=["NEXT_DAY", "CHECK_DAY","MAIL"])
+parser.add_argument("-m", "--mode", help="Mode", choices=["NEXT_DAY", "CHECK_DAY", "MAIL", "SET_LAST"])
 parser.add_argument("-pd", "--processing_date", help="Processing date for MAIL option")
 args = parser.parse_args()
 
@@ -90,7 +90,7 @@ def check_sensor_dates(jdict):
 
 def check_date():
     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    #sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+    # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         msg = f'[ERROR] File: {file_json} does not exist'
@@ -118,10 +118,51 @@ def check_date():
         print('WARNING')
 
 
+def set_last_processing_date():
+    sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+    file_json = os.path.join(sdir, 'info100days.json')
+    if not os.path.exists(file_json):
+        msg = f'[ERROR] File: {file_json} does not exist'
+        print(msg)
+        return
+    with open(file_json, 'r', encoding='utf8') as j:
+        try:
+            jdict = json.loads(j.read())
+        except:
+            msg = f'[ERROR] File: {file_json} is not a valid json file'
+            print(msg)
+            return
+    if not args.processing_date:
+        msg = f'[ERROR] Processing date (-pd) is a compulsory option'
+        print(msg)
+        return
+
+    try:
+        processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
+    except:
+        msg = f'[ERROR] Date: {args.processing_date} is not valid'
+        print(msg)
+        return
+    try:
+        last_pd = dt.strptime(jdict['PROCESSED'], '%Y-%m-%d')
+    except:
+        ld = jdict['PROCESSED']
+        msg = f'[ERROR] Date: {ld} is not valid'
+        print(msg)
+        return
+
+    if processing_date > last_pd:
+        jdict['PROCESSED'] = processing_date.strftime('%Y-%m-%d')
+
+    with open(file_json, "w", encoding='utf8') as outfile:
+        json.dump(jdict, outfile, indent=1, ensure_ascii=False)
+
+
 def check_mail():
     email_lines = []
     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    #sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+    # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         print(f'[ERROR] File: {file_json} does not exist')
@@ -138,7 +179,7 @@ def check_mail():
         email_lines.append('CHECK - MULTI PROCESSING 100-DAYS FOR MEDITERRANEAN AND BLACK SEA')
         email_lines.append(f'Checking date: {today}')
         email_lines.append('----------------------------------')
-        email_lines.append('Last dates with available consolidates files: ')
+        email_lines.append('Last dates with available consolidated files: ')
         sensors = ['AQUA', 'VIIRS', 'VIIRSJ']
         for s in sensors:
             dt.strptime(jdict[s], '%Y-%m-%d')
@@ -162,13 +203,15 @@ def check_mail():
         if processing_date <= multi_date:
             email_lines.append(f'Started processing for date: {processing_date_str}')
         else:
-            email_lines.append(f'Date {processing_date_str} can not be processed. Data are available only until {multi_date_str}')
+            email_lines.append(
+                f'Date {processing_date_str} can not be processed. Data are available only until {multi_date_str}')
     except:
         print(f'[ERROR] Error retrieving  dates from json file: {file_json}')
 
     # for idx in range(len(email_lines)):
     #     print(idx,email_lines[idx])
     print_email_lines(email_lines)
+
 
 def print_email_lines(lines):
     for line in lines:
@@ -181,6 +224,9 @@ if __name__ == '__main__':
 
     if args.mode == 'CHECK_DAY':
         check_date()
+
+    if args.mode == 'SET_LAST':
+        set_last_processing_date()
 
     if args.mode == 'MAIL':
         check_mail()
