@@ -109,9 +109,9 @@ def check_date():
 
     multi_date = dt.strptime(jdict['MULTI'], '%Y-%m-%d')
     if processing_date <= multi_date:
-        return "0"
+        return "OK"
     else:
-        return "1"
+        return "WARNING"
 
 
 def check_mail():
