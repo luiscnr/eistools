@@ -115,6 +115,7 @@ def check_date():
 
 
 def check_mail():
+    email_lines = []
     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
     # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
@@ -130,18 +131,18 @@ def check_mail():
 
     try:
         today = dt.now().strftime('%Y-%m-%d')
-        add_line('CHECK - MULTI PROCESSING 100-DAYS FOR MEDITERRANEAN AND BLACK SEA')
-        add_line(f'Checking date: {today}')
-        add_line('----------------------------------')
-        add_line('Last dates with available consolidates files: ')
+        email_lines.append('CHECK - MULTI PROCESSING 100-DAYS FOR MEDITERRANEAN AND BLACK SEA')
+        email_lines.append(f'Checking date: {today}')
+        email_lines.append('----------------------------------')
+        email_lines.append('Last dates with available consolidates files: ')
         sensors = ['AQUA', 'VIIRS', 'VIIRSJ']
         for s in sensors:
             dt.strptime(jdict[s], '%Y-%m-%d')
             print(f'  {s}:{jdict[s]}')
         multi_date = dt.strptime(jdict['MULTI'], '%Y-%m-%d')
         multi_date_str = multi_date.strftime('%Y-%m-%d')
-        print('\n')
-        add_line(f'  MULTI:{multi_date_str}')
+        email_lines.append('\n')
+        email_lines.append(f'  MULTI:{multi_date_str}')
 
         s = 'PROCESSED'
         processing_date = dt.strptime(jdict[s], '%Y-%m-%d') + timedelta(days=1)
@@ -150,21 +151,22 @@ def check_mail():
                 processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
             except:
                 pass
-        add_line('----------------------------------')
-        add_line(f'Last processed date: {jdict[s]}')
+        email_lines.append('----------------------------------')
+        email_lines.append(f'Last processed date: {jdict[s]}')
         processing_date_str = processing_date.strftime('%Y-%m-%d')
-        add_line('----------------------------------')
+        email_lines.append('----------------------------------')
         if processing_date <= multi_date:
-            add_line(f'Started processing for date: {processing_date_str}')
+            email_lines.append(f'Started processing for date: {processing_date_str}')
         else:
-            add_line(f'Date {processing_date_str} can not be processed. Data are available only until {multi_date_str}')
+            email_lines.append(f'Date {processing_date_str} can not be processed. Data are available only until {multi_date_str}')
     except:
         print(f'[ERROR] Error retrieving  dates from json file: {file_json}')
 
+    print_email_lines(email_lines)
 
-def add_line(str_line):
-    print(str_line)
-    print('\n')
+def print_email_lines(lines):
+    for line in lines:
+        print(line)
 
 
 if __name__ == '__main__':
