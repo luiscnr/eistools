@@ -8,6 +8,7 @@ import numpy as np
 
 parser = argparse.ArgumentParser(description='NASA CHECK')
 parser.add_argument("-m", "--mode", help="Mode", choices=["NEXT_DAY", "MAIL"])
+parser.add_argument("-pd", "--processing_date",help="Processing date for MAIL option")
 args = parser.parse_args()
 
 
@@ -118,6 +119,11 @@ def check_mail():
 
         s = 'PROCESSED'
         processing_date = dt.strptime(jdict[s], '%Y-%m-%d') + timedelta(days=1)
+        if args.processing_date:
+            try:
+                processing_date = dt.strptime(args.processing_date,'%Y-%m-%d')
+            except:
+                pass
         print('----------------------------------')
         print(f'Last processed date: {jdict[s]}')
         processing_date_str = processing_date.strftime('%Y-%m-%d')
