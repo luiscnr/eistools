@@ -116,8 +116,8 @@ def check_date():
 
 def check_mail():
     email_lines = []
-    sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+    #sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         print(f'[ERROR] File: {file_json} does not exist')
@@ -138,10 +138,10 @@ def check_mail():
         sensors = ['AQUA', 'VIIRS', 'VIIRSJ']
         for s in sensors:
             dt.strptime(jdict[s], '%Y-%m-%d')
-            print(f'  {s}:{jdict[s]}')
+            email_lines.append(f'  {s}:{jdict[s]}')
         multi_date = dt.strptime(jdict['MULTI'], '%Y-%m-%d')
         multi_date_str = multi_date.strftime('%Y-%m-%d')
-        email_lines.append('\n')
+        email_lines.append('')
         email_lines.append(f'  MULTI:{multi_date_str}')
 
         s = 'PROCESSED'
@@ -162,6 +162,8 @@ def check_mail():
     except:
         print(f'[ERROR] Error retrieving  dates from json file: {file_json}')
 
+    # for idx in range(len(email_lines)):
+    #     print(idx,email_lines[idx])
     print_email_lines(email_lines)
 
 def print_email_lines(lines):
