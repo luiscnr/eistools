@@ -90,28 +90,32 @@ def check_sensor_dates(jdict):
 
 def check_date():
     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+    #sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         msg = f'[ERROR] File: {file_json} does not exist'
-        return msg
+        print(msg)
+        return
     with open(file_json, 'r', encoding='utf8') as j:
         try:
             jdict = json.loads(j.read())
         except:
             msg = f'[ERROR] File: {file_json} is not a valid json file'
-            return msg
+            print(msg)
+            return
     if args.processing_date:
         try:
             processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
         except:
             msg = f'[ERROR] Date: {args.processing_date} is not valid'
-            return msg
+            print(msg)
+            return
 
     multi_date = dt.strptime(jdict['MULTI'], '%Y-%m-%d')
     if processing_date <= multi_date:
-        return "OK"
+        print('OK')
     else:
-        return "WARNING"
+        print('WARNING')
 
 
 def check_mail():
