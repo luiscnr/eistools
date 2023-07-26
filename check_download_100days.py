@@ -176,7 +176,7 @@ def check_mail():
 
     try:
         today = dt.now().strftime('%Y-%m-%d')
-        email_lines.append('CHECK - MULTI PROCESSING 100-DAYS FOR MEDITERRANEAN AND BLACK SEA')
+        email_lines.append('CHECK - MULTI PROCESSING 180-DAYS FOR MEDITERRANEAN AND BLACK SEA')
         email_lines.append(f'Checking date: {today}')
         email_lines.append('----------------------------------')
         email_lines.append('Last dates with available consolidated files: ')
@@ -189,15 +189,21 @@ def check_mail():
         email_lines.append('')
         email_lines.append(f'  MULTI:{multi_date_str}')
 
+
         s = 'PROCESSED'
         processing_date = dt.strptime(jdict[s], '%Y-%m-%d') + timedelta(days=1)
+        date_as_argument = False
         if args.processing_date:
             try:
                 processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
+                date_as_argument = True
             except:
                 pass
-        email_lines.append('----------------------------------')
-        email_lines.append(f'Last processed date: {jdict[s]}')
+
+        if not date_as_argument:
+            email_lines.append('----------------------------------')
+            email_lines.append(f'Last processed date: {jdict[s]}')
+
         processing_date_str = processing_date.strftime('%Y-%m-%d')
         email_lines.append('----------------------------------')
         if processing_date <= multi_date:
@@ -230,3 +236,5 @@ if __name__ == '__main__':
 
     if args.mode == 'MAIL':
         check_mail()
+
+
