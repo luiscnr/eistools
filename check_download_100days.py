@@ -12,42 +12,42 @@ parser.add_argument("-pd", "--processing_date", help="Processing date for MAIL o
 args = parser.parse_args()
 
 
-def check_next_day():
-    sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
-    file_json = os.path.join(sdir, 'info100days.json')
-    if not os.path.exists(file_json):
-        print(f'NONE;File: {file_json} does not exist')
-        return
-
-    with open(file_json, 'r', encoding='utf8') as j:
-        try:
-            jdict = json.loads(j.read())
-        except:
-            print(f'NONE; File: {file_json} is not a valid json file')
-            return
-
-    jdict, msg = check_sensor_dates(jdict)
-
-    if jdict is None:
-        print(msg)
-        return
-
-    with open(file_json, "w", encoding='utf8') as outfile:
-        json.dump(jdict, outfile, indent=1, ensure_ascii=False)
-
-    try:
-        processing_date = dt.strptime(jdict['PROCESSED'], '%Y-%m-%d') + timedelta(days=1)
-        multi_date = dt.strptime(jdict['MULTI'], '%Y-%m-%d')
-        processing_date_str = processing_date.strftime('%Y-%m-%d')
-        multi_date_str = multi_date.strftime('%Y-%m-%d')
-        if processing_date <= multi_date:
-            print(f'{processing_date_str};OK')
-        else:
-            print(
-                f'NONE; Date {processing_date_str} can not be processed. Date are available only until {multi_date_str}')
-    except:
-        print(f'NONE; Error retrieving MULTI and PROCESSED dates from json file: {file_json}')
+# def check_next_day():
+#     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+#     # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+#     file_json = os.path.join(sdir, 'info100days.json')
+#     if not os.path.exists(file_json):
+#         print(f'NONE;File: {file_json} does not exist')
+#         return
+#
+#     with open(file_json, 'r', encoding='utf8') as j:
+#         try:
+#             jdict = json.loads(j.read())
+#         except:
+#             print(f'NONE; File: {file_json} is not a valid json file')
+#             return
+#
+#     jdict, msg = check_sensor_dates(jdict)
+#
+#     if jdict is None:
+#         print(msg)
+#         return
+#
+#     with open(file_json, "w", encoding='utf8') as outfile:
+#         json.dump(jdict, outfile, indent=1, ensure_ascii=False)
+#
+#     try:
+#         processing_date = dt.strptime(jdict['PROCESSED'], '%Y-%m-%d') + timedelta(days=1)
+#         multi_date = dt.strptime(jdict['MULTI'], '%Y-%m-%d')
+#         processing_date_str = processing_date.strftime('%Y-%m-%d')
+#         multi_date_str = multi_date.strftime('%Y-%m-%d')
+#         if processing_date <= multi_date:
+#             print(f'{processing_date_str};OK')
+#         else:
+#             print(
+#                 f'NONE; Date {processing_date_str} can not be processed. Date are available only until {multi_date_str}')
+#     except:
+#         print(f'NONE; Error retrieving MULTI and PROCESSED dates from json file: {file_json}')
 
 
 def check_sensor_dates(jdict):
@@ -117,10 +117,8 @@ def check_date():
     else:
         print('WARNING')
 
-
-def set_last_processing_date():
+def set_last_condolidated_date():
     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
-    # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
     file_json = os.path.join(sdir, 'info100days.json')
     if not os.path.exists(file_json):
         msg = f'[ERROR] File: {file_json} does not exist'
@@ -133,30 +131,52 @@ def set_last_processing_date():
             msg = f'[ERROR] File: {file_json} is not a valid json file'
             print(msg)
             return
-    if not args.processing_date:
-        msg = f'[ERROR] Processing date (-pd) is a compulsory option'
-        print(msg)
-        return
+    jdict, msg = check_sensor_dates(jdict)
+    print(msg)
+    if jdict is not None:
+        with open(file_json, "w", encoding='utf8') as outfile:
+            json.dump(jdict, outfile, indent=1, ensure_ascii=False)
 
-    try:
-        processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
-    except:
-        msg = f'[ERROR] Date: {args.processing_date} is not valid'
-        print(msg)
-        return
-    try:
-        last_pd = dt.strptime(jdict['PROCESSED'], '%Y-%m-%d')
-    except:
-        ld = jdict['PROCESSED']
-        msg = f'[ERROR] Date: {ld} is not valid'
-        print(msg)
-        return
 
-    if processing_date > last_pd:
-        jdict['PROCESSED'] = processing_date.strftime('%Y-%m-%d')
-
-    with open(file_json, "w", encoding='utf8') as outfile:
-        json.dump(jdict, outfile, indent=1, ensure_ascii=False)
+# def set_last_processing_date():
+#     sdir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+#     # sdir = '/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/'
+#     file_json = os.path.join(sdir, 'info100days.json')
+#     if not os.path.exists(file_json):
+#         msg = f'[ERROR] File: {file_json} does not exist'
+#         print(msg)
+#         return
+#     with open(file_json, 'r', encoding='utf8') as j:
+#         try:
+#             jdict = json.loads(j.read())
+#         except:
+#             msg = f'[ERROR] File: {file_json} is not a valid json file'
+#             print(msg)
+#             return
+#     if not args.processing_date:
+#         msg = f'[ERROR] Processing date (-pd) is a compulsory option'
+#         print(msg)
+#         return
+#
+#     try:
+#         processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
+#     except:
+#         msg = f'[ERROR] Date: {args.processing_date} is not valid'
+#         print(msg)
+#         return
+#     try:
+#         last_pd = dt.strptime(jdict['PROCESSED'], '%Y-%m-%d')
+#     except:
+#         ld = jdict['PROCESSED']
+#         msg = f'[ERROR] Date: {ld} is not valid'
+#         print(msg)
+#         return
+#
+#     if processing_date > last_pd:
+#         jdict['PROCESSED'] = processing_date.strftime('%Y-%m-%d')
+#
+#     with open(file_json, "w", encoding='utf8') as outfile:
+#         json.dump(jdict, outfile, indent=1, ensure_ascii=False)
 
 
 def check_mail():
@@ -189,33 +209,26 @@ def check_mail():
         email_lines.append('')
         email_lines.append(f'  MULTI:{multi_date_str}')
 
-
-        s = 'PROCESSED'
-        processing_date = dt.strptime(jdict[s], '%Y-%m-%d') + timedelta(days=1)
-        date_as_argument = False
+        processing_date = dt.now()-timedelta(days=180)
         if args.processing_date:
             try:
                 processing_date = dt.strptime(args.processing_date, '%Y-%m-%d')
-                date_as_argument = True
+                processing_date_str = processing_date.strftime('%Y-%m-%d')
             except:
                 pass
-
-        if not date_as_argument:
-            email_lines.append('----------------------------------')
-            email_lines.append(f'Last processed date: {jdict[s]}')
-
-        processing_date_str = processing_date.strftime('%Y-%m-%d')
         email_lines.append('----------------------------------')
         if processing_date <= multi_date:
             email_lines.append(f'Started processing for date: {processing_date_str}')
         else:
             email_lines.append(
                 f'Date {processing_date_str} can not be processed. Data are available only until {multi_date_str}')
+
+
+
     except:
         print(f'[ERROR] Error retrieving  dates from json file: {file_json}')
 
-    # for idx in range(len(email_lines)):
-    #     print(idx,email_lines[idx])
+
     print_email_lines(email_lines)
 
 
@@ -225,14 +238,14 @@ def print_email_lines(lines):
 
 
 if __name__ == '__main__':
-    if args.mode == 'NEXT_DAY':
-        check_next_day()
+    # if args.mode == 'NEXT_DAY':
+    #     check_next_day()
 
     if args.mode == 'CHECK_DAY':
         check_date()
 
     if args.mode == 'SET_LAST':
-        set_last_processing_date()
+        set_last_condolidated_date()
 
     if args.mode == 'MAIL':
         check_mail()
