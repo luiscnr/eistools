@@ -82,6 +82,8 @@ class ProductInfo:
     def get_dinfo_param(self, param):
         if len(self.dinfo) == 0:
             return None
+        if not param in self.dinfo.keys():
+            return None
         return self.dinfo[param]
 
     def get_region(self):

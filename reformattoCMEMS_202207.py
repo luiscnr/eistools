@@ -237,7 +237,7 @@ def get_date_from_param(dateparam):
 
 
 def main_deprecated():
-    print('STARTED REFORMAT')
+    print('[INFO]STARTED REFORMAT')
     pinfo = ProductInfo()
     do_multiple_datasets = False
 
@@ -382,11 +382,12 @@ def make_reformat_clima_dataset(pinfo, start_date, end_date, verbose):
     while date_work <= end_date:
         if verbose:
             print('----------------------------------------------------')
-            print(f'[INFO] Reformating climatology file for date: {date_work}')
+            print(f'[INFO] Reformatting climatology file for date: {date_work}')
 
         input_file_nor = pinfo.get_file_path_orig_climatology(None, date_work, False, True)
         if input_file_nor is None:
             print(f'[ERROR] File {input_file_nor} does not exist. Skipping date...')
+            date_work = date_work + timedelta(hours=24)
             continue
         file_out = pinfo.get_file_path_orig_climatology(None, date_work, True, False)
         if pinfo.get_dtype() == 'plankton':
@@ -412,14 +413,47 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
         print(f'[ERROR] {input_path} does not exist')
         return False
     variables_in = ['NOFOBS', 'WEIGHTED_MEAN', 'WEIGHTED_STD', 'MEDIANA']
+    if pinfo.get_region().upper()=='ARC':
+        variables_in = ['NOFOBS','W_AVG','W_STD','MEDIAN']
+    
     for var in variables_in:
         if var not in dataset.variables:
             print(f'[ERROR] Variable: {var} is not available in input file: {input_path}')
             return False
     variables_out = ['count', 'weighted_mean', 'weighted_std', 'median']
     desc_out = ['Number of observations', 'Weighted mean values', 'Weighted Standard Deviation Values', 'Median values']
+
+    isarctic = pinfo.get_region() == 'ARC'
+
     ##grid variables
-    if 'LAT' in dataset.variables and 'LON' in dataset.variables:
+    if isarctic:
+        file_grid = pinfo.get_dinfo_param('grid_file')
+        if file_grid is None:
+            print(f'[ERROR] File grid parameterer is not available in the JSON dataset in PRODUCT_INFO')
+            return False
+        if not os.path.exists(file_grid):
+            print(f'[ERROR] File grid {file_grid} does not exist')
+            return False
+        try:
+            dgrid = Dataset(file_grid)
+            lat_array = np.array(dgrid.variables['lat'])
+            lon_array = np.array(dgrid.variables['lon'])
+            y_array = np.array(dgrid.variables['y'])
+            x_array = np.array(dgrid.variables['x'])
+            ny = len(y_array)
+            nx = len(x_array)
+            stereographic = dgrid.variables['stereographic']
+            atts = stereographic.ncattrs()
+            atts_values = {}
+            for at in atts:
+                atts_values[at] = stereographic.getncattr(at)
+
+            dgrid.close()
+        except:
+            print(f'[ERROR] Error reading file grid: {file_grid}')
+            return False
+
+    else: ##MED, BLK
         lat_array = np.array(dataset.variables['LAT'])
         min_lat = np.min(lat_array)
         max_lat = np.max(lat_array)
@@ -427,10 +461,8 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
         min_lon = np.min(lon_array)
         max_lon = np.max(lon_array)
         limits = [min_lat, max_lat, min_lon, max_lon]
-
-    #nofobs = np.array(dataset.variables['NOFOBS'])
-    nlat = len(lat_array)
-    nlon = len(lon_array)
+        nlat = len(lat_array)
+        nlon = len(lon_array)
 
     try:
         dout = Dataset(file_out, 'w', format='NETCDF4')
@@ -438,9 +470,15 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
         if args.verbose:
             print(f'[ERROR] Permission error')
         return False
-    dout = create_clima_dimensions(dout, nlat, nlon)
 
-    dout = create_lat_lon_variables(dout, lat_array, lon_array, limits)
+
+
+    if isarctic:
+        dout = create_clima_dimensions_arc(dout,ny,nx)
+        dout = create_grid_variables(dout,lat_array,lon_array,y_array,x_array,atts_values)
+    else:
+        dout = create_clima_dimensions(dout, nlat, nlon)
+        dout = create_lat_lon_variables(dout, lat_array, lon_array, limits)
     dout = create_time_variable(dout,date_here)
     for ivar  in range(len(variables_in)):
         var_in = variables_in[ivar]
@@ -451,13 +489,15 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
         lname = f'Climatology - {desc_out[ivar]} of {variable_base_long}'
         array = np.array(dataset.variables[var_in])
 
+
         if var_in=='NOFOBS':
             sname = f'{variable_base_standard} number_of_observations'
-            dout = create_variable(dout, var_out, 'i4', sname, lname, 0, 32767, None, array)
+            dout = create_variable(dout, var_out, 'i4', sname, lname, 0, 32767, None, array,isarctic)
         else:
-            dout = create_variable(dout,var_out,'f4',sname,lname,minvalue,maxvalue,units,array)
+            dout = create_variable(dout,var_out,'f4',sname,lname,minvalue,maxvalue,units,array,isarctic)
     global_atts = pinfo.get_global_atts()
     date_now = dt.utcnow()
+
     if 'creation_date' in global_atts.keys():
         global_atts['creation_date'] = date_now.strftime('%a %b %d %Y')
     if 'creation_time' in global_atts.keys():
@@ -469,13 +509,25 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
     if 'cmems_product_id' in global_atts.keys():
         global_atts['cmems_product_id'] = pinfo.product_name
     if 'westernmost_longitude' in global_atts.keys():
-        global_atts['westernmost_longitude'] = f'{min_lon:.1f}'
+        if isarctic:
+            global_atts['westernmost_longitude'] = '-180.0'
+        else:
+            global_atts['westernmost_longitude'] = f'{min_lon:.1f}'
     if 'easternmost_longitude' in global_atts.keys():
-        global_atts['easternmost_longitude'] = f'{max_lon:.1f}'
+        if isarctic:
+            global_atts['easternmost_longitude'] = '180.0'
+        else:
+            global_atts['easternmost_longitude'] = f'{max_lon:.1f}'
     if 'southernmost_latitude' in global_atts.keys():
-        global_atts['southernmost_latitude'] = f'{min_lat:.1f}'
+        if isarctic:
+            global_atts['southernmost_latitude'] =  '65.0'
+        else:
+            global_atts['southernmost_latitude'] = f'{min_lat:.1f}'
     if 'northernmost_latitude' in global_atts.keys():
-        global_atts['northernmost_latitude'] = f'{max_lat:.1f}'
+        if isarctic:
+            global_atts['northernmost_latitude'] = '90.0'
+        else:
+            global_atts['northernmost_latitude'] = f'{max_lat:.1f}'
 
     for at in global_atts:
         dout.setncattr(at,global_atts[at])
@@ -483,15 +535,24 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
     dataset.close()
     dout.close()
 
-def create_variable(dout,name,dtype,sname,lname,minvalue,maxvalue,units,array):
-    variable = dout.createVariable(name, dtype, ('time', 'lat', 'lon'), fill_value=-999, zlib=True,shuffle=True, complevel=6)
+def create_variable(dout,name,dtype,sname,lname,minvalue,maxvalue,units,array,isarctic):
+    if isarctic:
+        variable = dout.createVariable(name, dtype, ('time', 'y', 'x'), fill_value=-999, zlib=True, shuffle=True,
+                                       complevel=6)
+        variable.grid_mapping = 'stereographic'
+        variable.comment = 'OC-CC v6 - Gaussian Processor Regressor (GPR) Algorithm'
+    else:
+        variable = dout.createVariable(name, dtype, ('time', 'lat', 'lon'), fill_value=-999, zlib=True,shuffle=True, complevel=6)
     variable.standard_name = sname
     variable.long_name = lname
     variable.valid_min = minvalue
     variable.valid_max = maxvalue
+    variable.missing_value = -999.0
     variable.type = 'surface'
     if units is not None:
         variable.units = units
+    if isarctic and not name.endswith('_count'):
+        array[array!=-999.0] = np.power(10,array[array!=-999.0])
     variable[:] = array[:]
     return dout
 
@@ -500,7 +561,11 @@ def create_clima_dimensions(dout, nlat, nlon):
     dout.createDimension('lon', nlon)  # nx
     dout.createDimension('time', 1)
     return dout
-
+def create_clima_dimensions_arc(dout, ny, nx):
+    dout.createDimension('y', ny)  # ny
+    dout.createDimension('x', nx)  # nx
+    dout.createDimension('time', 1)
+    return dout
 
 def create_lat_lon_variables(dout, lat_array, lon_array, limits):
     # latitude
@@ -520,6 +585,45 @@ def create_lat_lon_variables(dout, lat_array, lon_array, limits):
     satellite_longitude.valid_min = limits[2]
     satellite_longitude.valid_max = limits[3]
     satellite_longitude[:] = lon_array[:]
+
+    return dout
+
+
+def create_grid_variables(dout, lat_array, lon_array, y_array,x_array,stereographicAtts):
+    # latitude
+    satellite_latitude = dout.createVariable('lat', 'f4', ('y','x'), zlib=True, shuffle=True, complevel=6)
+    satellite_latitude.units = "degrees_north"
+    satellite_latitude.standard_name = "latitude"
+    satellite_latitude.long_name = "latitude"
+    satellite_latitude.comment = "Spherical latidude from 65 to 90 degrees north"
+    satellite_latitude[:] = lat_array[:]
+
+    # longitude
+    satellite_longitude = dout.createVariable('lon', 'f4', ('y','x'), zlib=True, shuffle=True, complevel=6)
+    satellite_longitude.units = "degrees_east"
+    satellite_longitude.standard_name = "longitude"
+    satellite_longitude.long_name = "longitude"
+    satellite_longitude.comment = "Spherical longitude from -180 to 180 degrees east"
+    satellite_longitude[:] = lon_array[:]
+
+    #y
+    yvar = dout.createVariable('y','f4',('y',),zlib=True, shuffle=True, complevel=6)
+    yvar.units = "metres"
+    yvar.standard_name = "projection_y_coordinate"
+    yvar.axis = "Y"
+    yvar[:] = y_array[:]
+
+    #x
+    xvar = dout.createVariable('x', 'f4', ('x',), zlib=True, shuffle=True, complevel=6)
+    xvar.units = "metres"
+    xvar.standard_name = "projection_x_coordinate"
+    xvar.axis = "X"
+    xvar[:] = x_array[:]
+
+    #stererographic
+    stereographic = dout.createVariable('stereographic', 'i4')
+    for at in stereographicAtts:
+        stereographic.setncattr(at,stereographicAtts[at])
 
     return dout
 
