@@ -73,6 +73,13 @@ def main():
             if not args.no_upload:
                 make_upload_daily(pinfo, pinfomy, start_date, end_date)
 
+        if pinfo.dinfo['frequency'] == 'c':
+            if not args.mode=='MY':
+                print('f[ERROR] Climatology always must be run as MY')
+                return
+            if not args.no_upload:
+                upload_climatology_dataset_pinfo(pinfo,args.mode,start_date,end_date)
+
         if pinfo.dinfo['frequency'] == 'm':
             if args.verbose:
                 print('***********************************************************')
@@ -93,6 +100,24 @@ def main():
             if args.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
 
+# def make_upload_climatology(pinfo,start_date,end_date):
+#     if args.verbose:
+#         print(f'[INFO] Uploading files to DU: Started')
+#     pinfo.MODE = 'UPLOAD'
+#
+#     month_ini = start_date.month
+#     month_fin = end_date.month
+#     for month in range(month_ini, month_fin + 1):
+#         day_ini = 1
+#         if month == month_ini:
+#             day_ini = start_date.day
+#         day_fin = monthrange(2000, month)[1]
+#         if month == month_fin:
+#             day_fin = end_date.day
+#
+#
+#     if args.verbose:
+#         print(f'[INFO] Uploading files to DU: Completed')
 
 def make_upload_daily(pinfo, pinfomy, start_date, end_date):
     if args.verbose:
