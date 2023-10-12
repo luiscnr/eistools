@@ -525,15 +525,15 @@ def upload_climatology_dataset_impl(pinfo, mode, month, start_day, end_day):
     path_orig = pinfo.get_path_orig(-1)
     rpath, sdir = pinfo.get_remote_path_climatology()
 
-    print(path_orig)
-    print(rpath)
-    print(sdir)
+    # print(path_orig)
+    # print(rpath)
+    # print(sdir)
 
     ftpdu.go_subdir(rpath)
     ndelivered = 0
     for day in range(start_day, end_day + 1):
         date_here = dt(2000, month, day)
-        pfile = pinfo.get_file_path_orig_climatology(path_orig, date_here)
+        pfile = pinfo.get_file_path_orig_climatology(path_orig, date_here,False,False)
         CHECK = pinfo.check_file(pfile)
         print(f'[INFO] Checking file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
         if not CHECK:
