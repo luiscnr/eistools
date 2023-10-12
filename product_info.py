@@ -16,7 +16,7 @@ class ProductInfo:
         # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
         #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
         if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/PRODUCT_INFO_EIS202303'
+            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/PRODUCT_INFO_EIS202311'
 
         self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
         if not os.path.exists(self.path_reformat_script):
@@ -335,6 +335,11 @@ class ProductInfo:
                 print(f'{tagprint} Expected file orig path {file_path} does not exist')
             return None
         return file_path
+
+
+
+
+
 
     # same as get_file_path_orig, but it returns the complete path despite of it doen't exist, it's used for checking
     def get_file_path_orig_name(self, path, datehere):
@@ -752,16 +757,48 @@ class ProductInfo:
                 filelist.append(file)
         return filelist
 
-    def get_file_path_orig_climatology(self, path, datehere):
+    def get_file_path_orig_climatology(self, path, datehere, reformatted, noneifnoexist):
+
+        key_name_origin = 'name_origin'
+        if not reformatted:
+            key_name_origin = 'name_origin_noreformatted'
+
         if path is None:
-            return None
-        name_file = self.dinfo['name_origin']
+            path_month = os.path.join(self.dinfo['path_origin'], datehere.strftime('%m'))
+            if os.path.exists(path_month):
+                path = path_month
+            else:
+                path = self.dinfo['path_origin']
+        if not os.path.exists(path):
+            if noneifnoexist:
+                print(f'[ERROR] Expected  orig path {path} does not exist')
+                return None
+        name_file = self.dinfo[key_name_origin]
         date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
         file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
         if not os.path.exists(file_path):
-            print(f'[ERROR] Expected file orig path {file_path} does not exist')
-            return None
+            if noneifnoexist:
+                print(f'[ERROR] Expected file orig path {file_path} does not exist')
+                return None
         return file_path
+
+    def get_global_atts(self):
+        file_attributes = self.dinfo['global_attributes_file']
+        if not os.path.exists(file_attributes):
+            return None
+
+        import configparser
+        try:
+            options = configparser.ConfigParser()
+            options.read(file_attributes)
+        except:
+            return None
+        if not options.has_section('GLOBAL_ATTRIBUTES'):
+            return None
+        at_dict = dict(options['GLOBAL_ATTRIBUTES'])
+
+        return at_dict
+
 
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)

@@ -848,9 +848,9 @@ class FTPCheck():
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
         if mode == 'MY' or mode == 'MYINT':
-            du_server = "my-dev.cmems-du.eu"
+            du_server = "my.cmems-du.eu"
         elif mode == 'NRT' or mode == 'DT':
-            du_server = "nrt-dev.cmems-du.eu"
+            du_server = "nrt.cmems-du.eu"
         du_uname = credentials.get('normal', 'uname')
         du_passwd = credentials.get('normal', 'passwd')
         self.ftpdu = FTP(du_server, du_uname, du_passwd)

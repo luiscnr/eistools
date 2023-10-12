@@ -3,6 +3,9 @@ import os.path
 import shutil
 from datetime import datetime as dt
 from datetime import timedelta
+
+import numpy as np
+
 from product_info import ProductInfo
 import subprocess
 from dataset_selection import DatasetSelection
@@ -10,15 +13,15 @@ from dataset_selection import DatasetSelection
 parser = argparse.ArgumentParser(description='Reformat and upload 2DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
-parser.add_argument("-noupload","--no_upload", help="No upload mode, only reformat.",action="store_true")
-parser.add_argument("-noreformat","--no_reformat",help="No reformat mode, only upload.",action="store_true")
+parser.add_argument("-noupload", "--no_upload", help="No upload mode, only reformat.", action="store_true")
+parser.add_argument("-noreformat", "--no_reformat", help="No reformat mode, only upload.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, choices=['NRT', 'DT', 'MY'])
-parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK','BS'])
+parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
-                    choices=['reflectance', 'plankton', 'optics', 'transp','pp'])
+                    choices=['reflectance', 'plankton', 'optics', 'transp', 'pp'])
 parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
-                    choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology','cci'])
+                    choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology', 'cci'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pname", "--name_product", help="Product name")
@@ -28,7 +31,8 @@ parser.add_argument("-dname", "--name_dataset", help="Product name")
 parser.add_argument("-csize", "--size_file", help="Output file with size information. Files are deleted ")
 parser.add_argument("-csizeopt", "--size_opt", help="Options to check file size without reformat",
                     choices=['olci_rrs', 'olci_plankton', 'olci_transp', 'olci_m_rrs', 'olci_m_plankton',
-                             'olci_m_transp','multi_rrs','multi_plankton','multi_transp','multi_optics','multi_gapfree','multi_m_plankton'])
+                             'olci_m_transp', 'multi_rrs', 'multi_plankton', 'multi_transp', 'multi_optics',
+                             'multi_gapfree', 'multi_m_plankton'])
 
 args = parser.parse_args()
 
@@ -82,7 +86,7 @@ def main():
                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
         if pinfo.dinfo['frequency'] == 'm':
             if not args.size_opt:
-                make_reformat_monthly_dataset(pinfo, start_date, end_date,args.verbose)
+                make_reformat_monthly_dataset(pinfo, start_date, end_date, args.verbose)
             if args.size_file:
                 file_size = args.size_file
                 opt = None
@@ -99,6 +103,9 @@ def main():
                     if args.verbose:
                         print(f'[INFO] Deleting...')
                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+
+        if pinfo.dinfo['frequency'] == 'c':
+            make_reformat_clima_dataset(pinfo, start_date, end_date, args.verbose)
 
 
 ##DATASET SELECTION
@@ -120,6 +127,7 @@ def get_datasets():
         name_products, name_datasets = dsel.get_list_product_datasets_from_params()
 
     return name_products, name_datasets
+
 
 def get_params_selection_dataset():
     region = None
@@ -184,8 +192,6 @@ def check_datasets(name_products, name_datasets):
                 print(f'[ERROR] Dataset level is {level_here} but {level} was given in the script')
                 return False
 
-
-
     return True
 
 
@@ -215,6 +221,7 @@ def get_dates():
         print(f'[ERROR] End date should be greater or equal than start date')
         return None, None
     return start_date, end_date
+
 
 def get_date_from_param(dateparam):
     datefin = None
@@ -330,18 +337,15 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
 
         preformat = pinfo.check_path_reformat()
         if preformat is not None:
-            file_orig = pinfo.get_file_path_orig(None,date_work)
+            file_orig = pinfo.get_file_path_orig(None, date_work)
             file_dest = pinfo.get_file_path_orig_reformat_name(date_work)
             if os.path.exists(file_orig) and file_dest is not None:
                 if verbose:
                     print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
-                shutil.copy2(file_orig,file_dest)
+                shutil.copy2(file_orig, file_dest)
                 os.remove(file_orig)
 
         date_work = date_work + timedelta(hours=24)
-
-
-
 
 
 def make_reformat_monthly_dataset(pinfo, start_date, end_date, verbose):
@@ -371,6 +375,166 @@ def make_reformat_monthly_dataset(pinfo, start_date, end_date, verbose):
                     print(f'[CMD ERROR] {outstr[ierror:]}')
             if err:
                 print(f'[CMD ERROR]{err}')
+
+
+def make_reformat_clima_dataset(pinfo, start_date, end_date, verbose):
+    date_work = start_date
+    while date_work <= end_date:
+        if verbose:
+            print('----------------------------------------------------')
+            print(f'[INFO] Reformating climatology file for date: {date_work}')
+
+        input_file_nor = pinfo.get_file_path_orig_climatology(None, date_work, False, True)
+        if input_file_nor is None:
+            print(f'[ERROR] File {input_file_nor} does not exist. Skipping date...')
+            continue
+        file_out = pinfo.get_file_path_orig_climatology(None, date_work, True, False)
+        if pinfo.get_dtype() == 'plankton':
+            create_reformatted_climatology(pinfo,input_file_nor, file_out, date_work,'CHL')
+
+        date_work = date_work + timedelta(hours=24)
+
+
+def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variable_base):
+    from netCDF4 import Dataset
+    if args.verbose:
+        print(f'[INFO] Started output climatology file: {file_out}')
+
+    if variable_base == 'CHL':
+        variable_base_long = 'Chlorophyll-a Concentration'
+        variable_base_standard = 'mass_concentration_of_chlorophyll_a_in_sea_water'
+        units = 'mg/m3'
+        minvalue = 0.0
+        maxvalue = 1000.0
+    try:
+        dataset = Dataset(input_path)
+    except:
+        print(f'[ERROR] {input_path} does not exist')
+        return False
+    variables_in = ['NOFOBS', 'WEIGHTED_MEAN', 'WEIGHTED_STD', 'MEDIANA']
+    for var in variables_in:
+        if var not in dataset.variables:
+            print(f'[ERROR] Variable: {var} is not available in input file: {input_path}')
+            return False
+    variables_out = ['count', 'weighted_mean', 'weighted_std', 'median']
+    desc_out = ['Number of observations', 'Weighted mean values', 'Weighted Standard Deviation Values', 'Median values']
+    ##grid variables
+    if 'LAT' in dataset.variables and 'LON' in dataset.variables:
+        lat_array = np.array(dataset.variables['LAT'])
+        min_lat = np.min(lat_array)
+        max_lat = np.max(lat_array)
+        lon_array = np.array(dataset.variables['LON'])
+        min_lon = np.min(lon_array)
+        max_lon = np.max(lon_array)
+        limits = [min_lat, max_lat, min_lon, max_lon]
+
+    #nofobs = np.array(dataset.variables['NOFOBS'])
+    nlat = len(lat_array)
+    nlon = len(lon_array)
+
+    try:
+        dout = Dataset(file_out, 'w', format='NETCDF4')
+    except PermissionError:
+        if args.verbose:
+            print(f'[ERROR] Permission error')
+        return False
+    dout = create_clima_dimensions(dout, nlat, nlon)
+
+    dout = create_lat_lon_variables(dout, lat_array, lon_array, limits)
+    dout = create_time_variable(dout,date_here)
+    for ivar  in range(len(variables_in)):
+        var_in = variables_in[ivar]
+        var_out = f'{variable_base}_{variables_out[ivar]}'
+        if args.verbose:
+            print(f'[INFO] Variable: {var_in} -> {var_out}')
+        sname = f'{variable_base_standard}'
+        lname = f'Climatology - {desc_out[ivar]} of {variable_base_long}'
+        array = np.array(dataset.variables[var_in])
+
+        if var_in=='NOFOBS':
+            sname = f'{variable_base_standard} number_of_observations'
+            dout = create_variable(dout, var_out, 'i4', sname, lname, 0, 32767, None, array)
+        else:
+            dout = create_variable(dout,var_out,'f4',sname,lname,minvalue,maxvalue,units,array)
+    global_atts = pinfo.get_global_atts()
+    date_now = dt.utcnow()
+    if 'creation_date' in global_atts.keys():
+        global_atts['creation_date'] = date_now.strftime('%a %b %d %Y')
+    if 'creation_time' in global_atts.keys():
+        global_atts['creation_time'] = date_now.strftime('%H:%M:%S UTC')
+    if 'site_name' in global_atts.keys():
+        global_atts['site_name'] = pinfo.get_region().upper()
+    if 'title' in global_atts.keys():
+        global_atts['title'] = pinfo.dataset_name
+    if 'cmems_product_id' in global_atts.keys():
+        global_atts['cmems_product_id'] = pinfo.product_name
+    if 'westernmost_longitude' in global_atts.keys():
+        global_atts['westernmost_longitude'] = f'{min_lon:.1f}'
+    if 'easternmost_longitude' in global_atts.keys():
+        global_atts['easternmost_longitude'] = f'{max_lon:.1f}'
+    if 'southernmost_latitude' in global_atts.keys():
+        global_atts['southernmost_latitude'] = f'{min_lat:.1f}'
+    if 'northernmost_latitude' in global_atts.keys():
+        global_atts['northernmost_latitude'] = f'{max_lat:.1f}'
+
+    for at in global_atts:
+        dout.setncattr(at,global_atts[at])
+
+    dataset.close()
+    dout.close()
+
+def create_variable(dout,name,dtype,sname,lname,minvalue,maxvalue,units,array):
+    variable = dout.createVariable(name, dtype, ('time', 'lat', 'lon'), fill_value=-999, zlib=True,shuffle=True, complevel=6)
+    variable.standard_name = sname
+    variable.long_name = lname
+    variable.valid_min = minvalue
+    variable.valid_max = maxvalue
+    variable.type = 'surface'
+    if units is not None:
+        variable.units = units
+    variable[:] = array[:]
+    return dout
+
+def create_clima_dimensions(dout, nlat, nlon):
+    dout.createDimension('lat', nlat)  # ny
+    dout.createDimension('lon', nlon)  # nx
+    dout.createDimension('time', 1)
+    return dout
+
+
+def create_lat_lon_variables(dout, lat_array, lon_array, limits):
+    # latitude
+    satellite_latitude = dout.createVariable('lat', 'f4', ('lat',), zlib=True, shuffle=True, complevel=6)
+    satellite_latitude.units = "degrees_north"
+    satellite_latitude.standard_name = "latitude"
+    satellite_latitude.long_name = "latitude"
+    satellite_latitude.valid_min = limits[0]
+    satellite_latitude.valid_max = limits[1]
+    satellite_latitude[:] = lat_array[:]
+
+    # longitude
+    satellite_longitude = dout.createVariable('lon', 'f4', ('lon',), zlib=True, shuffle=True, complevel=6)
+    satellite_longitude.units = "degrees_east"
+    satellite_longitude.standard_name = "longitude"
+    satellite_longitude.long_name = "longitude"
+    satellite_longitude.valid_min = limits[2]
+    satellite_longitude.valid_max = limits[3]
+    satellite_longitude[:] = lon_array[:]
+
+    return dout
+
+def create_time_variable(dout,date_here):
+    # time
+    time = dout.createVariable('time', 'i8', ('time',), zlib=True, shuffle=True, complevel=6)
+    time.long_name = 'reference time'
+    time.standard_name = 'time'
+    time.axis = 'T'
+    time.calendar = 'Gregorian'
+    time.units = 'seconds since 1981-01-01 00:00:00'
+    nseconds = (date_here-dt(1981,1,1,0,0,0)).total_seconds()
+    time[0] = nseconds
+
+    return dout
 
 
 # Press the green button in the gutter to run the script.
