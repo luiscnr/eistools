@@ -522,7 +522,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
 def upload_climatology_dataset_impl(pinfo, mode, month, start_day, end_day):
     ftpdu = FTPUpload(mode)
     deliveries = Deliveries()
-    path_orig = pinfo.get_path_orig(-1)
+    #path_orig = pinfo.get_path_orig(-1)
     rpath, sdir = pinfo.get_remote_path_climatology()
 
     # print(path_orig)
@@ -533,7 +533,7 @@ def upload_climatology_dataset_impl(pinfo, mode, month, start_day, end_day):
     ndelivered = 0
     for day in range(start_day, end_day + 1):
         date_here = dt(2000, month, day)
-        pfile = pinfo.get_file_path_orig_climatology(path_orig, date_here,False,False)
+        pfile = pinfo.get_file_path_orig_climatology(None, date_here,True,True)
         CHECK = pinfo.check_file(pfile)
         print(f'[INFO] Checking file: {pfile} Exist: {os.path.exists(pfile)} Check: {CHECK}')
         if not CHECK:
