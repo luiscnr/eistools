@@ -900,9 +900,9 @@ class ProductInfo:
 
     def get_reformat_cmd(self, datehere):
         cmd = None
-        if self.dinfo['dataset'] == 'climatology':
-            print(f'[WARNING] Reformat code for climatology is not implemented...')
-            return cmd
+        # if self.dinfo['dataset'] == 'climatology':
+        #     print(f'[WARNING] Reformat code for climatology is not implemented...')
+        #     return cmd
         regions_dict = {
             'BAL': 'BAL',
             'BLK': 'BS',
@@ -919,6 +919,10 @@ class ProductInfo:
             if not os.path.exists(path):
                 print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
                 return None
+            cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
+
+        if f== 'C': #climatology
+            path = self.dinfo['path_origin']
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
 
         if f == 'M':

@@ -105,7 +105,9 @@ def main():
                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
 
         if pinfo.dinfo['frequency'] == 'c':
+
             if pinfo.get_region()=='MED' or pinfo.get_region()=='BLK':
+
                 make_reformat_daily_dataset(pinfo,start_date,end_date,args.verbose)
             else:
                 make_reformat_clima_dataset(pinfo, start_date, end_date, args.verbose)
@@ -322,6 +324,7 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
             print('----------------------------------------------------')
             print(f'[INFO] Reformating file for date: {date_work}')
         cmd = pinfo.get_reformat_cmd(date_work)
+        print(cmd)
         if cmd is None:
             date_work = date_work + timedelta(hours=24)
             continue
