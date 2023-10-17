@@ -105,7 +105,10 @@ def main():
                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
 
         if pinfo.dinfo['frequency'] == 'c':
-            make_reformat_clima_dataset(pinfo, start_date, end_date, args.verbose)
+            if pinfo.get_region()=='MED' or pinfo.get_region()=='BLK':
+                make_reformat_daily_dataset(start_date,end_date,args.verbose)
+            else:
+                make_reformat_clima_dataset(pinfo, start_date, end_date, args.verbose)
 
 
 ##DATASET SELECTION
