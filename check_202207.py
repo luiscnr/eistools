@@ -571,6 +571,65 @@ def do_check9():
 
     return True
 
+
+def do_check_sizes_daily_ftp():
+    ftpc = FTPCheck('MY')
+    datasets = [
+        'cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-plankton_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_bal_bgc-reflectance_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D'
+    ]
+
+    for dataset in datasets:
+        rpathbase = f'/Core/OCEANCOLOUR_BAL_BGC_L3_MY_009_133/{dataset}'
+        lines = []
+        start_date = dt(1997,9,4)
+        end_date = dt(2022,12,31)
+        if dataset.find('olci'):
+            start_date = dt(2016,4,26)
+            end_date = dt(2022,11,30)
+        for y in range(start_date.year, end_date.year+1, 1):
+            for m in range(1, 13, 1):
+                print(f'Dataset: {dataset} {y} {m}')
+                datehere = dt(y, m, 15)
+                yearstr = datehere.strftime('%Y')
+                monthstr = datehere.strftime(('%m'))
+                path = f'{rpathbase}/{yearstr}/{monthstr}'
+                ftpc.go_subdir(rpathbase)
+                sizemonth = 0
+                for d in range(1, 32, 1):
+                    try:
+                        datehere = dt(y, m, d)
+                        if datehere<start_date:
+                            continue
+                        if datehere>end_date:
+                            continue
+
+                        dateherestr = datehere.strftime('%Y%m%d')
+                        fname = f'{path}/{dateherestr}_{dataset}.nc'
+                        size = ftpc.get_file_size(fname)
+                        if size >= 0:
+                            sizemonth = sizemonth + size
+                    except:
+                        pass
+                if sizemonth > 0:
+                    line = f'{y};{m};{sizemonth}'
+                    lines.append(line)
+        file_out = os.path.join('/store/COP2-OC-TAC/EiSNovember2023/size_info',f'{dataset}_size.txt')
+
+        with open(file_out, 'w') as f:
+            for line in lines:
+                f.write(line)
+                f.write('\n')
+
+    return True
+
+
+
 def do_check_sizes():
     folder = '/store/COP2-OC-TAC/arc/multi'
     start_date = dt(2021,10,1)
@@ -613,7 +672,7 @@ def do_check_sizes():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check_sizes():
+    if do_check_sizes_daily_ftp():
         return
     # if do_check_last_date():
     #     return
