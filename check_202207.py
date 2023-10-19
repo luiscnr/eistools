@@ -71,37 +71,60 @@ def do_check():
     return True
 
 
-def do_check2():
+def do_check_sizes_monthly_ftp():
     print('check 2 computing monthly sizes')
     ftpc = FTPCheck('MY')
-    dataset = 'cmems_obs-oc_bal_bgc-plankton_my_l4-multi-1km_P1M'
-    rpathbase = f'/Core/OCEANCOLOUR_BAL_BGC_L4_MY_009_134/{dataset}'
-    lines = []
-    for y in range(2016, 2022, 1):
-        datehere = dt(y, 1, 15)
-        yearstr = datehere.strftime('%Y')
-        path = f'{rpathbase}/{yearstr}'
-        ftpc.go_subdir(path)
-        for m in range(1, 13, 1):
-            last_day = calendar.monthrange(y, m)[1]
-            print(y, m, last_day)
-            dateini = dt(y, m, 1)
-            datefin = dt(y, m, last_day)
-            dateinistr = dateini.strftime('%Y%m%d')
-            datefinstr = datefin.strftime('%Y%m%d')
-            fname = f'{path}/{dateinistr}-{datefinstr}_{dataset}.nc'
-            print(fname)
-            sizemonth = ftpc.get_file_size(fname)
-            print(sizemonth)
-            if sizemonth > 0:
-                line = f'{y};{m};{sizemonth}'
-                lines.append(line)
+    datasets = [
+        'cmems_obs-oc_blk_bgc-plankton_my_l4-multi-1km_P1M',
+        'cmems_obs-oc_blk_bgc-plankton_my_l4-olci-300m_P1M',
+        'cmems_obs-oc_med_bgc-plankton_my_l4-multi-1km_P1M',
+        'cmems_obs-oc_med_bgc-plankton_my_l4-olci-300m_P1M',
+        'cmems_obs-oc_bal_bgc-plankton_my_l4-multi-1km_P1M',
+        'cmems_obs-oc_bal_bgc-plankton_my_l4-olci-300m_P1M'
+    ]
 
-    file_out = '/mnt/c/DATA_LUIS/OCTAC_WORK/EisMarch2023/planckton_multi_134.csv'
-    with open(file_out, 'w') as f:
-        for line in lines:
-            f.write(line)
-            f.write('\n')
+    #dataset = 'cmems_obs-oc_bal_bgc-plankton_my_l4-multi-1km_P1M'
+    #rpathbase = f'/Core/OCEANCOLOUR_BAL_BGC_L4_MY_009_134/{dataset}'
+    for dataset in datasets:
+        name_prod = 'OCEANCOLOUR_BAL_BGC_L4_MY_009_134'
+        if dataset.find('med')>0:
+            name_prod = 'OCEANCOLOUR_MED_BGC_L4_MY_009_144'
+        if dataset.find('blk')>0:
+            name_prod = 'OCEANCOLOUR_BLK_BGC_L4_MY_009_154'
+        rpathbase = f'/Core/{name_prod}/{dataset}'
+        lines = []
+        start_date = dt(1997,9,4)
+        end_date = dt(2022,12,31)
+        if dataset.find('olci')>0:
+            start_date = dt(2016,4,26)
+            end_date = dt(2022,12,30)
+
+        lines = []
+        for y in range(2016, 2022, 1):
+            datehere = dt(y, 1, 15)
+            yearstr = datehere.strftime('%Y')
+            path = f'{rpathbase}/{yearstr}'
+            ftpc.go_subdir(path)
+            for m in range(1, 13, 1):
+                last_day = calendar.monthrange(y, m)[1]
+                print(y, m, last_day)
+                dateini = dt(y, m, 1)
+                datefin = dt(y, m, last_day)
+                dateinistr = dateini.strftime('%Y%m%d')
+                datefinstr = datefin.strftime('%Y%m%d')
+                fname = f'{path}/{dateinistr}-{datefinstr}_{dataset}.nc'
+                #print(fname)
+                sizemonth = ftpc.get_file_size(fname)
+                #print(sizemonth)
+                if sizemonth > 0:
+                    line = f'{y};{m};{sizemonth}'
+                    lines.append(line)
+
+        file_out = os.path.join('/store/COP2-OC-TAC/EiSNovember2023/size_info',f'{dataset}_size.csv')
+        with open(file_out, 'w') as f:
+            for line in lines:
+                f.write(line)
+                f.write('\n')
 
     return True
 
@@ -699,7 +722,7 @@ def do_check_sizes():
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check_sizes_daily_ftp():
+    if do_check_sizes_monthly_ftp():
         return
     # if do_check_last_date():
     #     return
