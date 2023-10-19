@@ -584,24 +584,44 @@ def do_check_sizes_daily_ftp():
     #     'cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D'
     # ]
     datasets = [
+        'cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_bal_bgc-plankton_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_bal_bgc-reflectance_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D',
         'cmems_obs-oc_med_bgc-optics_my_l3-multi-1km_P1D',
         'cmems_obs-oc_med_bgc-plankton_my_l3-olci-300m_P1D',
         'cmems_obs-oc_med_bgc-reflectance_my_l3-olci-300m_P1D',
         'cmems_obs-oc_med_bgc-transp_my_l3-olci-300m_P1D',
         'cmems_obs-oc_med_bgc-plankton_my_l3-multi-1km_P1D',
         'cmems_obs-oc_med_bgc-reflectance_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_med_bgc-transp_my_l3-multi-1km_P1D'
+        'cmems_obs-oc_med_bgc-transp_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_blk_bgc-optics_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_blk_bgc-plankton_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_blk_bgc-reflectance_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_blk_bgc-transp_my_l3-olci-300m_P1D',
+        'cmems_obs-oc_blk_bgc-plankton_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_blk_bgc-reflectance_my_l3-multi-1km_P1D',
+        'cmems_obs-oc_blk_bgc-transp_my_l3-multi-1km_P1D'
     ]
 
 
     for dataset in datasets:
-        rpathbase = f'/Core/OCEANCOLOUR_MED_BGC_L3_MY_009_143/{dataset}'
+        name_prod = 'OCEANCOLOUR_BAL_BGC_L3_MY_009_133'
+        if dataset.find('med')>0:
+            name_prod = 'OCEANCOLOUR_MED_BGC_L3_MY_009_143'
+        if dataset.find('blk')>0:
+            name_prod = 'OCEANCOLOUR_BLK_BGC_L3_MY_009_153'
+        rpathbase = f'/Core/{name_prod}/{dataset}'
         lines = []
         start_date = dt(1997,9,4)
         end_date = dt(2022,12,31)
-        if dataset.find('olci'):
+        if dataset.find('olci')>0:
             start_date = dt(2016,4,26)
             end_date = dt(2022,11,30)
+
         for y in range(start_date.year, end_date.year+1, 1):
             for m in range(1, 13, 1):
                 print(f'Dataset: {dataset} {y} {m}')
@@ -629,7 +649,7 @@ def do_check_sizes_daily_ftp():
                 if sizemonth > 0:
                     line = f'{y};{m};{sizemonth}'
                     lines.append(line)
-        file_out = os.path.join('/store/COP2-OC-TAC/EiSNovember2023/size_info',f'{dataset}_size.txt')
+        file_out = os.path.join('/store/COP2-OC-TAC/EiSNovember2023/size_info',f'{dataset}_size.csv')
 
         with open(file_out, 'w') as f:
             for line in lines:
