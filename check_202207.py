@@ -571,11 +571,52 @@ def do_check9():
 
     return True
 
+def do_check_sizes():
+    folder = '/store/COP2-OC-TAC/arc/daily'
+    start_date = dt(2016,4,26)
+    end_date = dt(2022,11,30)
+
+    date_work = start_date
+    size = 0
+    while date_work <= end_date:
+
+        year = date_work.strftime('%Y')
+        jjj = date_work.strftime('%j')
+        dayfolder = os.path.join(folder,year,jjj)
+
+        fp_size = 0
+        fp = os.path.join(dayfolder,f'O{year}{jjj}_plankton-arc-fr.nc')
+        if os.path.exists(fp):
+            fp_stats = os.stat(fp)
+            fp_size = fp_stats.st_size / (1024 * 1024 * 1024)
+
+        fr_size = 0
+        fr = os.path.join(dayfolder, f'O{year}{jjj}_rrs-arc-fr.nc')
+        if os.path.exists(fr):
+            fr_stats = os.stat(fr)
+            fr_size = fr_stats.st_size / (1024 * 1024 * 1024)
+
+        ft_size = 0
+        ft = os.path.join(dayfolder, f'O{year}{jjj}_transp-arc-fr.nc')
+        if os.path.exists(ft):
+            ft_stats = os.stat(ft)
+            ft_size = ft_stats.st_size / (1024 * 1024 * 1024)
+
+
+        size = size + fp_size + fr_size + ft_size
+
+        print(date_work,'->',size)
+        date_work = date_work + timedelta(hours=24)
+    print('FINAL:')
+    print(size)
+
 def main():
     print('[INFO] STARTED REFORMAT AND UPLOAD')
 
-    if do_check_last_date():
+    if do_check_sizes():
         return
+    # if do_check_last_date():
+    #     return
 
     ##DATASETS SELECTION
     pinfo = ProductInfo()
