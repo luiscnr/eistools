@@ -573,7 +573,7 @@ def do_check9():
 
 def do_check_sizes():
     folder = '/store/COP2-OC-TAC/arc/multi'
-    start_date = dt(2022,6,1)
+    start_date = dt(2021,10,1)
     end_date = dt(2022,9,30)
 
     date_work = start_date
