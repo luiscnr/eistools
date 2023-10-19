@@ -574,6 +574,7 @@ def do_check9():
 
 def do_check_sizes_daily_ftp():
     ftpc = FTPCheck('MY')
+
     # datasets = [
     #     'cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D',
     #     'cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D',
@@ -581,39 +582,35 @@ def do_check_sizes_daily_ftp():
     #     'cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D',
     #     'cmems_obs-oc_bal_bgc-plankton_my_l3-multi-1km_P1D',
     #     'cmems_obs-oc_bal_bgc-reflectance_my_l3-multi-1km_P1D',
-    #     'cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D'
+    #     'cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_med_bgc-optics_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_med_bgc-plankton_my_l3-olci-300m_P1D',
+    #     'cmems_obs-oc_med_bgc-reflectance_my_l3-olci-300m_P1D',
+    #     'cmems_obs-oc_med_bgc-transp_my_l3-olci-300m_P1D',
+    #     'cmems_obs-oc_med_bgc-plankton_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_med_bgc-reflectance_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_med_bgc-transp_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_blk_bgc-optics_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_blk_bgc-plankton_my_l3-olci-300m_P1D',
+    #     'cmems_obs-oc_blk_bgc-reflectance_my_l3-olci-300m_P1D',
+    #     'cmems_obs-oc_blk_bgc-transp_my_l3-olci-300m_P1D',
+    #     'cmems_obs-oc_blk_bgc-plankton_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_blk_bgc-reflectance_my_l3-multi-1km_P1D',
+    #     'cmems_obs-oc_blk_bgc-transp_my_l3-multi-1km_P1D'
     # ]
     datasets = [
-        'cmems_obs-oc_bal_bgc-optics_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_bal_bgc-plankton_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_bal_bgc-reflectance_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_bal_bgc-transp_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_bal_bgc-plankton_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_bal_bgc-reflectance_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_bal_bgc-transp_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_med_bgc-optics_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_med_bgc-plankton_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_med_bgc-reflectance_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_med_bgc-transp_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_med_bgc-plankton_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_med_bgc-reflectance_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_med_bgc-transp_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_blk_bgc-optics_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_blk_bgc-plankton_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_blk_bgc-reflectance_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_blk_bgc-transp_my_l3-olci-300m_P1D',
-        'cmems_obs-oc_blk_bgc-plankton_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_blk_bgc-reflectance_my_l3-multi-1km_P1D',
-        'cmems_obs-oc_blk_bgc-transp_my_l3-multi-1km_P1D'
+        'cmems_obs-oc_blk_bgc-plankton_my_l4-gapfree-multi-1km_P1D',
+        'cmems_obs-oc_med_bgc-plankton_my_l4-gapfree-multi-1km_P1D'
     ]
-
 
     for dataset in datasets:
         name_prod = 'OCEANCOLOUR_BAL_BGC_L3_MY_009_133'
         if dataset.find('med')>0:
-            name_prod = 'OCEANCOLOUR_MED_BGC_L3_MY_009_143'
+            #name_prod = 'OCEANCOLOUR_MED_BGC_L3_MY_009_143'
+            name_prod = 'OCEANCOLOUR_MED_BGC_L4_MY_009_144'
         if dataset.find('blk')>0:
-            name_prod = 'OCEANCOLOUR_BLK_BGC_L3_MY_009_153'
+            #name_prod = 'OCEANCOLOUR_BLK_BGC_L3_MY_009_153'
+            name_prod = 'OCEANCOLOUR_BLK_BGC_L4_MY_009_154'
         rpathbase = f'/Core/{name_prod}/{dataset}'
         lines = []
         start_date = dt(1997,9,4)
