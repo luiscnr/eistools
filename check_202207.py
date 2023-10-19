@@ -572,7 +572,7 @@ def do_check9():
     return True
 
 def do_check_sizes():
-    folder = '/store/COP2-OC-TAC/arc/daily'
+    folder = '/store/COP2-OC-TAC/arc/multi'
     start_date = dt(1997,9,4)
     end_date = dt(2023,5,31)
 
@@ -597,7 +597,7 @@ def do_check_sizes():
             fr_size = fr_stats.st_size / (1024 * 1024 * 1024)
 
         ft_size = 0
-        ft = os.path.join(dayfolder, f'O{year}{jjj}_kd490-arc-4km.nc')
+        ft = os.path.join(dayfolder, f'C{year}{jjj}_kd490-arc-4km.nc')
         if os.path.exists(ft):
             ft_stats = os.stat(ft)
             ft_size = ft_stats.st_size / (1024 * 1024 * 1024)
