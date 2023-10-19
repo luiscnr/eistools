@@ -573,8 +573,8 @@ def do_check9():
 
 def do_check_sizes():
     folder = '/store/COP2-OC-TAC/arc/daily'
-    start_date = dt(2021,12,1)
-    end_date = dt(2022,11,30)
+    start_date = dt(1997,9,4)
+    end_date = dt(2023,5,31)
 
     date_work = start_date
     size = 0
@@ -585,19 +585,19 @@ def do_check_sizes():
         dayfolder = os.path.join(folder,year,jjj)
 
         fp_size = 0
-        fp = os.path.join(dayfolder,f'O{year}{jjj}_plankton-arc-fr.nc')
+        fp = os.path.join(dayfolder,f'C{year}{jjj}_chl-arc-4km.nc')
         if os.path.exists(fp):
             fp_stats = os.stat(fp)
             fp_size = fp_stats.st_size / (1024 * 1024 * 1024)
 
         fr_size = 0
-        fr = os.path.join(dayfolder, f'O{year}{jjj}_rrs-arc-fr.nc')
+        fr = os.path.join(dayfolder, f'C{year}{jjj}_rrs-arc-4km.nc')
         if os.path.exists(fr):
             fr_stats = os.stat(fr)
             fr_size = fr_stats.st_size / (1024 * 1024 * 1024)
 
         ft_size = 0
-        ft = os.path.join(dayfolder, f'O{year}{jjj}_transp-arc-fr.nc')
+        ft = os.path.join(dayfolder, f'O{year}{jjj}_kd490-arc-4km.nc')
         if os.path.exists(ft):
             ft_stats = os.stat(ft)
             ft_size = ft_stats.st_size / (1024 * 1024 * 1024)
