@@ -100,7 +100,7 @@ def do_check_sizes_monthly_ftp():
             end_date = dt(2022,12,30)
 
         lines = []
-        for y in range(2016, 2022, 1):
+        for y in range(start_date.year, end_date.year+1, 1):
             datehere = dt(y, 1, 15)
             yearstr = datehere.strftime('%Y')
             path = f'{rpathbase}/{yearstr}'
