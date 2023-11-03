@@ -277,7 +277,7 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
             remote_file_name = remote_file_name.replace('nrt', 'dt')
         if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
-            if dt.now() >= datemyintref:
+            if date_here >= datemyintref:
                 remote_file_name = remote_file_name.replace('my', 'myint')
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
