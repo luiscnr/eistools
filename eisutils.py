@@ -8,8 +8,8 @@ import os
 
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
-parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['COPYAQUA'])
-
+parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['COPYAQUA','FTPDOWNLOAD'])
+parser.add_argument("-p", "--path", help="Path for FTPDOWNLOAD")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 
@@ -19,6 +19,50 @@ args = parser.parse_args()
 def main():
     if args.mode == 'COPYAQUA':
         copy_aqua()
+    if args.mode == 'FTPDOWNLOAD':
+        do_ftp_download()
+
+
+def do_ftp_download():
+    from ftplib import FTP
+    ftp_orig = FTP('cdrftp.eumetsat.int','cdr_ro','LNnh73tfAavaC3YmqXfzafVn')
+    #rpath = '/cdrftp/olci_l1l2_2023/S3A/OL_1_EFR/2023'
+    rpath = args.path
+    #output_path = '/mnt/c/DATA_LUIS/TEMPORAL/2023'
+    output_path = '/store/COP2-OC-TAC/OLCI_TEMP/2023'
+
+    for jjj in range(108,110):
+        ftp_orig.cwd(rpath)
+        jjjs = str(jjj)
+        if jjjs in ftp_orig.nlst():
+            print(f'[INFO] Day: {jjjs}')
+            jjj_path = f'{rpath}/{jjjs}'
+            output_path_day = os.path.join(output_path,jjjs)
+            if not os.path.isdir(output_path_day):
+                os.mkdir(output_path_day)
+            for name in ftp_orig.nlst():
+                ftp_orig.cwd(jjj_path)
+                print(f'[INFO] Started download for folder: {name}')
+                image_original_path = f'{jjj_path}/{name}'
+                image_output_path = os.path.join(output_path_day,name)
+                if not os.path.exists(image_output_path):
+                    os.mkdir(image_output_path)
+                b = ftp_download_folder(ftp_orig,image_original_path,image_output_path)
+                if not b:
+                    print(f'[ERROR] Error download the folder {name}')
+                else:
+                    print(f'[INFO] Download complete for folder: {name}')
+
+def ftp_download_folder(ftp,remote_path,output_path):
+    ftp.cwd(remote_path)
+    for name in ftp.nlst():
+        remote_file_name = os.path.join(remote_path,name)
+        output_file = os.path.join(output_path,name)
+        try:
+            ftp.retrbinary("RETR " + remote_file_name, open(output_file, 'wb').write)
+        except:
+            return False
+    return True
 
 
 def copy_aqua():
