@@ -31,7 +31,7 @@ def do_ftp_download():
     #output_path = '/mnt/c/DATA_LUIS/TEMPORAL/2023'
     output_path = '/store/COP2-OC-TAC/OLCI_TEMP/2023'
 
-    for jjj in range(108,110):
+    for jjj in range(108,132):
         ftp_orig.cwd(rpath)
         jjjs = str(jjj)
         if jjjs in ftp_orig.nlst():
