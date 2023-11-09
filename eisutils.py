@@ -40,8 +40,8 @@ def do_ftp_download():
             output_path_day = os.path.join(output_path,jjjs)
             if not os.path.isdir(output_path_day):
                 os.mkdir(output_path_day)
+            ftp_orig.cwd(jjj_path)
             for name in ftp_orig.nlst():
-                ftp_orig.cwd(jjj_path)
                 print(f'[INFO] Started download for folder: {name}')
                 image_original_path = f'{jjj_path}/{name}'
                 image_output_path = os.path.join(output_path_day,name)
@@ -52,7 +52,7 @@ def do_ftp_download():
                     print(f'[ERROR] Error download the folder {name}')
                 else:
                     print(f'[INFO] Download complete for folder: {name}')
-
+                ftp_orig.cwd(jjj_path)
 def ftp_download_folder(ftp,remote_path,output_path):
     ftp.cwd(remote_path)
     for name in ftp.nlst():
