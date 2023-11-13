@@ -41,6 +41,8 @@ def check_sources_impl(dir_orig,dir_sources,region):
     f1 = open(file_orig,'r')
     for line in f1:
         jjj = line.split(';')[0].strip()
+        if jjj=='Day':#FIRST LINE
+            continue
         granule = line.split(';')[1].strip()
         date_here_str = f'2023{jjj}'
         if date_prev_str is None:
