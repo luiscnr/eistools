@@ -83,14 +83,21 @@ def check_sources_impl(dir_orig, dir_sources, region):
     for date_ref in list_granules_dict:
         list = list_granules_dict[date_ref]['list']
         folder = list_granules_dict[date_ref]['folder']
+        list_applied = [0]*len(list)
         for name in os.listdir(folder):
             if not name.startswith('S3'):
                 continue
-            b = check_grunule_in_list(name, list)
-            if b:
+            index_g = check_grunule_in_list(name, list)
+            if index_g>=0:
+                list_applied[index_g] = 1
                 fout = os.path.join(folder, name)
                 fw.write('\n')
                 fw.write(f'mv {fout} /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/2023')
+
+        for i in range(len(list_applied)):
+            if list_applied[i]==0:
+                print(f'[INFO] Not found: {date_ref} -> {list[i]}')
+
     fw.close()
 
 
@@ -134,8 +141,8 @@ def check_granules_region(region, file_new_granules):
                 fg.close()
             date_here_prev = date_here_str
         if len(list_granules) > 0:
-            b = check_grunule_in_list(granule, list_granules)
-            if b:
+            index_g = check_grunule_in_list(granule, list_granules)
+            if index_g>=0:
                 f1.write('\n')
                 f1.write(f'{day};{granule}')
     f1.close()
@@ -146,15 +153,16 @@ def check_grunule_in_list(granule, list_granules):
     start_date_granule = dt.strptime(granule.split('_')[7], format)
     end_date_granule = dt.strptime(granule.split('_')[8], format)
     platform = granule.split('_')[0]
-    for g in list_granules:
+    for indexg in range(list_granules):
+        g = list_granules[indexg]
         if g.startswith(platform):
             start_date_g = dt.strptime(g.split('_')[7], format)
             end_date_g = dt.strptime(g.split('_')[8], format)
             overlap = compute_overlap(start_date_granule, end_date_granule, start_date_g, end_date_g)
-            if overlap > 0.99:
-                return True
+            if overlap > 0.90:
+                return indexg
 
-    return False
+    return -1
 
 
 def compute_overlap(sd, ed, sdcheck, edcheck):
