@@ -153,7 +153,7 @@ def check_grunule_in_list(granule, list_granules):
     start_date_granule = dt.strptime(granule.split('_')[7], format)
     end_date_granule = dt.strptime(granule.split('_')[8], format)
     platform = granule.split('_')[0]
-    for indexg in range(list_granules):
+    for indexg in range(len(list_granules)):
         g = list_granules[indexg]
         if g.startswith(platform):
             start_date_g = dt.strptime(g.split('_')[7], format)
