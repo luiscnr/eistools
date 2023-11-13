@@ -159,7 +159,7 @@ def check_grunule_in_list(granule, list_granules):
             start_date_g = dt.strptime(g.split('_')[7], format)
             end_date_g = dt.strptime(g.split('_')[8], format)
             overlap = compute_overlap(start_date_granule, end_date_granule, start_date_g, end_date_g)
-            if overlap > 0.99:
+            if overlap > 0.50:
                 return indexg
 
     return -1
