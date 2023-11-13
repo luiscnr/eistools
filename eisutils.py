@@ -86,6 +86,7 @@ def check_sources_impl(dir_orig,dir_sources,region):
             b = check_grunule_in_list(name,list)
             if b:
                 fout = os.path.join(folder,name)
+                fw.write('\n')
                 fw.write(f'mv {fout} /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/2023')
     fw.close()
 
