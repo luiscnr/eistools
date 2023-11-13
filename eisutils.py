@@ -9,7 +9,7 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES','CHECKSOURCES'])
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES'])
 parser.add_argument("-p", "--path", help="Path for FTPDOWNLOAD")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
@@ -27,21 +27,24 @@ def main():
     if args.mode == 'CHECKSOURCES':
         check_sources()
 
+
 def check_sources():
     dir_orig = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT'
-    #arc
+    #dir_orig = '/mnt/c/DATA_LUIS/TEMPORAL'
+    # arc
     dir_sources = '/store/COP2-OC-TAC/arc/sources'
-    check_sources_impl(dir_orig,dir_sources,'arc')
+    check_sources_impl(dir_orig, dir_sources, 'arc')
 
-def check_sources_impl(dir_orig,dir_sources,region):
-    file_orig = os.path.join(dir_orig,f'new_granules_{region}.csv')
-    list_granules = {}
+
+def check_sources_impl(dir_orig, dir_sources, region):
+    file_orig = os.path.join(dir_orig, f'new_granules_{region}.csv')
+    list_granules_dict = {}
     list_granules_date = []
-    date_prev_str  = None
-    f1 = open(file_orig,'r')
+    date_prev_str = None
+    f1 = open(file_orig, 'r')
     for line in f1:
         jjj = line.split(';')[0].strip()
-        if jjj=='Day':#FIRST LINE
+        if jjj == 'Day':  # FIRST LINE
             continue
         granule = line.split(';')[1].strip()
         date_here_str = f'2023{jjj}'
@@ -49,16 +52,16 @@ def check_sources_impl(dir_orig,dir_sources,region):
             list_granules_date = [granule]
             date_prev_str = date_here_str
         else:
-            if date_here_str==date_prev_str:
+            if date_here_str == date_prev_str:
                 list_granules_date.append(granule)
             else:
                 date_here = dt.strptime(date_prev_str, '%Y%j')
-                if region=='arc':
-                    folder_date = os.path.join(dir_sources,date_here.strftime('%Y%m%d'))
+                if region == 'arc':
+                    folder_date = os.path.join(dir_sources, date_here.strftime('%Y%m%d'))
                 else:
-                    folder_date = os.path.join(dir_sources,'2023',date_here.strftime('%j'))
-                list_granules[date_prev_str] = {
-                    'list':list_granules,
+                    folder_date = os.path.join(dir_sources, '2023', date_here.strftime('%j'))
+                list_granules_dict[date_prev_str] = {
+                    'list': list_granules_date,
                     'folder': folder_date
                 }
                 list_granules_date = [granule]
@@ -68,47 +71,47 @@ def check_sources_impl(dir_orig,dir_sources,region):
         folder_date = os.path.join(dir_sources, date_here.strftime('%Y%m%d'))
     else:
         folder_date = os.path.join(dir_sources, '2023', date_here.strftime('%j'))
-    list_granules[date_prev_str] = {
+    list_granules_dict[date_prev_str] = {
         'list': list_granules_date,
         'folder': folder_date
     }
     f1.close()
 
-    file_remove = os.path.join(dir_orig,f'ToRemove_{region}.sh')
-    fw = open(file_remove,'w')
+    file_remove = os.path.join(dir_orig, f'ToRemove_{region}.sh')
+    fw = open(file_remove, 'w')
 
-    for date_ref in list_granules:
-        list = list_granules[date_ref]['list']
-        folder = list_granules[date_ref]['folder']
+    for date_ref in list_granules_dict:
+        list = list_granules_dict[date_ref]['list']
+        folder = list_granules_dict[date_ref]['folder']
         for name in os.listdir(folder):
             if not name.startswith('S3'):
                 continue
-            b = check_grunule_in_list(name,list)
+            b = check_grunule_in_list(name, list)
             if b:
-                fout = os.path.join(folder,name)
+                fout = os.path.join(folder, name)
                 fw.write('\n')
                 fw.write(f'mv {fout} /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/2023')
     fw.close()
 
-def check_granules():
 
+def check_granules():
     ##WFR LIST
-    #file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WFR_Granules.csv'
-    #check_granules_region('arc',file_new_granules)
-    #check_granules_region('med',file_new_granules)
-    #check_granules_region('blk', file_new_granules)
+    # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WFR_Granules.csv'
+    # check_granules_region('arc',file_new_granules)
+    # check_granules_region('med',file_new_granules)
+    # check_granules_region('blk', file_new_granules)
 
     ##WRR LIST
-    #file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WRR_Granules.csv'
-    #check_granules_region('med_rr', file_new_granules)
-    #check_granules_region('blk_rr', file_new_granules)
+    # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WRR_Granules.csv'
+    # check_granules_region('med_rr', file_new_granules)
+    # check_granules_region('blk_rr', file_new_granules)
 
     ##ERR LIST
     file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_EFR_Granules.csv'
     check_granules_region('bal', file_new_granules)
 
 
-def check_granules_region(region,file_new_granules):
+def check_granules_region(region, file_new_granules):
     input_path = '/mnt/c/DATA_LUIS/TEMPORAL/2023'
     import pandas as pd
     output_file = f'/mnt/c/DATA_LUIS/TEMPORAL/new_granules_{region}.csv'
@@ -148,8 +151,8 @@ def check_grunule_in_list(granule, list_granules):
             start_date_g = dt.strptime(g.split('_')[7], format)
             end_date_g = dt.strptime(g.split('_')[8], format)
             overlap = compute_overlap(start_date_granule, end_date_granule, start_date_g, end_date_g)
-            if overlap>0.99:
-               return True
+            if overlap > 0.99:
+                return True
 
     return False
 
@@ -165,7 +168,7 @@ def compute_overlap(sd, ed, sdcheck, edcheck):
         overlap = (edcheck - sd).total_seconds() / total_s
     if sdcheck >= sd and edcheck <= ed:
         overlap = (edcheck - sdcheck).total_seconds() / total_s
-    if sdcheck<sd and edcheck>ed:
+    if sdcheck < sd and edcheck > ed:
         overlap = 1
     if sdcheck <= ed <= edcheck:
         overlap = (ed - sdcheck).total_seconds() / total_s
