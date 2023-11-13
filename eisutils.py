@@ -31,12 +31,32 @@ def main():
 def check_sources():
     dir_orig = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT'
     #dir_orig = '/mnt/c/DATA_LUIS/TEMPORAL'
+
     # arc
-    dir_sources = '/store/COP2-OC-TAC/arc/sources'
-    check_sources_impl(dir_orig, dir_sources, 'arc')
+    # prename = 'ToRemove_'
+    # dir_sources = '/store/COP2-OC-TAC/arc/sources'
+    # check_sources_impl(dir_orig, dir_sources, 'arc',prename,wce)
+
+    # med and blk
+    dir_sources = '/dst04-data1/OC/OLCI/sources_baseline_3.01'
+    prename = 'ToRemove_'
+    check_sources_impl(dir_orig,dir_sources,'med',prename,'_OL_2_WFR_')
+    check_sources_impl(dir_orig, dir_sources, 'blk',prename,'_OL_2_WFR_')
+    prename = 'ToRemoveRR_'
+    check_sources_impl(dir_orig, dir_sources, 'med_rr',prename,'_OL_2_WRR_')
+    check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
+    dir_sources = '/dst04-data1/OC/OLCI/trimmed_sources'
+    prename = 'ToRemoveTrim_'
+    check_sources_impl(dir_orig, dir_sources, 'med',prename,'_OL_2_WFR_')
+    check_sources_impl(dir_orig, dir_sources, 'blk',prename,'_OL_2_WFR_')
+    prename = 'ToRemoveTrimRR_'
+    check_sources_impl(dir_orig, dir_sources, 'med_rr',prename,'_OL_2_WRR_')
+    check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
+
+    
 
 
-def check_sources_impl(dir_orig, dir_sources, region):
+def check_sources_impl(dir_orig, dir_sources, region, prename,wce):
     file_orig = os.path.join(dir_orig, f'new_granules_{region}.csv')
     list_granules_dict = {}
     list_granules_date = []
@@ -77,7 +97,7 @@ def check_sources_impl(dir_orig, dir_sources, region):
     }
     f1.close()
 
-    file_remove = os.path.join(dir_orig, f'ToRemove_{region}.sh')
+    file_remove = os.path.join(dir_orig, f'{prename}{region}.sh')
     fw = open(file_remove, 'w')
 
     for date_ref in list_granules_dict:
@@ -85,7 +105,10 @@ def check_sources_impl(dir_orig, dir_sources, region):
         folder = list_granules_dict[date_ref]['folder']
         list_applied = [0]*len(list)
         for name in os.listdir(folder):
+            ifind = name.find(wce)
             if not name.startswith('S3'):
+                continue
+            if ifind<0:
                 continue
             index_g = check_grunule_in_list(name, list)
             if index_g>=0:
