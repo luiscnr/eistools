@@ -81,6 +81,8 @@ def check_sources_impl(dir_orig,dir_sources,region):
         list = list_granules[date_ref]['list']
         folder = list_granules[date_ref]['folder']
         for name in os.listdir(folder):
+            if not name.startswith('S3'):
+                continue
             b = check_grunule_in_list(name,list)
             if b:
                 fout = os.path.join(folder,name)
