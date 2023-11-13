@@ -31,7 +31,7 @@ def check_sources():
     dir_orig = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT'
     #arc
     dir_sources = '/store/COP2-OC-TAC/arc/sources'
-    check_sources_impl(dir_orig,dir_sources,'arg')
+    check_sources_impl(dir_orig,dir_sources,'arc')
 
 def check_sources_impl(dir_orig,dir_sources,region):
     file_orig = os.path.join(dir_orig,f'new_granules_{region}.csv')
