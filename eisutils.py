@@ -9,7 +9,7 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES'])
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES'])
 parser.add_argument("-p", "--path", help="Path for FTPDOWNLOAD")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
@@ -26,6 +26,59 @@ def main():
         check_granules()
     if args.mode == 'CHECKSOURCES':
         check_sources()
+    if args.mode == 'ZIPGRANULES':
+        check_zip()
+
+
+def check_zip():
+    #MED and BLK
+    # source_dir = '/dst04-data1/OC/OLCI/sources_baseline_3.01/2023'
+    # output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_blk.slurm'
+    # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_blk_rr.csv'
+    #BAL
+    download_dir = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/cdrftp.eumetsat.int/cdrftp/olci_l1l2_2023'
+    source_dir = '/store/COP2-OC-TAC/BAL_Evolutions/sources/2023'
+    file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_bal.csv'
+    dir_sensor = 'OL_1_EFR'
+    output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_bal.slurm'
+
+    sbatch_lines = [
+        '#SBATCH --nodes=1',
+        '#SBATCH --ntasks=1',
+        '#SBATCH -p octac_rep',
+        '#SBATCH --mail-type=BEGIN,END,FAIL',
+        '#SBATCH --mail-user=luis.gonzalezvilas@artov.ismar.cnr.it',
+        '',
+        'source /home/gosuser/load_miniconda3.source',
+        'conda activate op_proc_202211v1',
+        'cd /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/eistools',
+        ''
+    ]
+
+    fout = open(output_file,'w')
+    fout.write('#!/bin/bash')
+    for line in sbatch_lines:
+        fout.write('\n')
+        fout.write(line)
+
+    import pandas as pd
+    dset = pd.read_csv(file_new_granules,sep=';')
+    for index,row in dset.iterrows():
+
+        jjj = str(row['Day'])
+        granule = str(row['Granule'])
+        dir_platform = granule[0:3]
+        dir_input = os.path.join(download_dir,dir_platform,dir_sensor,'2023',jjj)
+        file_input = os.path.join(dir_input,f'{granule}.zip')
+        dir_output = os.path.join(source_dir,jjj)
+        file_output = os.path.join(dir_output, f'{granule}.zip')
+
+        cmd = f'cd {dir_input} && zip -r {granule}.zip {granule} && mv {file_input} {file_output}'
+        print(cmd)
+        fout.write('\n')
+        fout.write(cmd)
+
+    fout.close()
 
 
 def check_sources():
@@ -33,27 +86,27 @@ def check_sources():
     #dir_orig = '/mnt/c/DATA_LUIS/TEMPORAL'
 
     # arc
-    # prename = 'ToRemove_'
-    # dir_sources = '/store/COP2-OC-TAC/arc/sources'
-    # check_sources_impl(dir_orig, dir_sources, 'arc',prename,wce)
+    prename = 'ToRemove_'
+    dir_sources = '/store/COP2-OC-TAC/arc/sources'
+    check_sources_impl(dir_orig, dir_sources, 'arc',prename,'_OL_2_WFR_')
 
     # med and blk
-    dir_sources = '/dst04-data1/OC/OLCI/sources_baseline_3.01'
-    prename = 'ToRemove_'
-    check_sources_impl(dir_orig,dir_sources,'med',prename,'_OL_2_WFR_')
-    check_sources_impl(dir_orig, dir_sources, 'blk',prename,'_OL_2_WFR_')
-    prename = 'ToRemoveRR_'
-    check_sources_impl(dir_orig, dir_sources, 'med_rr',prename,'_OL_2_WRR_')
-    check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
-    dir_sources = '/dst04-data1/OC/OLCI/trimmed_sources'
-    prename = 'ToRemoveTrim_'
-    check_sources_impl(dir_orig, dir_sources, 'med',prename,'_OL_2_WFR_')
-    check_sources_impl(dir_orig, dir_sources, 'blk',prename,'_OL_2_WFR_')
-    prename = 'ToRemoveTrimRR_'
-    check_sources_impl(dir_orig, dir_sources, 'med_rr',prename,'_OL_2_WRR_')
-    check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
+    # dir_sources = '/dst04-data1/OC/OLCI/sources_baseline_3.01'
+    # prename = 'ToRemove_'
+    # check_sources_impl(dir_orig,dir_sources,'med',prename,'_OL_2_WFR_')
+    # check_sources_impl(dir_orig, dir_sources, 'blk',prename,'_OL_2_WFR_')
+    # prename = 'ToRemoveRR_'
+    # check_sources_impl(dir_orig, dir_sources, 'med_rr',prename,'_OL_2_WRR_')
+    # check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
+    # dir_sources = '/dst04-data1/OC/OLCI/trimmed_sources'
+    # prename = 'ToRemoveTrim_'
+    # check_sources_impl(dir_orig, dir_sources, 'med',prename,'_OL_2_WFR_')
+    # check_sources_impl(dir_orig, dir_sources, 'blk',prename,'_OL_2_WFR_')
+    # prename = 'ToRemoveTrimRR_'
+    # check_sources_impl(dir_orig, dir_sources, 'med_rr',prename,'_OL_2_WRR_')
+    # check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
 
-    
+
 
 
 def check_sources_impl(dir_orig, dir_sources, region, prename,wce):
@@ -126,27 +179,81 @@ def check_sources_impl(dir_orig, dir_sources, region, prename,wce):
 
 def check_granules():
     ##WFR LIST
-    # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WFR_Granules.csv'
-    # check_granules_region('arc',file_new_granules)
+    file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WFR_Granules.csv'
+    # #check_granules_region('arc',file_new_granules)
     # check_granules_region('med',file_new_granules)
     # check_granules_region('blk', file_new_granules)
+    check_granules_region('arc',file_new_granules)
 
     ##WRR LIST
     # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WRR_Granules.csv'
     # check_granules_region('med_rr', file_new_granules)
     # check_granules_region('blk_rr', file_new_granules)
 
-    ##ERR LIST
-    file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_EFR_Granules.csv'
-    check_granules_region('bal', file_new_granules)
+    ##EFR LIST
+    # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_EFR_Granules.csv'
+    # check_granules_region('bal', file_new_granules)
 
 
 def check_granules_region(region, file_new_granules):
     input_path = '/mnt/c/DATA_LUIS/TEMPORAL/2023'
     import pandas as pd
-    output_file = f'/mnt/c/DATA_LUIS/TEMPORAL/new_granules_{region}.csv'
+
+    sbatch_lines = [
+    '#SBATCH --nodes=1',
+    '#SBATCH --ntasks=1',
+    '#SBATCH -p octac_rep',
+    '#SBATCH --mail-type=BEGIN,END,FAIL',
+    '#SBATCH --mail-user=luis.gonzalezvilas@artov.ismar.cnr.it',
+    '',
+    'source /home/gosuser/load_miniconda3.source',
+    'conda activate op_proc_202211v1',
+    'cd /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/eistools',
+    ''
+    ]
+
+    output_file = f'{input_path}/new_granules_{region}.csv'
     f1 = open(output_file, 'w')
     f1.write('Day;Granule')
+
+    output_ftp_files = f'{input_path}/ftp_granules_{region}.slurm'
+    output_mv_files = f'{input_path}/mv_granules_{region}.slurm'
+    output_ftp_folder = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT'
+    start = 'wget -m --user=cdr_ro --password=LNnh73tfAavaC3YmqXfzafVn  ftp://cdrftp.eumetsat.int'
+
+    if region=='bal':
+        input_ftp_folders = {
+            'S3A': '/cdrftp/olci_l1l2_2023/S3A/OL_1_EFR/',
+            'S3B': '/cdrftp/olci_l1l2_2023/S3B/OL_1_EFR/',
+        }
+        source_folder = '/store/COP2-OC-TAC/BAL_Evolutions/sources/'
+    if region=='med' or region=='blk' or region=='arc':
+        input_ftp_folders  = {
+            'S3A': '/cdrftp/olci_l1l2_2023/S3A/OL_2_WFR/',
+            'S3B': '/cdrftp/olci_l1l2_2023/S3B/OL_2_WFR/',
+        }
+        if region == 'med' or region == 'blk':
+            source_folder = '/dst04-data1/OC/OLCI/sources_baseline_3.01/'
+        if region == 'arc':
+            source_folder = '/store/COP2-OC-TAC/arc/sources'
+    if region=='med_rr' or region=='blk_rr':
+        input_ftp_folders = {
+            'S3A': '/cdrftp/olci_l1l2_2023/S3A/OL_2_WRR/',
+            'S3B': '/cdrftp/olci_l1l2_2023/S3B/OL_2_WRR/',
+        }
+        source_folder = '/dst04-data1/OC/OLCI/sources_baseline_3.01/'
+
+    fftp = open(output_ftp_files, 'w')
+    fmv = open(output_mv_files, 'w')
+    fftp.write('#!/bin/bash')
+    fmv.write('#!/bin/bash')
+    for line in sbatch_lines:
+        fftp.write('\n')
+        fftp.write(line)
+        fmv.write('\n')
+        fmv.write(line)
+
+
     dset = pd.read_csv(file_new_granules, sep=';')
     date_here_prev = None
     list_granules = []
@@ -168,8 +275,18 @@ def check_granules_region(region, file_new_granules):
             if index_g>=0:
                 f1.write('\n')
                 f1.write(f'{day};{granule}')
-    f1.close()
 
+                platform = granule.split('_')[0]
+                input_ftp_folder = input_ftp_folders[platform]
+                fftp.write('\n')
+                str = f'{start}{input_ftp_folder}2023/{day}/{granule} -P {output_ftp_folder}'
+                fftp.write(str)
+                fmv.write('\n')
+                str = f'mv {output_ftp_folder}/cdrftp.eumetsat.int{input_ftp_folder}2023/{day}/{granule} {source_folder}2023/{day}'
+                fmv.write(str)
+    f1.close()
+    fftp.close()
+    fmv.close()
 
 def check_grunule_in_list(granule, list_granules):
     format = '%Y%m%dT%H%M%S'
@@ -209,8 +326,8 @@ def compute_overlap(sd, ed, sdcheck, edcheck):
 def check_ftp_contents():
     from ftplib import FTP
     ftp_orig = FTP('cdrftp.eumetsat.int', 'cdr_ro', 'LNnh73tfAavaC3YmqXfzafVn')
-    rpath = '/cdrftp/olci_l1l2_2023/S3B/OL_2_WRR/2023'
-    output_path = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3B_WRR_Granules.csv'
+    rpath = '/cdrftp/olci_l1l2_2023/S3B/OL_1_EFR/2023'
+    output_path = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3B_EFR_Granules.csv'
     f1 = open(output_path, 'w')
     f1.write('Day;Granule')
     for jjj in range(108, 132):
