@@ -419,14 +419,14 @@ def create_reformatted_climatology(pinfo,input_path, file_out, date_here,variabl
         return False
     variables_in = ['NOFOBS', 'WEIGHTED_MEAN', 'WEIGHTED_STD', 'MEDIANA']
     if pinfo.get_region().upper()=='ARC':
-        variables_in = ['NOFOBS','W_AVG','W_STD','MEDIAN']
+        variables_in = ['NOFOBS','N_AVG','N_STD','MEDIAN']
     
     for var in variables_in:
         if var not in dataset.variables:
             print(f'[ERROR] Variable: {var} is not available in input file: {input_path}')
             return False
-    variables_out = ['count', 'weighted_mean', 'weighted_std', 'median']
-    desc_out = ['Number of observations', 'Weighted mean values', 'Weighted Standard Deviation Values', 'Median values']
+    variables_out = ['count', 'mean', 'standard_deviation', 'median']
+    desc_out = ['Number of observations', 'Mean values', 'Standard Deviation Values', 'Median values']
 
     isarctic = pinfo.get_region() == 'ARC'
 

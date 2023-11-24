@@ -9,15 +9,118 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES'])
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR'])
 parser.add_argument("-p", "--path", help="Path for FTPDOWNLOAD")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 
 args = parser.parse_args()
 
+def do_check():
+    import pandas as pd
+    dir_modelos = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_2/Modelos'
+    dir_res = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_2/Modelos_ResModels'
+    file_out = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/Results_GridSearch_BNB_COARSE.csv'
+    f1 = open(file_out, 'w')
+    f1.write('GridSearch;Gamma;Cost;Sensitivity;Specificity;Precission;TSS;F1-Score;AUC')
+    params = [5, 6, 14, 11, 19, 20]
+    for index in range(0,29):
+        line = 'Coarse'
+        fmodelo = os.path.join(dir_modelos,f'Modelos_Best_Coarse_{index}.model')
+        if not os.path.exists(fmodelo):
+            continue
+        dmodel = pd.read_csv(fmodelo,sep='=')
+        gamma = dmodel.loc[1].iat[1]
+        cost = dmodel.loc[2].iat[1]
+        # dir_results = os.path.join(dir_res,f'Modelos_Best_Coarse_{index}')
+        # fresults = os.path.join(dir_results,'Resultados.csv')
+        # dres = pd.read_csv(fresults,sep=';')
+        line = f'{line};{gamma};{cost}'
+        # for iparam in params:
+        #     val = dres.loc[iparam].at['DATOS_COMPLETO_TEST.csv']
+        #     line = f'{line};{val}'
+        print(index,line)
+        f1.write('\n')
+        f1.write(line)
+    for index in range(0,14):
+        line = 'Coarse'
+        fmodelo = os.path.join(dir_modelos,f'ModelTrain_Best_Fine1_{index}.model')
+        if not os.path.exists(fmodelo):
+            continue
+        dmodel = pd.read_csv(fmodelo,sep='=')
+        gamma = dmodel.loc[1].iat[1]
+        cost = dmodel.loc[2].iat[1]
+        dir_results = os.path.join(dir_res,f'Modelos_Best_Coarse_{index}')
+        fresults = os.path.join(dir_results,'Resultados.csv')
+        dres = pd.read_csv(fresults,sep=';')
+        line = f'{line};{gamma};{cost}'
+        for iparam in params:
+            val = dres.loc[iparam].at['DATOS_COMPLETO_TEST.csv']
+            line = f'{line};{val}'
+        print(index,line)
+        f1.write('\n')
+        f1.write(line)
+    f1.close()
+    return True
+def do_check_tal():
+    import pandas as pd
+    dir_base = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_4/'
+    file_out = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/Results_GridSearch_BNB.csv'
+    f1 = open(file_out,'w')
+    f1.write('GridSearch;Gamma;Cost;Sensitivity;Specificity;Precission;TSS;F1-Score;AUC')
+    params = [5,6,14,11,19,20]
+    for index in range(1,130):
+        line = 'Fine'
+        dir_model = os.path.join(dir_base,f'CVLOU_{index}')
+        fbest = os.path.join(dir_model,f'CVLOU_{index}_Best.csv')
+        dbest = pd.read_csv(fbest,sep=';')
+        gamma = dbest.loc[0].at['Gamma']
+        cost = dbest.loc[0].at['Cost']
+        line = f'{line};{gamma};{cost}'
+        fres = os.path.join(dir_model,'ResultadosCV.csv')
+        dres = pd.read_csv(fres,sep=';')
+        for iparam in params:
+            val = dres.loc[iparam].at['OptTh']
+            line = f'{line};{val}'
+        print(index,line)
+        f1.write('\n')
+        f1.write(line)
 
+    f1.close()
+    return True
+
+def do_log_hypstar():
+    file_log = '/mnt/c/DATA_LUIS/ESA-POP_WORK/2023-11-sequence_12V-input.log'
+    file_out = '/mnt/c/DATA_LUIS/ESA-POP_WORK/voltage_output_11.csv'
+    fout = open(file_out,'w')
+    fout.write('Date;TimeSequence;Time;Datetime;Voltage;Current;TotalEnergyConsumed')
+    f1 = open(file_log,'r')
+
+    for line in f1:
+        line_s = line.split(' ')
+        # for idx in range(len(line_s)):
+        #     print(idx,line_s[idx])
+        date = line_s[0][:10]
+        time_sequence = line_s[0].split('-')[3]
+        time = line_s[2]
+        voltage = line_s[57]
+        current = line_s[84]
+        total_energy_consumed = line_s[112]
+
+
+        # print(date,time_sequence)
+        #print(line)
+
+        line_out = f'{date};{time_sequence};{time};{date}T{time};{voltage};{current};{total_energy_consumed}'
+        fout.write('\n')
+        fout.write(line_out)
+        print(line_out)
+        #print('-------------')
+    f1.close()
+    fout.close()
 def main():
+    if do_check():
+        return
     if args.mode == 'COPYAQUA':
         copy_aqua()
     if args.mode == 'CHECKFTPCONTENTS':
@@ -28,6 +131,8 @@ def main():
         check_sources()
     if args.mode == 'ZIPGRANULES':
         check_zip()
+    if args.mode == 'LOG_HYPSTAR':
+        do_log_hypstar()
 
 
 def check_zip():
@@ -36,11 +141,19 @@ def check_zip():
     # output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_blk.slurm'
     # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_blk_rr.csv'
     #BAL
+    # download_dir = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/cdrftp.eumetsat.int/cdrftp/olci_l1l2_2023'
+    # source_dir = '/store/COP2-OC-TAC/BAL_Evolutions/sources/2023'
+    # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_bal.csv'
+    # dir_sensor = 'OL_1_EFR'
+    # output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_bal.slurm'
+
+    #ARC
+    is_arc = True
     download_dir = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/cdrftp.eumetsat.int/cdrftp/olci_l1l2_2023'
-    source_dir = '/store/COP2-OC-TAC/BAL_Evolutions/sources/2023'
-    file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_bal.csv'
-    dir_sensor = 'OL_1_EFR'
-    output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_bal.slurm'
+    source_dir = '/store/COP2-OC-TAC/arc/sources'
+    file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_arc.csv'
+    dir_sensor = 'OL_2_WFR'
+    output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_arc.slurm'
 
     sbatch_lines = [
         '#SBATCH --nodes=1',
@@ -70,7 +183,11 @@ def check_zip():
         dir_platform = granule[0:3]
         dir_input = os.path.join(download_dir,dir_platform,dir_sensor,'2023',jjj)
         file_input = os.path.join(dir_input,f'{granule}.zip')
-        dir_output = os.path.join(source_dir,jjj)
+        if is_arc:
+            date_here = dt.strptime(f'2023{jjj}','%Y%j')
+            dir_output = os.path.join(source_dir,date_here.strftime('%Y%m%d'))
+        else:
+            dir_output = os.path.join(source_dir,jjj)
         file_output = os.path.join(dir_output, f'{granule}.zip')
 
         cmd = f'cd {dir_input} && zip -r {granule}.zip {granule} && mv {file_input} {file_output}'
