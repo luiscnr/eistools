@@ -17,6 +17,25 @@ parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 args = parser.parse_args()
 
 def do_check():
+    from netCDF4 import Dataset
+    import numpy as np
+    file_1 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km_prev.nc'
+    file_2 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km.nc'
+    d1 = Dataset(file_1)
+    d2 = Dataset(file_2)
+    for name_var in d1.variables:
+        var1 = np.array(d1.variables[name_var][:])
+        var2 = np.array(d2.variables[name_var][:])
+        #print(name_var,np.nanmin(var1),np.nanmax(var2))
+        var_res = var1/var2
+        print(name_var,np.nanmin(var_res),np.nanmax(var_res),np.nanmean(var_res))
+
+    d1.close()
+    d2.close()
+
+    return True
+
+def do_check_cula():
     import pandas as pd
     dir_modelos = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_2/Modelos'
     dir_res = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_2/Modelos_ResModels'

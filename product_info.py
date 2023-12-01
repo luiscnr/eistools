@@ -171,14 +171,19 @@ class ProductInfo:
         self.dataset_name = dataset_name
         fproduct = os.path.join(self.path2info, product_name + '.json')
         valid = False
+
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
-            self.pinfo = json.load(f)
-            if dataset_name in self.pinfo.keys():
-                self.dinfo = self.pinfo[dataset_name]
-                valid = True
-            else:
-                print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
+            try:
+                self.pinfo = json.load(f)
+                if dataset_name in self.pinfo.keys():
+                    self.dinfo = self.pinfo[dataset_name]
+                    valid = True
+                else:
+                    print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
+            except:
+                print(f'[ERROR] JSON file {f} is not valid, could not be parsed')
+
             f.close()
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
