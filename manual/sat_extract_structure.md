@@ -5,6 +5,7 @@ These files are generated using the SAT_extract module (section 3). Dimensions, 
 Table 1: Dimensions of satellite extract files
 
 |*Dimension*|*Description*|*Length*|
+|-----------|------| -----------|
 |satellite_id|Satellite measurement|Unlimited (1 for each satellite extract file)|
 |satellite_bands|Satellite bands|Depends on sensor/processor|
 |rows|y spatial coordinate |Default: 25|
