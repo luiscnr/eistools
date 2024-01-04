@@ -11,5 +11,5 @@ Table 1: Dimensions of satellite extract files
 |*rows*|y spatial coordinate |Default: 25|
 |*columns*|x spatial coordinate |Default: 25|
  
-
+<mark style="background-color: #FFFF00">Highlighted text</mark>
 
