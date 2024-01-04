@@ -1,4 +1,4 @@
-# **Introduction**
+# **1. Introduction**
 
 The Match-up Data Base (MDB) approach developed in the framework of the HYPERNETS project aimed at implementing validation analysis of satellite water products using HYPSTAR® data as reference.
  
@@ -8,6 +8,5 @@ Moreover, it uses a set of open-source tools developed in Python to implement th
 
 This remainder of this document is organized as follows: 1) description of the MDB file structure (section 2); and 2) description of the MDB tools, with usage and examples (sections 3-5).
 
-~~~
-<p style="text-align: right;">Next (MDB file structure)</p>
-~~~
+| Index | [Next (2. MDB File Structure) >](MDB_file_structure.md) |
+| :------:| -----------:|
