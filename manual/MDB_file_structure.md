@@ -1,4 +1,4 @@
-# **MDB file structure**
+# **2. MDB file structure**
 
 MDB files are based on the open-source NetCDF-4 (Network Common Data Form) file format (https://www.unidata.ucar.edu/software/netcdf), which is built on top of the Hierarchical Data Format version 5 (HDF5) (https://hdfgroup.github.io/hdf5). It supports large, complex and heterogenous data by using a directory-like structure to organize the data within the file. Data in MDB files are stored in variables, i.e., multi-dimensional arrays of values of the same type.
 
@@ -12,5 +12,7 @@ c. MDB result files (MDBr): They are produced using the MBD_reader module (mode 
 
 d. MDB concatenated files (MDBrc): They are generated using the MDB_reader module (mode CONCATENATE). The put together MDB results files adding a set of flag variables. 
 
-[< 1. Introduction](Introduction.md)| Index (Index.md) | [2.1 Satellite extract files >](sat_extract_structure.md) |
+***
+
+[< 1. Introduction](Introduction.md)| [Index] (Index.md) | [2.1 Satellite extract files >](sat_extract_structure.md) |
 |:-----------| :------:| -----------:|
