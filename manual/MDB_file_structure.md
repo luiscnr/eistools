@@ -14,5 +14,5 @@ d. MDB concatenated files (MDBrc): They are generated using the MDB_reader modul
 
 ***
 
-[< 1. Introduction](Introduction.md)| [Index](Index.md) | [2.1 Satellite extract files >](sat_extract_structure.md) |
+|[< 1. Introduction](Introduction.md)| [Index](Index.md) | [2.1 Satellite extract files >](sat_extract_structure.md) |
 |:-----------| :------:| -----------:|
