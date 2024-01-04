@@ -17,21 +17,68 @@ parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 args = parser.parse_args()
 
 def do_check():
+    # import json
+    # fproduct = '/mnt/c/DATA_LUIS/CODE_COPY/OCEANCOLOUR_MED_BGC_L4_MY_009_144.json'
+    # f = open(fproduct, "r")
+    #
+    # pinfo = json.load(f)
+    #
+    #
+    #
+    # f.close()
     from netCDF4 import Dataset
     import numpy as np
-    file_1 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km_prev.nc'
-    file_2 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km.nc'
-    d1 = Dataset(file_1)
-    d2 = Dataset(file_2)
-    for name_var in d1.variables:
-        var1 = np.array(d1.variables[name_var][:])
-        var2 = np.array(d2.variables[name_var][:])
-        #print(name_var,np.nanmin(var1),np.nanmax(var2))
-        var_res = var1/var2
-        print(name_var,np.nanmin(var_res),np.nanmax(var_res),np.nanmean(var_res))
+    from datetime import datetime as dt
+    path_hypernets = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/VEIT/2023/09/11'
+    file_out = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/data_hypstar_20230911.csv'
+    f1 = open(file_out,'w')
+    first_line = 'File;Date;Time;solar_azimuth_angle;solar_zenith_angle;viewing_azimuth_angle;viewing_zenith_angle;quality_flag'
+    wavelenght = None
+    for name in os.listdir(path_hypernets):
+        print(name)
+        file_hypernets = os.path.join(path_hypernets,name)
+        dataset = Dataset(file_hypernets,'r')
+        if wavelenght is None:
+            wavelenght = np.array(dataset.variables['wavelength'])
+            for val in wavelenght:
+                val_rrs = f'rrs_{val}'
+                first_line = f'{first_line};{val_rrs}'
+            f1.write(first_line)
 
-    d1.close()
-    d2.close()
+        datetime_here = dt.utcfromtimestamp(float(dataset.variables['acquisition_time'][0]))
+        date_str = datetime_here.strftime('%Y-%m-%d')
+        time_str = datetime_here.strftime('%H:%M')
+        saa = dataset.variables['solar_azimuth_angle'][0]
+        sza = dataset.variables['solar_zenith_angle'][0]
+        vaa = dataset.variables['viewing_azimuth_angle'][0]
+        vza = dataset.variables['viewing_zenith_angle'][0]
+        qf = dataset.variables['quality_flag'][0]
+        line = f'{name};{date_str};{time_str};{saa};{sza};{vaa};{vza};{qf}'
+        rrs = np.array(dataset.variables['reflectance'][:])/np.pi
+
+        for r in rrs:
+            line = f'{line};{r[0]}'
+        f1.write('\n')
+        f1.write(line)
+
+
+        dataset.close()
+    f1.close()
+    # from netCDF4 import Dataset
+    # import numpy as np
+    # file_1 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km_prev.nc'
+    # file_2 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km.nc'
+    # d1 = Dataset(file_1)
+    # d2 = Dataset(file_2)
+    # for name_var in d1.variables:
+    #     var1 = np.array(d1.variables[name_var][:])
+    #     var2 = np.array(d2.variables[name_var][:])
+    #     #print(name_var,np.nanmin(var1),np.nanmax(var2))
+    #     var_res = var1/var2
+    #     print(name_var,np.nanmin(var_res),np.nanmax(var_res),np.nanmean(var_res))
+    #
+    # d1.close()
+    # d2.close()
 
     return True
 

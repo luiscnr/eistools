@@ -182,7 +182,7 @@ class ProductInfo:
                 else:
                     print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
             except:
-                print(f'[ERROR] JSON file {f} is not valid, could not be parsed')
+                print(f'[ERROR] JSON file {fproduct} is not valid, could not be parsed')
 
             f.close()
         else:
