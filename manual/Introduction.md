@@ -8,5 +8,4 @@ Moreover, it uses a set of open-source tools developed in Python to implement th
 
 This remainder of this document is organized as follows: 1) description of the MDB file structure (section 2); and 2) description of the MDB tools, with usage and examples (sections 3-5).
 
-|   | Index | Next (MDB file structure) > |
-| :---    | :----:   | ---:    |
+<p style="text-align: right;">Next (MDB file structure)</p>
