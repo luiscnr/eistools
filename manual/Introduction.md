@@ -10,5 +10,5 @@ This remainder of this document is organized as follows: 1) description of the M
 
 ***
 
-| [Index] (Index.md) | [2. MDB File Structure >](MDB_file_structure.md) |
+| [Index](Index.md) | [2. MDB File Structure >](MDB_file_structure.md) |
 | :------:| -----------:|
