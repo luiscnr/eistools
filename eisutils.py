@@ -241,33 +241,113 @@ def resolve_CCOC_778():
     print('Resolving 778')
     #1.CHECKING SENSOR MASK
     #path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
+    # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # from datetime import datetime as dt
+    # from netCDF4 import Dataset
+    # date_work = dt(2016,4,26)
+    # date_fin = dt(2024,1,14)
+    # file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files.csv'
+    # f1 = open(file_out,'w')
+    # f1.write('Date;Status')
+    # while date_work<=date_fin:
+    #     yyyy = date_work.strftime('%Y')
+    #     jjj = date_work.strftime('%j')
+    #     file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+    #     status = -1
+    #     if os.path.exists(file_date):
+    #         status = 0
+    #         dataset = Dataset(file_date,'r')
+    #         if 'SENSORMASK' in dataset.variables:
+    #             status = 1
+    #         dataset.close()
+    #     date_work_f = date_work.strftime('%Y-%m-%d')
+    #     line = f'{date_work_f};{status}'
+    #     f1.write('\n')
+    #     f1.write(line)
+    #
+    #     date_work = date_work + timedelta(hours=24)
+    # f1.close()
+
+    #2. Adding SENSORMASK ONLY WITH S3A
+    copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
     path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    from datetime import datetime as dt
-    from netCDF4 import Dataset
+    #copy_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778/kk'
+    #path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778'
     date_work = dt(2016,4,26)
-    date_fin = dt(2024,1,14)
-    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files.csv'
-    f1 = open(file_out,'w')
-    f1.write('Date;Status')
+    date_fin = dt(2018,5,15)
     while date_work<=date_fin:
         yyyy = date_work.strftime('%Y')
         jjj = date_work.strftime('%j')
-        file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
-        status = -1
-        if os.path.exists(file_date):
-            status = 0
-            dataset = Dataset(file_date,'r')
-            if 'SENSORMASK' in dataset.variables:
-                status = 1
-            dataset.close()
-        date_work_f = date_work.strftime('%Y-%m-%d')
-        line = f'{date_work_f};{status}'
-        f1.write('\n')
-        f1.write(line)
-
+        path_date = os.path.join(path,yyyy,jjj)
+        prename = f'O{yyyy}{jjj}-'
+        copy_path_yyyy = os.path.join(copy_path,yyyy)
+        if not os.path.isdir(copy_path_yyyy):
+            os.mkdir(copy_path_yyyy)
+        copy_path_jjj = os.path.join(copy_path_yyyy,jjj)
+        if not os.path.exists(copy_path_jjj):
+            os.mkdir(copy_path_jjj)
+        if os.path.isdir(path_date):
+            for name in os.listdir(path_date):
+                input_file = os.path.join(path_date, name)
+                if name.startswith(prename) and name.find('bal')>0:
+                    output_file = os.path.join(path,name)
+                    if name.find('coverage') < 0:
+                        print(input_file, '-->', output_file)
+                        create_copy_with_sensor_mask(input_file,output_file)
+                        os.rename(output_file,input_file)
+                copy_file = os.path.join(copy_path_jjj,name)
+                shutil.copy(input_file,copy_file)
         date_work = date_work + timedelta(hours=24)
-    f1.close()
+
     return True
+
+def create_copy_with_sensor_mask(input_file,output_file):
+    import numpy as np
+    from netCDF4 import Dataset
+    input_dataset = Dataset(input_file)
+    ncout = Dataset(output_file, 'w', format='NETCDF4')
+
+    # copy global attributes all at once via dictionary
+    ncout.setncatts(input_dataset.__dict__)
+
+    # copy dimensions
+    for name, dimension in input_dataset.dimensions.items():
+        ncout.createDimension(
+            name, (len(dimension) if not dimension.isunlimited() else None))
+
+    for name, variable in input_dataset.variables.items():
+        fill_value = None
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+
+        if name!='time' and name!='lat' and name!='lon' and name!='QI':
+            data = np.array(input_dataset[name][:])
+            data[data!=-999] = 1
+            data[data==999] = np.nan
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True, complevel=6)
+
+        # copy variable attributes all at once via dictionary
+        ncout[name].setncatts(input_dataset[name].__dict__)
+
+        # copy data
+        ncout[name][:] = input_dataset[name][:]
+
+
+    var = ncout.createVariable('SENSORMASK','i4',('time','lat','lon'),zlib=True,complevel=6)
+    ncout['SENSORMASK'][:] = data
+    var.long_name='Sensor Mask'
+    var.comment = 'OLCI Sentinel-3A=1; OLCI Sentinel-3B=2. Each SENSORMASK pixel is the sum of all available sensor values. For example, if a pixel is observed by OLCI Sentinel-3A and OLCI Sentinel-3B then SENSORMASK = 3'
+    var.type = 'surface'
+    var.units = '1'
+    var.valid_min = 1
+    var.valid_max = 31
+    ncout.close()
+    input_dataset.close()
+
+
+
+    return True
+
 def main():
     if resolve_CCOC_778():
         return
