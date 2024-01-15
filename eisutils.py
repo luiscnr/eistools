@@ -184,7 +184,94 @@ def do_log_hypstar():
         #print('-------------')
     f1.close()
     fout.close()
+
+def do_empty_copy():
+    input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION/MonthlyEmptyFiles/O2023001031-kd490_monthly-bal-fr.nc'
+    output_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION/MonthlyEmptyFiles/O2023335365-kd490_monthly-bal-fr.nc'
+    from datetime import datetime as dt
+
+    date_jan = dt(1981,1,1,0,0,0)+timedelta(seconds=1325376000)
+    int_jan = (dt(2023,1,1,0,0,0)-dt(1981,1,1,0,0,0)).total_seconds()
+    int_dec = (dt(2023,12,1,0,0,0)-dt(1981,1,1,0,0,0)).total_seconds()
+    print(int_jan)
+    print(int_dec)
+
+    #start_date = '2023-12-01'
+    #end_date = '2023-12-31'
+
+    from netCDF4 import Dataset
+    input_dataset = Dataset(input_file)
+    ncout = Dataset(output_file, 'w', format='NETCDF4')
+
+    # copy attributs
+    for at in input_dataset.ncattrs():
+        val = input_dataset.getncattr(at)
+        ncout.setncattr(at, val)
+    ncout.start_date = '2023-12-01'
+    ncout.stop_date = '2023-12-31'
+
+    # copy dimensions
+    for name, dimension in input_dataset.dimensions.items():
+        ncout.createDimension(
+            name, (len(dimension) if not dimension.isunlimited() else None))
+
+    for name, variable in input_dataset.variables.items():
+        fill_value = None
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                             shuffle=True, complevel=6)
+        # copy variable attributes all at once via dictionary
+        ncout[name].setncatts(input_dataset[name].__dict__)
+
+        if name=='lat' or name=='lon':
+            ncout[name][:] = input_dataset[name][:]
+        if name=='time':
+            ncout[name][:] = 1354233600
+
+    ncout.close()
+    input_dataset.close()
+
+
+    return True
+
+
+def resolve_CCOC_778():
+    print('Resolving 778')
+    #1.CHECKING SENSOR MASK
+    path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
+    from datetime import datetime as dt
+    from netCDF4 import Dataset
+    date_work = dt(2016,4,26)
+    date_fin = dt(2024,1,14)
+    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files.csv'
+    f1 = open(file_out,'w')
+    f1.write('Date;Status')
+    while date_work<=date_fin:
+        yyyy = date_work.strftime('%Y')
+        jjj = date_work.strftime('%j')
+        file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+        status = -1
+        if os.path.exists(file_date):
+            status = 0
+            dataset = Dataset(file_date,'r')
+            if 'SENSORMASK' in dataset.variables:
+                status = 1
+            dataset.close()
+        date_work_f = date_work.strftime('%Y-%m-%d')
+        line = f'{date_work_f};{status}'
+        f1.write('\n')
+        f1.write(line)
+
+        date_work = date_work + timedelta(hours=24)
+    f1.close()
+    return True
 def main():
+    if resolve_CCOC_778():
+        return
+    if do_empty_copy():
+        return
     if do_check():
         return
     if args.mode == 'COPYAQUA':
