@@ -240,7 +240,8 @@ def do_empty_copy():
 def resolve_CCOC_778():
     print('Resolving 778')
     #1.CHECKING SENSOR MASK
-    path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
+    #path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
+    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     from datetime import datetime as dt
     from netCDF4 import Dataset
     date_work = dt(2016,4,26)
