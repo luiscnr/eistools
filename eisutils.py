@@ -241,32 +241,63 @@ def resolve_CCOC_778():
     print('Resolving 778')
     #1.CHECKING SENSOR MASK
     #path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
-    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    from datetime import datetime as dt
-    from netCDF4 import Dataset
-    date_work = dt(2016,4,26)
-    date_fin = dt(2022,12,31)
-    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022.csv'
-    f1 = open(file_out,'w')
-    f1.write('Date;Status')
-    while date_work<=date_fin:
-        yyyy = date_work.strftime('%Y')
-        jjj = date_work.strftime('%j')
-        file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
-        status = -1
-        if os.path.exists(file_date):
-            status = 0
-            dataset = Dataset(file_date,'r')
-            if 'SENSORMASK' in dataset.variables:
-                status = 1
-            dataset.close()
-        date_work_f = date_work.strftime('%Y-%m-%d')
-        line = f'{date_work_f};{status}'
-        f1.write('\n')
-        f1.write(line)
+    # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # from datetime import datetime as dt
+    # from netCDF4 import Dataset
+    # date_work = dt(2016,4,26)
+    # date_fin = dt(2022,12,31)
+    # file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022.csv'
+    # f1 = open(file_out,'w')
+    # f1.write('Date;Status')
+    # while date_work<=date_fin:
+    #     yyyy = date_work.strftime('%Y')
+    #     jjj = date_work.strftime('%j')
+    #     file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+    #     status = -1
+    #     if os.path.exists(file_date):
+    #         status = 0
+    #         dataset = Dataset(file_date,'r')
+    #         if 'SENSORMASK' in dataset.variables:
+    #             status = 1
+    #         dataset.close()
+    #     date_work_f = date_work.strftime('%Y-%m-%d')
+    #     line = f'{date_work_f};{status}'
+    #     f1.write('\n')
+    #     f1.write(line)
+    #
+    #     date_work = date_work + timedelta(hours=24)
+    # f1.close()
 
-        date_work = date_work + timedelta(hours=24)
+    #2. Checking S3A and S3B
+    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero.csv'
+    output_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero_check.csv'
+    from datetime import datetime as dt
+    f1 = open(input_file,'r')
+    fout = open(output_file,'w')
+    for line in f1:
+        if line.startswith('Date'):
+            line_output = f'{line};S3A;S3B'
+            fout.write(line_output)
+            continue
+        lines = [x.strip() for x in line.split(';')]
+        date_here = dt.strptime(lines[0],'%Y-%m-%d')
+        yyyy = date_here.strftime('%Y')
+        jjj = date_here.strftime('%j')
+        path_date = os.path.join(path,yyyy,jjj)
+        s3a = '0'
+        s3b = '0'
+        if os.path.isdir(path_date):
+            for name in os.listdir(path_date):
+                if name.startswith('Oa'):
+                    s3a = '1'
+                if name.startswith('Ob'):
+                    s3b = '1'
+        line_output = f'{line};{s3a};{s3b}'
+        fout.write('\n')
+        fout.write(line_output)
     f1.close()
+    fout.close()
 
     #2. Adding SENSORMASK ONLY WITH S3A
     # copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
