@@ -269,35 +269,70 @@ def resolve_CCOC_778():
     # f1.close()
 
     #2. Checking S3A and S3B
-    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero.csv'
-    output_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero_check.csv'
-    from datetime import datetime as dt
+    # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero.csv'
+    # output_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero_check.csv'
+    # from datetime import datetime as dt
+    # f1 = open(input_file,'r')
+    # fout = open(output_file,'w')
+    # for line in f1:
+    #     if line.startswith('Date'):
+    #         line_output = f'{line.strip()};S3A;S3B'
+    #         fout.write(line_output)
+    #         continue
+    #     lines = [x.strip() for x in line.split(';')]
+    #     date_here = dt.strptime(lines[0],'%Y-%m-%d')
+    #     yyyy = date_here.strftime('%Y')
+    #     jjj = date_here.strftime('%j')
+    #     path_date = os.path.join(path,yyyy,jjj)
+    #     s3a = '0'
+    #     s3b = '0'
+    #     if os.path.isdir(path_date):
+    #         for name in os.listdir(path_date):
+    #             if name.startswith('Oa'):
+    #                 s3a = '1'
+    #             if name.startswith('Ob'):
+    #                 s3b = '1'
+    #     line_output = f'{line.strip()};{s3a};{s3b}'
+    #     fout.write('\n')
+    #     fout.write(line_output)
+    # f1.close()
+    # fout.close()
+
+    #3. Copy available files s3a (s3b is missing), from 2016 to 2022
+    path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
+    path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero_onlymakes3b.csv'
     f1 = open(input_file,'r')
-    fout = open(output_file,'w')
+
     for line in f1:
         if line.startswith('Date'):
-            line_output = f'{line.strip()};S3A;S3B'
-            fout.write(line_output)
             continue
         lines = [x.strip() for x in line.split(';')]
         date_here = dt.strptime(lines[0],'%Y-%m-%d')
         yyyy = date_here.strftime('%Y')
         jjj = date_here.strftime('%j')
-        path_date = os.path.join(path,yyyy,jjj)
-        s3a = '0'
-        s3b = '0'
-        if os.path.isdir(path_date):
-            for name in os.listdir(path_date):
-                if name.startswith('Oa'):
-                    s3a = '1'
-                if name.startswith('Ob'):
-                    s3b = '1'
-        line_output = f'{line.strip()};{s3a};{s3b}'
-        fout.write('\n')
-        fout.write(line_output)
+        path_proc_date = os.path.join(path_proc, yyyy, jjj)
+        path_polw_date = os.path.join(path_polw,yyyy,jjj)
+        path_output_year = os.path.join(path_output,yyyy)
+        if not os.path.exists(path_output_year):
+            os.mkdir(path_output_year)
+        path_output_day = os.path.join(path_output_year,jjj)
+        if not os.path.exists(path_output_day):
+            os.mkdir(path_output_day)
+        for name in os.listdir(path_proc_date):
+            if name.startswith('Oa'):
+                input_file = os.path.join(path_proc_date, name)
+                output_file = os.path.join(path_output_day, name)
+                shutil.copy(input_file,output_file)
+        for name in os.listdir(path_polw_date):
+            if name.startswith('S3A'):
+                input_file = os.path.join(path_polw_date, name)
+                output_file = os.path.join(path_output_day, name)
+                shutil.copy(input_file,output_file)
+
     f1.close()
-    fout.close()
 
     #2. Adding SENSORMASK ONLY WITH S3A
     # copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
