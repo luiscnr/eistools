@@ -277,7 +277,7 @@ def resolve_CCOC_778():
     fout = open(output_file,'w')
     for line in f1:
         if line.startswith('Date'):
-            line_output = f'{line};S3A;S3B'
+            line_output = f'{line.strip()};S3A;S3B'
             fout.write(line_output)
             continue
         lines = [x.strip() for x in line.split(';')]
@@ -293,7 +293,7 @@ def resolve_CCOC_778():
                     s3a = '1'
                 if name.startswith('Ob'):
                     s3b = '1'
-        line_output = f'{line};{s3a};{s3b}'
+        line_output = f'{line.strip()};{s3a};{s3b}'
         fout.write('\n')
         fout.write(line_output)
     f1.close()
