@@ -380,7 +380,7 @@ def resolve_CCOC_778():
     f1 = open(input_file,'r')
 
     for line in f1:
-        date_here = dt.strptime(line, '%Y-%m-%d')
+        date_here = dt.strptime(line.strip(), '%Y-%m-%d')
         yyyy = date_here.strftime('%Y')
         jjj = date_here.strftime('%j')
         path_date = os.path.join(path_proc, yyyy, jjj)
