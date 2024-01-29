@@ -336,24 +336,55 @@ def resolve_CCOC_778():
     # f1.close()
 
     #2. Adding SENSORMASK ONLY WITH S3A
-    copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
-    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    #copy_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778/kk'
-    #path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778'
+    # copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # #copy_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778/kk'
+    # #path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778'
+    #
+    # date1 = dt(2020,7,29)
+    # date2 = dt(2020,8,28)
+    # date3 = dt(2020,8,31)
+    # dates = [date1,date2,date3]
+    # for date_work in dates:
+    # # date_work = dt(2019,4,26)
+    # # date_fin = dt(2018,5,15)
+    # # while date_work<=date_fin:
+    #     yyyy = date_work.strftime('%Y')
+    #     jjj = date_work.strftime('%j')
+    #     path_date = os.path.join(path,yyyy,jjj)
+    #     prename = f'O{yyyy}{jjj}-'
+    #     copy_path_yyyy = os.path.join(copy_path,yyyy)
+    #     if not os.path.isdir(copy_path_yyyy):
+    #         os.mkdir(copy_path_yyyy)
+    #     copy_path_jjj = os.path.join(copy_path_yyyy,jjj)
+    #     if not os.path.exists(copy_path_jjj):
+    #         os.mkdir(copy_path_jjj)
+    #     if os.path.isdir(path_date):
+    #         for name in os.listdir(path_date):
+    #             input_file = os.path.join(path_date, name)
+    #             if name.startswith(prename) and name.find('bal')>0:
+    #                 output_file = os.path.join(path,name)
+    #                 if name.find('coverage') < 0:
+    #                     print(input_file, '-->', output_file)
+    #                     create_copy_with_sensor_mask(input_file,output_file)
+    #                     os.rename(output_file,input_file)
+    #             copy_file = os.path.join(copy_path_jjj,name)
+    #             shutil.copy(input_file,copy_file)
+    #     #date_work = date_work + timedelta(hours=24)
 
-    date1 = dt(2020,7,29)
-    date2 = dt(2020,8,28)
-    date3 = dt(2020,8,31)
-    dates = [date1,date2,date3]
-    for date_work in dates:
-    # date_work = dt(2019,4,26)
-    # date_fin = dt(2018,5,15)
-    # while date_work<=date_fin:
-        yyyy = date_work.strftime('%Y')
-        jjj = date_work.strftime('%j')
-        path_date = os.path.join(path,yyyy,jjj)
-        prename = f'O{yyyy}{jjj}-'
-        copy_path_yyyy = os.path.join(copy_path,yyyy)
+    ## extra step: copy from BAL_REPROC to POLYMERWHPC
+    path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
+    path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_to_copy.csv'
+    f1 = open(input_file,'r')
+
+    for line in f1:
+        date_here = dt.strptime(line, '%Y-%m-%d')
+        yyyy = date_here.strftime('%Y')
+        jjj = date_here.strftime('%j')
+        path_date = os.path.join(path_proc, yyyy, jjj)
+        copy_path_yyyy = os.path.join(path_output, yyyy)
         if not os.path.isdir(copy_path_yyyy):
             os.mkdir(copy_path_yyyy)
         copy_path_jjj = os.path.join(copy_path_yyyy,jjj)
@@ -362,15 +393,10 @@ def resolve_CCOC_778():
         if os.path.isdir(path_date):
             for name in os.listdir(path_date):
                 input_file = os.path.join(path_date, name)
-                if name.startswith(prename) and name.find('bal')>0:
-                    output_file = os.path.join(path,name)
-                    if name.find('coverage') < 0:
-                        print(input_file, '-->', output_file)
-                        create_copy_with_sensor_mask(input_file,output_file)
-                        os.rename(output_file,input_file)
-                copy_file = os.path.join(copy_path_jjj,name)
+                copy_file = os.path.join(copy_path_jjj, name)
                 shutil.copy(input_file,copy_file)
-        #date_work = date_work + timedelta(hours=24)
+
+    f1.close()
 
     return True
 
