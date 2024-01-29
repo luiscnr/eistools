@@ -240,34 +240,34 @@ def do_empty_copy():
 def resolve_CCOC_778():
     print('Resolving 778')
     #1.CHECKING SENSOR MASK
-    #path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
-    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    #path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
-    from datetime import datetime as dt
-    from netCDF4 import Dataset
-    date_work = dt(2016,4,26)
-    date_fin = dt(2022,12,31)
-    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_balreproc_2016_2022.csv'
-    f1 = open(file_out,'w')
-    f1.write('Date;Status')
-    while date_work<=date_fin:
-        yyyy = date_work.strftime('%Y')
-        jjj = date_work.strftime('%j')
-        file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
-        status = -1
-        if os.path.exists(file_date):
-            status = 0
-            dataset = Dataset(file_date,'r')
-            if 'SENSORMASK' in dataset.variables:
-                status = 1
-            dataset.close()
-        date_work_f = date_work.strftime('%Y-%m-%d')
-        line = f'{date_work_f};{status}'
-        f1.write('\n')
-        f1.write(line)
-
-        date_work = date_work + timedelta(hours=24)
-    f1.close()
+    # path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
+    # # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # #path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    # from datetime import datetime as dt
+    # from netCDF4 import Dataset
+    # date_work = dt(2016,4,26)
+    # date_fin = dt(2022,12,31)
+    # file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_daily_v202311_bc_2016_2022.csv'
+    # f1 = open(file_out,'w')
+    # f1.write('Date;Status')
+    # while date_work<=date_fin:
+    #     yyyy = date_work.strftime('%Y')
+    #     jjj = date_work.strftime('%j')
+    #     file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+    #     status = -1
+    #     if os.path.exists(file_date):
+    #         status = 0
+    #         dataset = Dataset(file_date,'r')
+    #         if 'SENSORMASK' in dataset.variables:
+    #             status = 1
+    #         dataset.close()
+    #     date_work_f = date_work.strftime('%Y-%m-%d')
+    #     line = f'{date_work_f};{status}'
+    #     f1.write('\n')
+    #     f1.write(line)
+    #
+    #     date_work = date_work + timedelta(hours=24)
+    # f1.close()
 
     #2. Checking S3A and S3B
     # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
@@ -301,39 +301,39 @@ def resolve_CCOC_778():
     # fout.close()
 
     #3. Copy available files s3a (s3b is missing), from 2016 to 2022
-    # path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    # path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
-    # path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
-    # input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero_onlymakes3b.csv'
-    # f1 = open(input_file,'r')
-    #
-    # for line in f1:
-    #     if line.startswith('Date'):
-    #         continue
-    #     lines = [x.strip() for x in line.split(';')]
-    #     date_here = dt.strptime(lines[0],'%Y-%m-%d')
-    #     yyyy = date_here.strftime('%Y')
-    #     jjj = date_here.strftime('%j')
-    #     path_proc_date = os.path.join(path_proc, yyyy, jjj)
-    #     path_polw_date = os.path.join(path_polw,yyyy,jjj)
-    #     path_output_year = os.path.join(path_output,yyyy)
-    #     if not os.path.exists(path_output_year):
-    #         os.mkdir(path_output_year)
-    #     path_output_day = os.path.join(path_output_year,jjj)
-    #     if not os.path.exists(path_output_day):
-    #         os.mkdir(path_output_day)
-    #     for name in os.listdir(path_proc_date):
-    #         if name.startswith('Oa'):
-    #             input_file = os.path.join(path_proc_date, name)
-    #             output_file = os.path.join(path_output_day, name)
-    #             shutil.copy(input_file,output_file)
-    #     for name in os.listdir(path_polw_date):
-    #         if name.startswith('S3A'):
-    #             input_file = os.path.join(path_polw_date, name)
-    #             output_file = os.path.join(path_output_day, name)
-    #             shutil.copy(input_file,output_file)
-    #
-    # f1.close()
+    path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
+    path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2020_onlymakes3b.csv'
+    f1 = open(input_file,'r')
+
+    for line in f1:
+        if line.startswith('Date'):
+            continue
+        lines = [x.strip() for x in line.split(';')]
+        date_here = dt.strptime(lines[0],'%Y-%m-%d')
+        yyyy = date_here.strftime('%Y')
+        jjj = date_here.strftime('%j')
+        path_proc_date = os.path.join(path_proc, yyyy, jjj)
+        path_polw_date = os.path.join(path_polw,yyyy,jjj)
+        path_output_year = os.path.join(path_output,yyyy)
+        if not os.path.exists(path_output_year):
+            os.mkdir(path_output_year)
+        path_output_day = os.path.join(path_output_year,jjj)
+        if not os.path.exists(path_output_day):
+            os.mkdir(path_output_day)
+        for name in os.listdir(path_proc_date):
+            if name.startswith('Oa'):
+                input_file = os.path.join(path_proc_date, name)
+                output_file = os.path.join(path_output_day, name)
+                shutil.copy(input_file,output_file)
+        for name in os.listdir(path_polw_date):
+            if name.startswith('S3A'):
+                input_file = os.path.join(path_polw_date, name)
+                output_file = os.path.join(path_output_day, name)
+                shutil.copy(input_file,output_file)
+
+    f1.close()
 
     #2. Adding SENSORMASK ONLY WITH S3A
     # copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
