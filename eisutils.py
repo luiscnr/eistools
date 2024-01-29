@@ -241,13 +241,13 @@ def resolve_CCOC_778():
     print('Resolving 778')
     #1.CHECKING SENSOR MASK
     #path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
-    #path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    #path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
     from datetime import datetime as dt
     from netCDF4 import Dataset
     date_work = dt(2016,4,26)
     date_fin = dt(2022,12,31)
-    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_now_2016_2022.csv'
+    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_balreproc_2016_2022.csv'
     f1 = open(file_out,'w')
     f1.write('Date;Status')
     while date_work<=date_fin:
