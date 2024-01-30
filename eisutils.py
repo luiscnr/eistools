@@ -266,7 +266,7 @@ def resolve_CCOC_778():
         f1.write('\n')
         f1.write(line)
 
-    date_work = date_work + timedelta(hours=24)
+        date_work = date_work + timedelta(hours=24)
     f1.close()
 
     #2. Checking S3A and S3B
