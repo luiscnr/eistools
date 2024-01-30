@@ -241,31 +241,31 @@ def resolve_CCOC_778():
     print('Resolving 778')
     #1.CHECKING SENSOR MASK
     # path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
-    # # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    # #path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
-    # from datetime import datetime as dt
-    # from netCDF4 import Dataset
-    # date_work = dt(2016,4,26)
-    # date_fin = dt(2022,12,31)
-    # file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_daily_v202311_bc_2016_2022.csv'
-    # f1 = open(file_out,'w')
-    # f1.write('Date;Status')
-    # while date_work<=date_fin:
-    #     yyyy = date_work.strftime('%Y')
-    #     jjj = date_work.strftime('%j')
-    #     file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
-    #     status = -1
-    #     if os.path.exists(file_date):
-    #         status = 0
-    #         dataset = Dataset(file_date,'r')
-    #         if 'SENSORMASK' in dataset.variables:
-    #             status = 1
-    #         dataset.close()
-    #     date_work_f = date_work.strftime('%Y-%m-%d')
-    #     line = f'{date_work_f};{status}'
-    #     f1.write('\n')
-    #     f1.write(line)
-    #
+    # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    from datetime import datetime as dt
+    from netCDF4 import Dataset
+    date_work = dt(2016,4,26)
+    date_fin = dt(2023,12,31)
+    file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_daily_final_2016_2023.csv'
+    f1 = open(file_out,'w')
+    f1.write('Date;Status')
+    while date_work<=date_fin:
+        yyyy = date_work.strftime('%Y')
+        jjj = date_work.strftime('%j')
+        file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+        status = -1
+        if os.path.exists(file_date):
+            status = 0
+            dataset = Dataset(file_date,'r')
+            if 'SENSORMASK' in dataset.variables:
+                status = 1
+            dataset.close()
+        date_work_f = date_work.strftime('%Y-%m-%d')
+        line = f'{date_work_f};{status}'
+        f1.write('\n')
+        f1.write(line)
+
     #     date_work = date_work + timedelta(hours=24)
     # f1.close()
 
@@ -373,30 +373,30 @@ def resolve_CCOC_778():
     #     #date_work = date_work + timedelta(hours=24)
 
     ## extra step: copy from BAL_REPROC to POLYMERWHPC
-    path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
-    # path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
-    path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
-    input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_to_copy.csv'
-    f1 = open(input_file,'r')
-
-    for line in f1:
-        date_here = dt.strptime(line.strip(), '%Y-%m-%d')
-        yyyy = date_here.strftime('%Y')
-        jjj = date_here.strftime('%j')
-        path_date = os.path.join(path_proc, yyyy, jjj)
-        copy_path_yyyy = os.path.join(path_output, yyyy)
-        if not os.path.isdir(copy_path_yyyy):
-            os.mkdir(copy_path_yyyy)
-        copy_path_jjj = os.path.join(copy_path_yyyy,jjj)
-        if not os.path.exists(copy_path_jjj):
-            os.mkdir(copy_path_jjj)
-        if os.path.isdir(path_date):
-            for name in os.listdir(path_date):
-                input_file = os.path.join(path_date, name)
-                copy_file = os.path.join(copy_path_jjj, name)
-                shutil.copy(input_file,copy_file)
-
-    f1.close()
+    # path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
+    # # path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
+    # path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
+    # input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_to_copy.csv'
+    # f1 = open(input_file,'r')
+    #
+    # for line in f1:
+    #     date_here = dt.strptime(line.strip(), '%Y-%m-%d')
+    #     yyyy = date_here.strftime('%Y')
+    #     jjj = date_here.strftime('%j')
+    #     path_date = os.path.join(path_proc, yyyy, jjj)
+    #     copy_path_yyyy = os.path.join(path_output, yyyy)
+    #     if not os.path.isdir(copy_path_yyyy):
+    #         os.mkdir(copy_path_yyyy)
+    #     copy_path_jjj = os.path.join(copy_path_yyyy,jjj)
+    #     if not os.path.exists(copy_path_jjj):
+    #         os.mkdir(copy_path_jjj)
+    #     if os.path.isdir(path_date):
+    #         for name in os.listdir(path_date):
+    #             input_file = os.path.join(path_date, name)
+    #             copy_file = os.path.join(copy_path_jjj, name)
+    #             shutil.copy(input_file,copy_file)
+    #
+    # f1.close()
 
     return True
 
