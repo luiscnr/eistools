@@ -660,8 +660,12 @@ class FTPUpload():
         credentials.read(os.path.join(path2script, 'credentials.ini'))
         if mode == 'MY':
             du_server = "my.cmems-du.eu"
+        elif mode == 'MYMDS':
+            du_server = 'ftp-my.marine.copernicus.eu'
         elif mode == 'NRT' or mode == 'DT':
             du_server = "nrt.cmems-du.eu"
+        elif mode == 'NRTMDS' or mode == 'DTMDS':
+            du_server = "ftp-nrt.marine.copernicus.eu"
         du_uname = credentials.get('cnr', 'uname')
         du_passwd = credentials.get('cnr', 'passwd')
         self.ftpdu = FTP(du_server, du_uname, du_passwd)

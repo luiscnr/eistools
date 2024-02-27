@@ -9,8 +9,9 @@ class DatasetSelection():
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
-        if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-            self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202211'
+        # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
+        #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202211'
+        print(f'[INFO] Product info path: {self.path2info}')
 
         self.dfselection = None
         self.params = {
