@@ -4,6 +4,14 @@ from tkinter import *  # Carga módulo tk (widgets estándar)
 # import boto3
 # import botocore
 # from botocore.client import Config
+import argparse
+parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
+parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
+parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
+parser.add_argument("-pname", "--name_product", help="Product name")
+parser.add_argument("-dname", "--name_dataset", help="Product name")
+args = parser.parse_args()
 
 class GUI():
     def __init__(self):
@@ -59,7 +67,7 @@ class GUI():
         frame_buttons = Frame(root,bg="white")
         frame_buttons.grid(row=10,column=6,pady=10,padx=10,columnspan=6)
 
-        root.mainloop()
+        #root.mainloop()
 
 
     def get_list_datasets_from_list(self):
@@ -341,19 +349,21 @@ def getting_s3_buckets_copernicus_marine():
         #     pinfo.update_json(pinfo_out)
 
 
-def check_files():
+def check_files(product_name,dataset_name,start_date,end_date):
     from product_info import ProductInfo
     from datetime import datetime as dt
     gui = GUI()
 
-    product_name = 'OCEANCOLOUR_BLK_BGC_L3_MY_009_153'
-    dataset_name = 'cmems_obs-oc_blk_bgc-plankton_my_l3-multi-1km_P1D'
+    # product_name = 'OCEANCOLOUR_BLK_BGC_L3_MY_009_153'
+    # dataset_name = 'cmems_obs-oc_blk_bgc-plankton_my_l3-multi-1km_P1D'
+    # product_name = 'OCEANCOLOUR_MED_BGC_L3_NRT_009_141'
+    # dataset_name = 'cmems_obs-oc_med_bgc-transp_nrt_l3-olci-300m_P1D'
     # product_name = 'OCEANCOLOUR_BLK_BGC_L3_NRT_009_151'
     # dataset_name = 'cmems_obs-oc_blk_bgc-plankton_nrt_l3-multi-1km_P1D'
-    date = dt(2024, 3, 4)
-    date_end = dt(2024, 3, 15)
+    # date = dt(2024, 3, 20)
+    # date_end = dt(2024, 3, 26)
     gui.pinfo.set_dataset_info(product_name, dataset_name)
-    files = gui.get_list_files(None, product_name, dataset_name, date, date_end)
+    files = gui.get_list_files(None, product_name, dataset_name, start_date, end_date)
     for file in files:
         name_file = files[file]['key'].split('/')[-1]
         print(name_file,files[file]['SizeStr'],files[file]['TimeStr'])
@@ -363,5 +373,8 @@ def check_files():
 if __name__ == '__main__':
     #main()
     # getting_s3_buckets()
-    check_files()
+    from datetime import datetime as dt
+    start_date = dt.strptime(args.start_date,'%Y-%m-%d')
+    end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+    check_files(args.name_product,args.name_dataset,start_date,end_date)
     # getting_s3_buckect_boto3(True,None)
