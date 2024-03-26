@@ -7,11 +7,9 @@ class DatasetSelection():
 
     def __init__(self, mode):
         sdir = os.path.abspath(os.path.dirname(__file__))
-        # path2script = "/".join(sdir.split("/")[0:-1])
+
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
-        # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-        #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSNovember2022/PRODUCT_INFO_EIS202211'
-        print(f'[INFO] Product info path: {self.path2info}')
+        print(f'[INFO] Dataset selection path: {self.path2info}')
 
         self.dfselection = None
         self.params = {
@@ -23,6 +21,7 @@ class DatasetSelection():
         }
 
         file = None
+
         if mode.upper() == 'NRT' or mode.upper() == 'DT':
             file = os.path.join(self.path2info, 'NRTDictionary.csv')
         if mode.upper() == 'MY' or mode.upper() == 'MYINT':
@@ -76,6 +75,8 @@ class DatasetSelection():
 
     def get_list_product_datasets_from_dataset_nane(self, dataset_name):
         return self.get_list_product_datasets_from_param_value('DNAME', dataset_name)
+
+
 
     def get_list_product_datasets_from_param_value(self, param, value):
         product_names = []

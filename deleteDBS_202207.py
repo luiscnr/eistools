@@ -12,6 +12,7 @@ from dataset_selection import DatasetSelection
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument("-umds", "--use_mds", help="Use MDS server", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-noupload","--no_upload", help="No upload mode, only reformat.",action="store_true")
 parser.add_argument("-noreformat","--no_reformat",help="No reformat mode, only upload.",action="store_true")
@@ -196,7 +197,7 @@ def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, verbose):
 
 
 def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verbose):
-    ftpdu = FTPUpload('cnr', mode, False)
+    ftpdu = FTPUpload('cnr', mode, args.use_mds)
     ftpnormal = FTPUpload('normal', mode, False)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path(year, month)
@@ -252,7 +253,7 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
 
 
 def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose):
-    ftpdu = FTPUpload('cnr', mode, False)
+    ftpdu = FTPUpload('cnr', mode, args.use_mds)
     ftpnormal = FTPUpload('normal', mode, False)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path_monthly(year)
@@ -302,7 +303,7 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
 
 
 def delete_year_folder(pinfo, mode, year, verbose):
-    ftpdu = FTPUpload('cnr', mode, False)
+    ftpdu = FTPUpload('cnr', mode, args.use_mds)
     ftpnormal = FTPUpload('normal', mode, False)
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
@@ -339,8 +340,8 @@ def delete_year_folder(pinfo, mode, year, verbose):
 
 
 def delete_month_folder(pinfo, mode, year, month, verbose):
-    ftpdu = FTPUpload('cnr', mode, False)
-    ftpnormal = FTPUpload('normal', mode,False)
+    ftpdu = FTPUpload('cnr', mode, args.use_mds)
+    ftpnormal = FTPUpload('normal', mode, False)
     rpath, sdir = pinfo.get_remote_path(year,month)
     if verbose:
         print('-------------------------')
@@ -507,22 +508,35 @@ def get_date_from_param(dateparam):
 
 class FTPUpload():
     # user: cnr or normal
-    def __init__(self, user, mode, usardevserver):
+    def __init__(self, user, mode, use_mds):
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         path2script = os.path.dirname(sdir)
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
+        # if mode == 'MY':
+        #     if usardevserver:
+        #         du_server = "my-dev.cmems-du.eu"
+        #     else:
+        #         du_server = "my.cmems-du.eu"
+        # elif mode == 'NRT' or mode == 'DT':
+        #     if usardevserver:
+        #         du_server = "nrt-dev.cmems-du.eu"
+        #     else:
+        #         du_server = "nrt.cmems-du.eu"
         if mode == 'MY':
-            if usardevserver:
-                du_server = "my-dev.cmems-du.eu"
+            if use_mds:
+                du_server = 'ftp-my.marine.copernicus.eu'
             else:
                 du_server = "my.cmems-du.eu"
+
         elif mode == 'NRT' or mode == 'DT':
-            if usardevserver:
-                du_server = "nrt-dev.cmems-du.eu"
+            if use_mds:
+                du_server = "ftp-nrt.marine.copernicus.eu"
             else:
                 du_server = "nrt.cmems-du.eu"
+
+
         du_uname = credentials.get(user, 'uname')
         du_passwd = credentials.get(user, 'passwd')
         #print(du_server,du_uname,du_passwd)

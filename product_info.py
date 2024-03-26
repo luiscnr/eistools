@@ -11,32 +11,22 @@ from netCDF4 import Dataset
 class ProductInfo:
     def __init__(self):
         sdir = os.path.abspath(os.path.dirname(__file__))
-        # path2script = "/".join(sdir.split("/")[0:-1])
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
-        # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-        #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/EiSJuly2022/PRODUCT_INFO'
-        # if self.path2info == '/home/lois/PycharmProjects/PRODUCT_INFO':
-        #     self.path2info = '/mnt/c/DATA_LUIS/OCTAC_WORK/PRODUCT_INFO_EIS202311'
-
         self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
-        # if not os.path.exists(self.path_reformat_script):
-        #     self.path_reformat_script = '/home/gosuser/OCTACManager/EiS202210/reformatting_file_cmems2_202211.sh'
-        # if not os.path.exists(self.path_reformat_script):
-        #     self.path_reformat_script = '/store/woc/simone/tmp/reformatting_file_cmems2_lois.sh'
 
         self.product_name = ''
         self.dataset_name = ''
         self.pinfo = {}
         self.dinfo = {}
 
-        self.modes = ['my', 'nrt']
-        self.basins = ['bal', 'blk', 'med']
-        self.levels = ['l3', 'l4']
-        self.dataset_types = ['optics', 'plankton', 'reflectance', 'transp']
-        self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
-        self.dict_info = {}
-        self.start_my_dictionary()
-        self.start_nrt_dictionary()
+        # self.modes = ['my', 'nrt']
+        # self.basins = ['bal', 'blk', 'med']
+        # self.levels = ['l3', 'l4']
+        # self.dataset_types = ['optics', 'plankton', 'reflectance', 'transp']
+        # self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
+        # self.dict_info = {}
+        # self.start_my_dictionary()
+        # self.start_nrt_dictionary()
 
         self.MODE = 'UPLOAD'  # UPLOAD, REFORMAT, NONE
 
@@ -172,7 +162,6 @@ class ProductInfo:
         fproduct = os.path.join(self.path2info, product_name + '.json')
         valid = False
 
-
         if os.path.exists(fproduct):
             f = open(fproduct, "r")
             try:
@@ -189,6 +178,68 @@ class ProductInfo:
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
         return valid
+
+    def set_param(self,pinfo_out,param_name,param_value):
+        if pinfo_out is None:
+            pinfo_out = self.pinfo
+        pinfo_out[self.dataset_name][param_name] = param_value
+        return pinfo_out
+
+    def update_json(self,pinfo_out):
+        if pinfo_out is None:
+            pinfo_out = self.pinfo
+        fproduct = os.path.join(self.path2info, self.product_name + '.json')
+        fout = open(fproduct,'w')
+        fout.write('{')
+        datasets = list(pinfo_out.keys())
+        for dataset in pinfo_out:
+            self.write_new_line(fout,f'"{dataset}":')
+            self.write_new_line(fout,'{')
+            keys = list(pinfo_out[dataset].keys())
+            for key in pinfo_out[dataset]:
+                val = pinfo_out[dataset][key]
+                if key==keys[-1]:
+                    self.write_new_line(fout, f'"{key}":"{val}"')
+                else:
+                    self.write_new_line(fout,f'"{key}":"{val}",')
+            if dataset==datasets[-1]:
+                self.write_new_line(fout, '}')
+            else:
+                self.write_new_line(fout, '},')
+        self.write_new_line(fout,'}')
+        fout.close()
+
+
+    def write_new_line(self,fout,newline):
+        fout.write('\n')
+        fout.write(newline)
+
+    def get_list_all_products(self):
+        product_names = []
+        for name in os.listdir(self.path2info):
+            if name.endswith('.json'):
+                name = name[:-5]
+                if name=='SOURCES':
+                    continue
+                if name not in product_names:
+                    product_names.append(name)
+        return product_names
+
+    def get_list_all_datasets(self):
+        all_products = self.get_list_all_products()
+        product_names = None
+        dataset_names = None
+        for p in all_products:
+            product_names_here,dataset_names_here = self.get_list_datasets(p,None)
+            if product_names is None:
+                product_names = product_names_here
+                dataset_names = dataset_names_here
+            else:
+                product_names = product_names + product_names_here
+                dataset_names = dataset_names + dataset_names_here
+        return product_names,dataset_names
+
+
 
     def get_list_datasets(self, product_name, frequency):
         product_names = []
@@ -265,6 +316,9 @@ class ProductInfo:
     def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
         self.set_dataset_info(product_name, dataset_name)
+
+
+
 
     def get_tag_print(self):
         if self.MODE == 'REFORMAT':
@@ -343,11 +397,6 @@ class ProductInfo:
                 print(f'{tagprint} Expected file orig path {file_path} does not exist')
             return None
         return file_path
-
-
-
-
-
 
     # same as get_file_path_orig, but it returns the complete path despite of it doen't exist, it's used for checking
     def get_file_path_orig_name(self, path, datehere):
@@ -495,15 +544,15 @@ class ProductInfo:
             return tamgb
 
         if dtype == 'rrs':
-            varlist = ['rrs412', 'rrs443', 'rrs490', 'rrs510', 'rrs555', 'rrs670' ]
+            varlist = ['rrs412', 'rrs443', 'rrs490', 'rrs510', 'rrs555', 'rrs670']
         if dtype == 'plankton':
-            varlist = ['chl','pft']
+            varlist = ['chl', 'pft']
         if dtype == 'gapfree':
             varlist = ['chl_interp']
         if dtype == 'transp':
             varlist = ['kd490']
         if dtype == 'optics':
-            varlist = ['adg443','bbp443','aph443']
+            varlist = ['adg443', 'bbp443', 'aph443']
         datestr = datehere.strftime('%Y%j')
         area = self.dinfo['region'].lower()
         if area == 'blk':
@@ -513,7 +562,7 @@ class ProductInfo:
         for var in varlist:
             fname = f'X{datestr}-{var}-{area}-hr.nc'
             fpath = os.path.join(path_jday, fname)
-            #print(fpath,'->',os.path.exists(fpath))
+            # print(fpath,'->',os.path.exists(fpath))
             if os.path.exists(fpath):
                 tam = tam + os.path.getsize(fpath)
                 # print(tam)
@@ -527,7 +576,6 @@ class ProductInfo:
             print('final: ', tamgb)
 
         return tamgb
-
 
     def get_size_file_path_orig_multi_monthly(self, path, datehere, dtype):
         tamgb = -1
@@ -807,7 +855,6 @@ class ProductInfo:
 
         return at_dict
 
-
     def get_remote_path(self, year, month):
         dtref = dt(year, month, 1)
         rpath = os.path.join(os.sep, self.product_name, self.dinfo['remote_dataset'] + self.dinfo['remote_dataset_tag'])
@@ -925,9 +972,12 @@ class ProductInfo:
             if not os.path.exists(path):
                 print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
                 return None
-            cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
+            if self.path_reformat_script == '/home/lois/PycharmProjects/reformatting_file_cmems2_202211.sh':
+                cmd = f'{self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
+            else:
+                cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
 
-        if f== 'C': #climatology
+        if f == 'C':  # climatology
             path = self.dinfo['path_origin']
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path}'
 
@@ -937,6 +987,7 @@ class ProductInfo:
                 print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
                 return None
             d = datehere.strftime('%Y-%m')
+
             cmd = f'sh {self.path_reformat_script} -res {res} -m {m} -r {r} -f {f} -p {p} -path {path} -d {d}'
 
         return cmd

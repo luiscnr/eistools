@@ -11,10 +11,11 @@ from dataset_selection import DatasetSelection
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument("-umds", "--use_mds", help="Use MDS server", action="store_true")
 parser.add_argument("-noupload", "--no_upload", help="No upload mode, only reformat.", action="store_true")
 parser.add_argument("-noreformat", "--no_reformat", help="No reformat mode, only upload.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
-parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY', 'MYINT'])
+parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY', 'MYINT','MYMDS'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
@@ -27,6 +28,7 @@ parser.add_argument("-pname", "--name_product", help="Product name")
 parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
+
 
 args = parser.parse_args()
 
@@ -65,12 +67,12 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
         if args.verbose:
             print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
         pinfomy.MODE = 'UPLOAD'
-        upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+        upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.use_mds,args.verbose)
         delete_nrt = True
         # delete nrt
         # delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
     else:
-        upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+        upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.use_mds, args.verbose)
 
     #delete nrt if neeed
     if delete_nrt:
@@ -98,6 +100,7 @@ def main():
     if n_datasets == 0:
         print(f'[ERROR] No datasets selected')
         return
+
     if not check_datasets(name_products, name_datasets):
         return
     if args.verbose:

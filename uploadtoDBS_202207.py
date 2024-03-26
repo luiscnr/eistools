@@ -16,6 +16,7 @@ from datetime import timedelta
 parser = argparse.ArgumentParser(description='Upload 2DBS')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument("-umds", "--use_mds", help="Use MDS server", action="store_true")
 parser.add_argument("-noupload", "--no_upload", help="No upload mode, only reformat.", action="store_true")
 parser.add_argument("-noreformat", "--no_reformat", help="No reformat mode, only upload.", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
@@ -32,6 +33,8 @@ parser.add_argument("-pfreq", "--frequency_product",
                     help="Select datasets of selected product (-pname) with this frequency", choices=['d', 'm', 'c'])
 parser.add_argument("-dname", "--name_dataset", help="Product name")
 parser.add_argument("-del", "--delete_orig", help="Delete original files after uploading them", action="store_true")
+
+
 args = parser.parse_args()
 
 
@@ -129,12 +132,12 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
         if args.verbose:
             print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
         pinfomy.MODE = 'UPLOAD'
-        upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+        upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date,args.use_mds, args.verbose)
         delete_nrt = True
         # delete nrt
         # delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
     else:
-        upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+        upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date,args.use_mds, args.verbose)
 
     # delete nrt if neeed
     if delete_nrt:
@@ -277,60 +280,60 @@ def get_date_from_param(dateparam):
     return datefin
 
 
-def main_deprecated():
-    print('STARTED')
-    pinfo = ProductInfo()
-
-    if args.region:
-        region = args.region
-        if region == 'BS':
-            region = 'BLK'
-
-    do_multiple_datasets = False
-    if args.mode and args.region and args.level and args.dataset_type and args.sensor:
-        # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
-        pinfo.set_dataset_info_fromparam(args.mode, region, args.level, args.dataset_type, args.sensor)
-    elif args.mode and args.name_product and args.name_dataset:
-        pinfo.set_dataset_info(args.name_product, args.name_dataset)
-    elif args.mode and args.name_product and not args.name_dataset:
-        pinfo.set_product_info(args.name_product)
-        do_multiple_datasets = True
-
-    if args.start_date and args.end_date and not do_multiple_datasets:
-        start_date = dt.strptime(args.start_date, '%Y-%m-%d')
-        end_date = dt.strptime(args.end_date, '%Y-%m-%d')
-        if pinfo.dinfo['frequency'] == 'd':
-            upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
-            if args.delete_orig:
-                pinfo.MODE = 'REFORMAT'
-                pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-                if args.verbose:
-                    print(f'[INFO] Deleting files: Completed')
-        if pinfo.dinfo['frequency'] == 'm':
-            upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
-        if pinfo.dinfo['frequency'] == 'c':
-            upload_climatology_dataset_pinfo(pinfo, args.mode, start_date, end_date)
-
-    if args.start_date and args.end_date and do_multiple_datasets:
-        start_date = dt.strptime(args.start_date, '%Y-%m-%d')
-        end_date = dt.strptime(args.end_date, '%Y-%m-%d')
-        for dname in pinfo.pinfo:
-            pinfo_here = ProductInfo()
-            pinfo_here.set_dataset_info(args.name_product, dname)
-            make = True
-            if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
-                make = False
-            if pinfo_here.dinfo['frequency'] == 'd' and make:
-                upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date, args.verbose)
-                if args.delete_orig:
-                    pinfo.MODE = 'REFORMAT'
-                    pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-                    if args.verbose:
-                        print(f'[INFO] Deleting files: Completed')
-            if pinfo_here.dinfo['frequency'] == 'm' and make:
-                upload_monthly_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
-            if pinfo_here.dinfo['frequency'] == 'c' and make:
-                upload_climatology_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+# def main_deprecated():
+#     print('STARTED')
+#     pinfo = ProductInfo()
+#
+#     if args.region:
+#         region = args.region
+#         if region == 'BS':
+#             region = 'BLK'
+#
+#     do_multiple_datasets = False
+#     if args.mode and args.region and args.level and args.dataset_type and args.sensor:
+#         # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
+#         pinfo.set_dataset_info_fromparam(args.mode, region, args.level, args.dataset_type, args.sensor)
+#     elif args.mode and args.name_product and args.name_dataset:
+#         pinfo.set_dataset_info(args.name_product, args.name_dataset)
+#     elif args.mode and args.name_product and not args.name_dataset:
+#         pinfo.set_product_info(args.name_product)
+#         do_multiple_datasets = True
+#
+#     if args.start_date and args.end_date and not do_multiple_datasets:
+#         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
+#         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+#         if pinfo.dinfo['frequency'] == 'd':
+#             upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+#             if args.delete_orig:
+#                 pinfo.MODE = 'REFORMAT'
+#                 pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+#                 if args.verbose:
+#                     print(f'[INFO] Deleting files: Completed')
+#         if pinfo.dinfo['frequency'] == 'm':
+#             upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+#         if pinfo.dinfo['frequency'] == 'c':
+#             upload_climatology_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+#
+#     if args.start_date and args.end_date and do_multiple_datasets:
+#         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
+#         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+#         for dname in pinfo.pinfo:
+#             pinfo_here = ProductInfo()
+#             pinfo_here.set_dataset_info(args.name_product, dname)
+#             make = True
+#             if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
+#                 make = False
+#             if pinfo_here.dinfo['frequency'] == 'd' and make:
+#                 upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date, args.verbose)
+#                 if args.delete_orig:
+#                     pinfo.MODE = 'REFORMAT'
+#                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
+#                     if args.verbose:
+#                         print(f'[INFO] Deleting files: Completed')
+#             if pinfo_here.dinfo['frequency'] == 'm' and make:
+#                 upload_monthly_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+#             if pinfo_here.dinfo['frequency'] == 'c' and make:
+#                 upload_climatology_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
 
     # b = pinfo.check_dataset_namesin_dict()
     # print(b)
@@ -341,13 +344,13 @@ def main_deprecated():
     # ftpdu.close()
 
 
-def upload_daily_dataset(product, dataset, mode, start_date, end_date, verbose):
+def upload_daily_dataset(product, dataset, mode, start_date, end_date, use_mds,verbose):
     pinfo = ProductInfo()
     pinfo.set_dataset_info(product, dataset)
-    upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose)
+    upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, use_mds,verbose)
 
 
-def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
+def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, use_mds, verbose):
     delete_nrt = False
     year_ini = start_date.year
     year_fin = end_date.year
@@ -375,10 +378,10 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
                 if args.verbose:
                     print(
                         f'[INFO] Upload to equivalent MY (myint) product: {pinfomy.product_name} : datataset: {pinfomy.dataset_name}')
-                upload_daily_dataset_impl(pinfomy, 'MY', year, month, day_ini, day_fin, verbose)
+                upload_daily_dataset_impl(pinfomy, 'MY', year, month, day_ini, day_fin, use_mds,verbose)
                 delete_nrt = True
             else:
-                upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
+                upload_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, use_mds, verbose)
     if delete_nrt:
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
@@ -436,8 +439,8 @@ def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
 
 # important: pinfo is a ProductInfo object already containing the information of the product and dataset
 # mode: MY, NRT, DT
-def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verbose):
-    ftpdu = FTPUpload(mode)
+def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_mds,verbose):
+    ftpdu = FTPUpload(mode,use_mds)
     deliveries = Deliveries()
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path(year, month)
@@ -652,20 +655,24 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month, verbo
 
 
 class FTPUpload():
-    def __init__(self, mode):
+    def __init__(self, mode,use_mds):
         sdir = os.path.abspath(os.path.dirname(__file__))
         # path2script = "/".join(sdir.split("/")[0:-1])
         path2script = os.path.dirname(sdir)
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
         if mode == 'MY':
-            du_server = "my.cmems-du.eu"
-        elif mode == 'MYMDS':
-            du_server = 'ftp-my.marine.copernicus.eu'
+            if use_mds:
+                du_server = 'ftp-my.marine.copernicus.eu'
+            else:
+                du_server = "my.cmems-du.eu"
+
         elif mode == 'NRT' or mode == 'DT':
-            du_server = "nrt.cmems-du.eu"
-        elif mode == 'NRTMDS' or mode == 'DTMDS':
-            du_server = "ftp-nrt.marine.copernicus.eu"
+            if use_mds:
+                du_server = "ftp-nrt.marine.copernicus.eu"
+            else:
+                du_server = "nrt.cmems-du.eu"
+
         du_uname = credentials.get('cnr', 'uname')
         du_passwd = credentials.get('cnr', 'passwd')
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
