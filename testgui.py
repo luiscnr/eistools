@@ -410,10 +410,11 @@ def launch_gui(pinfo_folder):
 
 
 def main():
+    pinfo_folder = None
+    if args.pinfo_folder and os.path.isdir(args.pinfo_folder):
+        pinfo_folder = args.pinfo_folder
+
     if args.launch_gui:
-        pinfo_folder = None
-        if args.pinfo_folder and os.path.isdir(args.pinfo_folder):
-            pinfo_folder = args.pinfo_folder
         launch_gui(pinfo_folder)
         return
     # main()
@@ -422,7 +423,7 @@ def main():
         from datetime import datetime as dt
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
-        check_files(args.name_product, args.name_dataset, start_date, end_date)
+        check_files(args.name_product, args.name_dataset, start_date, end_date,pinfo_folder)
     if args.mode=='update_buckets':
         getting_s3_buckect_boto3(args.use_dta,None)
 
@@ -596,10 +597,10 @@ def getting_s3_buckets_copernicus_marine():
         #     pinfo.update_json(pinfo_out)
 
 
-def check_files(product_name, dataset_name, start_date, end_date):
+def check_files(product_name, dataset_name, start_date, end_date,pinfo_folder):
     from product_info import ProductInfo
     from datetime import datetime as dt
-    gui = GUI(False)
+    gui = GUI(False,pinfo_folder)
 
     # product_name = 'OCEANCOLOUR_BLK_BGC_L3_MY_009_153'
     # dataset_name = 'cmems_obs-oc_blk_bgc-plankton_my_l3-multi-1km_P1D'

@@ -95,11 +95,11 @@ def main():
                 if args.verbose:
                     print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
                 pinfomy.MODE = 'UPLOAD'
-                upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+                upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date,args.use_mds, args.verbose)
                 # delete nrt
                 delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
             else:
-                upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+                upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.use_mds,args.verbose)
             if args.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
 
@@ -424,7 +424,7 @@ def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
         upload_climatology_dataset_impl(pinfo, mode, month, day_ini, day_fin)
 
 
-def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
+def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date, use_mds,verbose):
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -434,7 +434,7 @@ def upload_monthly_dataset_pinfo(pinfo, mode, start_date, end_date, verbose):
             mini = start_date.month
         if year == end_date.year:
             mfin = end_date.month
-        upload_monthly_dataset_impl(pinfo, mode, year, mini, mfin, verbose)
+        upload_monthly_dataset_impl(pinfo, mode, year, mini, mfin, use_mds,verbose)
 
 
 # important: pinfo is a ProductInfo object already containing the information of the product and dataset
@@ -579,8 +579,8 @@ def upload_climatology_dataset_impl(pinfo, mode, month, start_day, end_day):
     ftpdu.close()
 
 
-def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month, verbose):
-    ftpdu = FTPUpload(mode)
+def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month,use_mds, verbose):
+    ftpdu = FTPUpload(mode,use_mds)
     deliveries = Deliveries()
     path_orig = pinfo.get_path_orig(year)
     rpath, sdir = pinfo.get_remote_path_monthly(year)
