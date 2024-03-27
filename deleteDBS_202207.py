@@ -180,7 +180,7 @@ def make_delete_daily_dataset(pinfo, mode, start_date, end_date, verbose):
         delete_year_folder(pinfo, mode, year, verbose)
 
 
-def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, verbose):
+def make_delete_monthly_dataset(pinfo, mode, start_date, end_date,use_mds, verbose):
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -190,7 +190,7 @@ def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, verbose):
             month_ini = start_date.month
         if year == year_fin:
             month_fin = end_date.month
-        delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose)
+        delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin,use_mds, verbose)
 
     for year in range(year_ini, year_fin + 1):
         delete_year_folder(pinfo, mode, year, verbose)

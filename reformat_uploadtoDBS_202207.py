@@ -161,11 +161,11 @@ def main():
                 if args.verbose:
                     print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
                 pinfomy.MODE = 'UPLOAD'
-                upload.upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.verbose)
+                upload.upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.use_mds,args.verbose)
                 # delete nrt
-                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
+                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.use_mds,args.verbose)
             else:
-                upload.upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+                upload.upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.use_mds,args.verbose)
             if args.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
                 print('***********************************************************')
