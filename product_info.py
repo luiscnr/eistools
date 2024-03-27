@@ -88,6 +88,16 @@ class ProductInfo:
     def get_frequency(self):
         return self.get_dinfo_param('frequency')
 
+    def get_number_expected_files_between_two_dates(self,start_date,end_date):
+        frequency = self.get_frequency()
+        if frequency is None:
+            return -1
+        if frequency.lower()=='d':
+            return (end_date-start_date).days+1
+        elif frequency.lower()=='m':
+            return ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month)+1
+        return -1
+
     def get_dtype(self):
         return self.get_dinfo_param('dataset')
 
