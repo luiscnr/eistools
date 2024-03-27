@@ -325,13 +325,19 @@ class GUI():
             if key=='NRTd' and (dataset.find('nrt_l3')>0 or dataset.find('nrt_l4-gapfree')>0):
                 ldatasets.append(dataset)
             if key=='DTd8' and (dataset.find('my_l3')>0):
-                ldatasets.append(dataset)
+                if dataset.find('bal')>0 and dataset.find('multi')>0:
+                    pass
+                else:
+                    ldatasets.append(dataset)
             if key=='DTd12' and (dataset.find('my_l4-gapfree')>0):
                 ldatasets.append(dataset)
             if key=='NRTm' and dataset.find('nrt_l4')>0 and dataset.find('nrt_l4-gapfree')<0:
                 ldatasets.append(dataset)
             if key == 'DTm' and dataset.find('my_l4') > 0 and dataset.find('my_l4-gapfree') < 0 and dataset.find('climatology')<0:
-                ldatasets.append(dataset)
+                if dataset.find('bal')>0 and dataset.find('multi')>0:
+                    pass
+                else:
+                    ldatasets.append(dataset)
         return ldatasets
 
     def set_frame_dates(self, frame):
@@ -511,8 +517,6 @@ def getting_s3_buckect_boto3(use_dta, type):
     sb = S3Bucket()
     pbuckets = sb.get_buckets_from_url(pnames, use_dta, type)
     for pname in pnames:
-        if pname == 'OCEANCOLOUR_ARC_BGC_L4_MY_009_122':
-            continue
         print('[INFO] -----------------------------------------')
         print('[INFO] Product: ', pname)
         remote_end_point = sb.S3_ENDPOINT
@@ -546,8 +550,6 @@ def getting_s3_buckets_copernicus_marine():
 
     pnames = pinfo.get_list_all_products()
     for pname in pnames:
-        if pname == 'OCEANCOLOUR_ARC_BGC_L4_MY_009_122':
-            continue
         print('[INFO] -----------------------------------------')
         print('[INFO] Product: ', pname)
         res = copernicusmarine.describe(include_datasets=True, contains=[pname])
