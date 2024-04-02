@@ -375,10 +375,10 @@ def get_lines_dataset(name_product, name_dataset, date):
     from s3buckect import S3Bucket
     sb = S3Bucket()
     sb.star_client()
-    if upload_mode == 'MYINT':
-        # rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
-        print(name_product,name_dataset,pinfomy.product_name,pinfomy.dataset_name)
+    print('--------------->',name_product, name_dataset, pinfomy.product_name, pinfomy.dataset_name)
+    if upload_mode == 'MYINT':    
         bucket, key, isuploaded = sb.check_daily_file('MYINT', pinfomy, date, False)
+        # rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
     else:
         # rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
         bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
