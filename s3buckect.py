@@ -1,3 +1,6 @@
+from hashlib import md5
+
+
 class S3Bucket():
     def __init__(self):
         self.S3_ENDPOINT = "https://s3.waw3-1.cloudferro.com"
@@ -13,6 +16,37 @@ class S3Bucket():
         self.buckets_dta = 'https://s3.waw3-1.cloudferro.com/mdl-metadata-dta/nativeBuckets.json'
         self.buckets_oper = 'https://s3.waw3-1.cloudferro.com/mdl-metadata/nativeBuckets.json'
         self.s3client = None
+
+    def check_local_etag(self, inputfile, remote_etag):
+        import os
+        filesize = os.path.getsize(inputfile)
+        num_parts = int(remote_etag.split('-')[1])
+
+        partsizes = [  ## Default Partsizes Map
+            8388608,  # aws_cli/boto3
+            15728640,  # s3cmd
+            self.factor_of_1MB(filesize, num_parts)  # Used by many clients to upload large files
+        ]
+
+        for partsize in filter(self.possible_partsizes(filesize, num_parts), partsizes):
+            if remote_etag == self.calc_etag(inputfile, partsize):
+                return True
+        return False
+
+    def factor_of_1MB(self, filesize, num_parts):
+        x = filesize / int(num_parts)
+        y = x % 1048576
+        return int(x + 1048576 - y)
+
+    def calc_etag(self, inputfile, partsize):
+        md5_digests = []
+        with open(inputfile, 'rb') as f:
+            for chunk in iter(lambda: f.read(partsize), b''):
+                md5_digests.append(md5(chunk).digest())
+        return md5(b''.join(md5_digests)).hexdigest() + '-' + str(len(md5_digests))
+
+    def possible_partsizes(self, filesize, num_parts):
+        return lambda partsize: partsize < filesize and (float(filesize) / float(partsize)) <= num_parts
 
     ##List name buckets. type: current or target
     def get_buckets_from_url(self, product_names, use_dta, type):
@@ -81,6 +115,29 @@ class S3Bucket():
             size_mb = size_kb / 1024
             return f'{size_mb:.2f} Mb'
 
+    def check_daily_file(self,mode,pinfo,date,verbose):
+        subdir = date.strftime('%Y/%m')
+        self.update_params_from_pinfo(pinfo)
+        remote_name = pinfo.get_remote_file_name(date)
+        if mode == 'DT':
+            remote_name = remote_name.replace('nrt', 'dt')
+        if mode == 'MYINT':
+            remote_name = remote_name.replace('my', 'myint')
+
+        key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+
+        isuploaded = True
+        try:
+            self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+        except:
+            isuploaded = False
+        if verbose:
+            print(f'[INFO] Bucket name: {self.S3_BUCKET_NAME}')
+            print(f'[INFO] Remote file key: {key}')
+            print(f'[INFO] Uploaded: {isuploaded}')
+
+        return self.S3_BUCKET_NAME,key,isuploaded
+
     def list_files(self, files, subdir, start_date, end_date):  # subdir yyyy/mm
         from datetime import datetime as dt
         if files is None:
@@ -118,8 +175,7 @@ class S3Bucket():
 
         return files
 
-
-    def list_files_month(self,files,subdir,start_date,end_date): ##subdir year
+    def list_files_month(self, files, subdir, start_date, end_date):  ##subdir year
         from datetime import datetime as dt
         if files is None:
             files = {}

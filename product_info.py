@@ -19,14 +19,14 @@ class ProductInfo:
         self.pinfo = {}
         self.dinfo = {}
 
-        # self.modes = ['my', 'nrt']
-        # self.basins = ['bal', 'blk', 'med']
-        # self.levels = ['l3', 'l4']
-        # self.dataset_types = ['optics', 'plankton', 'reflectance', 'transp']
-        # self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
-        # self.dict_info = {}
-        # self.start_my_dictionary()
-        # self.start_nrt_dictionary()
+        self.modes = ['my', 'nrt']
+        self.basins = ['bal', 'blk', 'med']
+        self.levels = ['l3', 'l4']
+        self.dataset_types = ['optics', 'plankton', 'reflectance', 'transp']
+        self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
+        self.dict_info = {}
+        self.start_my_dictionary()
+        self.start_nrt_dictionary()
 
         self.MODE = 'UPLOAD'  # UPLOAD, REFORMAT, NONE
 
@@ -956,6 +956,7 @@ class ProductInfo:
             return None
         if "myproduct" in self.dinfo.keys() and "mydataset" in self.dinfo.keys():
             pmyinfo = ProductInfo()
+            pmyinfo.path2info = self.path2info
             pmyinfo.set_dataset_info(self.dinfo['myproduct'], self.dinfo['mydataset'])
             return pmyinfo
         else:

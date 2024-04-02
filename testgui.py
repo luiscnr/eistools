@@ -9,7 +9,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-gui", "--launch_gui", help="Launch GUI", action="store_true")
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
-parser.add_argument("-m", "--mode", help="Mode",choices=['check_files','update_buckets'])
+parser.add_argument("-m", "--mode", help="Mode",choices=['check_files','update_buckets','check_daily_file'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pname", "--name_product", help="Product name")
@@ -428,8 +428,26 @@ def main():
     if args.mode=='check_files':
         from datetime import datetime as dt
         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
-        end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+        if args.end_date:
+            end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+        else:
+            end_date =start_date
         check_files(args.name_product, args.name_dataset, start_date, end_date,pinfo_folder)
+
+    if args.mode=='check_daily_file':
+        from datetime import datetime as dt
+        start_date = dt.strptime(args.start_date, '%Y-%m-%d')
+        from product_info import ProductInfo
+        pinfo = ProductInfo()
+        pinfo.path2info = pinfo_folder
+        pinfo.set_dataset_info(args.name_product, args.name_dataset)
+        from s3buckect import S3Bucket
+        sb = S3Bucket()
+        sb.star_client()
+        sb.check_daily_file('NRT',pinfo,start_date,args.verbose)
+        sb.close_client()
+
+
     if args.mode=='update_buckets':
         getting_s3_buckect_boto3(args.use_dta,None)
 

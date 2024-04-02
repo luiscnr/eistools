@@ -2,12 +2,13 @@ import argparse
 from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
-import check_202207 as checkftp
+#import check_202207 as checkftp
 from source_info import SourceInfo
 import os
 
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
+parser.add_argument("-pinfo", "--pinfo_folder",help="Alternative product info folder")
 parser.add_argument("-sd", "--date", help="Date.")
 args = parser.parse_args()
 
@@ -57,6 +58,35 @@ def main():
 
     save_attach_info_file(lines)
     start_lines = get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded)
+
+    ##alternative pinfo with alternative (test) upload buckect
+    if args.pinfo_folder and os.path.isdir(args.pinfo_folder):
+        lines_alt = []
+        nuploaded_alt = 0
+        missing_files = []
+        from s3buckect import S3Bucket
+        sb = S3Bucket()
+        sb.star_client()
+        for idx in range(len(name_products)):
+            pinfo = ProductInfo()
+            pinfo.path2info = args.pinfo_folder
+            pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
+            buckect,key,isuploaded = check_upload_dataset_s3_bucket(sb,pinfo,dates[idx])
+            if isuploaded:
+                nuploaded_alt = nuploaded_alt + 1
+            else:
+                missing_files.append(f'Bucket: {buckect} Key: {key}')
+        sb.close_client()
+        lines_alt.append('-------------------------------------------------------------------------------------------')
+        lines_alt.append('ALTERNATIVE UPLOAD BUCKETS')
+        lines_alt.append(f'PRODUCT INFO FOLDER: {args.pinfo_folder}')
+        lines_alt.append(f'UPLOADED DATASETS: {nuploaded_alt} / {ndatasets}')
+        if len(missing_files)>0:
+            lines.append('MISSING DATASETS:')
+            for ml in missing_files:
+                lines_alt.append(ml)
+        lines_alt.append('-------------------------------------------------------------------------------------------')
+        start_lines = [*start_lines,*lines_alt]
     lines_mail = start_lines
 
     if ncompleted == ndatasets and nprocessed == ndatasets and nuploaded == ndatasets:
@@ -217,9 +247,16 @@ def append_lines_to_reproc_file(date, lines):
             f.write(line)
             f.write('\n')
 
+def get_path_reproc():
+    path_reproc = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES'
+    if not os.path.exists(path_reproc):
+        path_reproc = '/mnt/c/DATA_LUIS/OCTAC_WORK'
+    return path_reproc
 
 def get_reproc_filename(date):
-    path_base = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES/PENDING'
+    path_base = f'{get_path_reproc()}/PENDING'
+    if not os.path.exists(path_base):
+        os.mkdir(path_base)
     datestr = date.strftime('%Y%m%d')
     freproc = os.path.join(path_base, f'reproc_{args.mode}_{datestr}.sh')
     return freproc
@@ -235,9 +272,10 @@ def save_attach_info_file(lines):
 
 def get_attach_info_file():
     if args.mode == 'NRT':
-        finfo = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES/NRTProduct.txt'
+
+        finfo = f'{get_path_reproc()}/NRTProduct.txt'
     if args.mode == 'DT':
-        finfo = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES/DTProduct.txt'
+        finfo = f'{get_path_reproc()}/DTProduct.txt'
     return finfo
 
 
@@ -322,21 +360,55 @@ def get_lines_dataset(name_product, name_dataset, date):
         if not pinfomy is None:
             upload_mode = 'MYINT'
 
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.star_client()
     if upload_mode == 'MYINT':
-        rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
+        #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
+        bucket, key, isuploaded = sb.check_daily_file('NRT', pinfo, date, False)
     else:
-        rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
+        #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
+        bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, True)
+    sb.close_client()
+
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('DU Upload')
     lines.append(f'Upload mode:  {upload_mode.lower()}')
-    lines.append(f'Remote path: {rpath}')
-    lines.append(f'Remote file name: {remote_file_name}')
+    #lines.append(f'Remote path: {rpath}')
+    #lines.append(f'Remote file name: {remote_file_name}')
+    lines.append(f'Remote bucket: {bucket}')
+    lines.append(f'Remote key: {key}')
+
     if isuploaded:
         lines.append('Upload status: OK')
     else:
         lines.append('Upload status: FAILED')
 
     return lines, iscompleted, isprocessed, isuploaded, missing_str
+
+def check_upload_dataset_s3_bucket(sb,pinfo,date):
+    upload_mode = args.mode
+    if args.mode == 'DT':
+        pinfomy = pinfo.get_pinfomy_equivalent()
+        if not pinfomy is None:
+            upload_mode = 'MYINT'
+    if args.mode == 'NRT' and date < pinfo.get_last_nrt_date():
+        upload_mode = 'DT'
+        pinfomy = pinfo.get_pinfomy_equivalent()
+        if not pinfomy is None:
+            upload_mode = 'MYINT'
+
+    if sb is None:
+        from s3buckect import S3Bucket
+        sb = S3Bucket()
+        sb.star_client()
+    if upload_mode == 'MYINT':
+        bucket, key, isuploaded = sb.check_daily_file('NRT', pinfo, date, False)
+    else:
+        bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, True)
+    #sb.close_client()
+
+    return bucket,key,isuploaded
 
 
 def get_lines_processing(pinfo, date):
