@@ -2,13 +2,13 @@ import argparse
 from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
-#import check_202207 as checkftp
+# import check_202207 as checkftp
 from source_info import SourceInfo
 import os
 
 parser = argparse.ArgumentParser(description='Daily reports')
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT'])
-parser.add_argument("-pinfo", "--pinfo_folder",help="Alternative product info folder")
+parser.add_argument("-pinfo", "--pinfo_folder", help="Alternative product info folder")
 parser.add_argument("-sd", "--date", help="Date.")
 args = parser.parse_args()
 
@@ -61,32 +61,8 @@ def main():
 
     ##alternative pinfo with alternative (test) upload buckect
     if args.pinfo_folder and os.path.isdir(args.pinfo_folder):
-        lines_alt = []
-        nuploaded_alt = 0
-        missing_files = []
-        from s3buckect import S3Bucket
-        sb = S3Bucket()
-        sb.star_client()
-        for idx in range(len(name_products)):
-            pinfo = ProductInfo()
-            pinfo.path2info = args.pinfo_folder
-            pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
-            buckect,key,isuploaded = check_upload_dataset_s3_bucket(sb,pinfo,dates[idx])
-            if isuploaded:
-                nuploaded_alt = nuploaded_alt + 1
-            else:
-                missing_files.append(f'Bucket: {buckect} Key: {key}')
-        sb.close_client()
-        lines_alt.append('-------------------------------------------------------------------------------------------')
-        lines_alt.append('ALTERNATIVE UPLOAD BUCKETS')
-        lines_alt.append(f'PRODUCT INFO FOLDER: {args.pinfo_folder}')
-        lines_alt.append(f'UPLOADED DATASETS: {nuploaded_alt} / {ndatasets}')
-        if len(missing_files)>0:
-            lines_alt.append('MISSING DATASETS:')
-            for ml in missing_files:
-                lines_alt.append(ml)
-        lines_alt.append('-------------------------------------------------------------------------------------------')
-        start_lines = [*start_lines,*lines_alt]
+        lines_alt = get_lines_upload_alt(name_products, name_datasets, dates)
+        start_lines = [*start_lines, *lines_alt]
     lines_mail = start_lines
 
     if ncompleted == ndatasets and nprocessed == ndatasets and nuploaded == ndatasets:
@@ -186,7 +162,41 @@ def main():
     print_email_lines(lines_mail)
 
 
-def get_start_lines(date,ndatasets, ncompleted, nprocessed, nuploaded):
+def get_lines_upload_alt(name_products, name_datasets, dates):
+    ndatasets = len(name_datasets)
+    lines_alt = []
+    nuploaded_alt = 0
+    missing_files = []
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.star_client()
+    for idx in range(len(name_products)):
+        pinfo = ProductInfo()
+        pinfo.path2info = args.pinfo_folder
+        pinfo.set_dataset_info(name_products[idx], name_datasets[idx])
+        buckect, key, isuploaded = check_upload_dataset_s3_bucket(sb, pinfo, dates[idx])
+        if isuploaded:
+            nuploaded_alt = nuploaded_alt + 1
+        else:
+            name_f = key.split('/')[-1]
+            missing_files.append(f'Bucket: {buckect} Remote file name: {name_f}')
+
+    sb.close_client()
+
+    lines_alt.append('-------------------------------------------------------------------------------------------')
+    lines_alt.append('ALTERNATIVE UPLOAD BUCKETS')
+    lines_alt.append(f'PRODUCT INFO FOLDER: {args.pinfo_folder}')
+    lines_alt.append(f'UPLOADED DATASETS: {nuploaded_alt} / {ndatasets}')
+    if len(missing_files) > 0:
+        lines_alt.append('MISSING DATASETS:')
+        for ml in missing_files:
+            lines_alt.append(ml)
+    lines_alt.append('-------------------------------------------------------------------------------------------')
+
+    return lines_alt
+
+
+def get_start_lines(date, ndatasets, ncompleted, nprocessed, nuploaded):
     lines = []
     datestr = date.strftime('%Y-%m-%d')
     lines.append(f'DAILY TECHNICAL REPORT')
@@ -195,12 +205,12 @@ def get_start_lines(date,ndatasets, ncompleted, nprocessed, nuploaded):
     cmd = f'CMD REPORT: {get_report_cmd(date)}'
     lines.append(cmd)
     lines.append(f'TOTAL NUMBER OF DATASETS: {ndatasets}')
-    if args.mode=='NRT':
-        datep = date.replace(hour=12)-timedelta(days=1)
+    if args.mode == 'NRT':
+        datep = date.replace(hour=12) - timedelta(days=1)
         datepstr = datep.strftime('%Y-%m-%d')
         lines.append(f'PROCESSING DATE: {datepstr}')
     else:
-        datep = date.replace(hour=12)-timedelta(days=8)
+        datep = date.replace(hour=12) - timedelta(days=8)
         datepstr = datep.strftime('%Y-%m-%d')
         lines.append(f'PROCESSING DATE (MULTI): {datepstr}')
         lines.append(f'PROCESSING DATE (OLCI): {datepstr}')
@@ -247,11 +257,13 @@ def append_lines_to_reproc_file(date, lines):
             f.write(line)
             f.write('\n')
 
+
 def get_path_reproc():
     path_reproc = '/store/COP2-OC-TAC/OCTACMANAGER/DAILY_CHECKING/REPROC_FILES'
     if not os.path.exists(path_reproc):
         path_reproc = '/mnt/c/DATA_LUIS/OCTAC_WORK'
     return path_reproc
+
 
 def get_reproc_filename(date):
     path_base = f'{get_path_reproc()}/PENDING'
@@ -272,7 +284,6 @@ def save_attach_info_file(lines):
 
 def get_attach_info_file():
     if args.mode == 'NRT':
-
         finfo = f'{get_path_reproc()}/NRTProduct.txt'
     if args.mode == 'DT':
         finfo = f'{get_path_reproc()}/DTProduct.txt'
@@ -336,7 +347,8 @@ def get_lines_dataset(name_product, name_dataset, date):
     try:
         lines_processing, isgprocessed = get_lines_processing(pinfo, date)
     except:
-        lines_processing = [f'Exception raised with processing for {pinfo.get_sensor()} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
+        lines_processing = [
+            f'Exception raised with processing for {pinfo.get_sensor()} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
         isgprocessed = False
 
     lines = [*lines, *lines_processing]
@@ -364,18 +376,18 @@ def get_lines_dataset(name_product, name_dataset, date):
     sb = S3Bucket()
     sb.star_client()
     if upload_mode == 'MYINT':
-        #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
-        bucket, key, isuploaded = sb.check_daily_file('NRT', pinfo, date, False)
+        # rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
+        bucket, key, isuploaded = sb.check_daily_file('MYINT', pinfomy, date, False)
     else:
-        #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
+        # rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
         bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
     sb.close_client()
 
     lines.append('-------------------------------------------------------------------------------------------')
     lines.append('DU Upload')
     lines.append(f'Upload mode:  {upload_mode.lower()}')
-    #lines.append(f'Remote path: {rpath}')
-    #lines.append(f'Remote file name: {remote_file_name}')
+    # lines.append(f'Remote path: {rpath}')
+    # lines.append(f'Remote file name: {remote_file_name}')
     lines.append(f'Remote bucket: {bucket}')
     lines.append(f'Remote key: {key}')
 
@@ -386,8 +398,10 @@ def get_lines_dataset(name_product, name_dataset, date):
 
     return lines, iscompleted, isprocessed, isuploaded, missing_str
 
-def check_upload_dataset_s3_bucket(sb,pinfo,date):
+
+def check_upload_dataset_s3_bucket(sb, pinfo, date):
     upload_mode = args.mode
+
     if args.mode == 'DT':
         pinfomy = pinfo.get_pinfomy_equivalent()
         if not pinfomy is None:
@@ -403,12 +417,12 @@ def check_upload_dataset_s3_bucket(sb,pinfo,date):
         sb = S3Bucket()
         sb.star_client()
     if upload_mode == 'MYINT':
-        bucket, key, isuploaded = sb.check_daily_file('NRT', pinfo, date, False)
+        bucket, key, isuploaded = sb.check_daily_file('MYINT', pinfomy, date, False)
     else:
         bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
-    #sb.close_client()
+    # sb.close_client()
 
-    return bucket,key,isuploaded
+    return bucket, key, isuploaded
 
 
 def get_lines_processing(pinfo, date):
@@ -421,7 +435,7 @@ def get_lines_processing(pinfo, date):
         lines.append(f'  Status: NO IMPLEMENTED')
         isprocessed = True
         return lines, isprocessed
-    #session_id = pinfo.get_session_id(args.mode, date)
+    # session_id = pinfo.get_session_id(args.mode, date)
     session_id = None
     if session_id is None:
         if pinfo.get_sensor() == 'OLCI':
@@ -512,18 +526,19 @@ def get_lines_sources(pinfo, sources, date):
         #     if pinfo.get_sensor().lower()=='gapfree_multi':
         #         date_source = date + timedelta(days=16)
 
-        if source.lower()=='olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
+        if source.lower() == 'olci' and args.mode == 'DT' and pinfo.get_sensor().lower() == 'gapfree_multi':
             date_source = date + timedelta(days=4)
 
-        #this situation is not reached becaused gapfree includes only olci
-        if not source.lower() == 'olci' and args.mode=='DT' and pinfo.get_sensor().lower()=='gapfree_multi':
+        # this situation is not reached becaused gapfree includes only olci
+        if not source.lower() == 'olci' and args.mode == 'DT' and pinfo.get_sensor().lower() == 'gapfree_multi':
             date_source = date + timedelta(days=4)
 
-        #print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
+        # print(pinfo.product_name,pinfo.dataset_name,source,args.mode,date_source)
         try:
             lines_source, source_valid = sinfo.check_source(source, args.mode, pinfo.get_region(), date_source)
         except:
-            lines_source = [f'Exception raised with source: {source} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
+            lines_source = [
+                f'Exception raised with source: {source} Mode: {args.mode} Region: {pinfo.get_region()} Date: {date}']
             source_valid = False
 
         if source_valid:
@@ -576,7 +591,6 @@ def get_list_products_datasets(mode, date):
                 name_products = [*name_products, *name_p]
                 name_datasets = [*name_datasets, *name_d]
                 dates = [*dates, *dates_d]
-
 
     return name_products, name_datasets, dates
 
