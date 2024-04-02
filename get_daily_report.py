@@ -368,7 +368,7 @@ def get_lines_dataset(name_product, name_dataset, date):
         bucket, key, isuploaded = sb.check_daily_file('NRT', pinfo, date, False)
     else:
         #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
-        bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, True)
+        bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
     sb.close_client()
 
     lines.append('-------------------------------------------------------------------------------------------')
