@@ -82,7 +82,7 @@ def main():
         lines_alt.append(f'PRODUCT INFO FOLDER: {args.pinfo_folder}')
         lines_alt.append(f'UPLOADED DATASETS: {nuploaded_alt} / {ndatasets}')
         if len(missing_files)>0:
-            lines.append('MISSING DATASETS:')
+            lines_alt.append('MISSING DATASETS:')
             for ml in missing_files:
                 lines_alt.append(ml)
         lines_alt.append('-------------------------------------------------------------------------------------------')
