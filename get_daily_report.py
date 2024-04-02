@@ -405,7 +405,7 @@ def check_upload_dataset_s3_bucket(sb,pinfo,date):
     if upload_mode == 'MYINT':
         bucket, key, isuploaded = sb.check_daily_file('NRT', pinfo, date, False)
     else:
-        bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, True)
+        bucket, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
     #sb.close_client()
 
     return bucket,key,isuploaded

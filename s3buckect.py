@@ -131,6 +131,7 @@ class S3Bucket():
             self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
         except:
             isuploaded = False
+
         if verbose:
             print(f'[INFO] Bucket name: {self.S3_BUCKET_NAME}')
             print(f'[INFO] Remote file key: {key}')
