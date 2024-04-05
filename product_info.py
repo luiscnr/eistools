@@ -98,6 +98,20 @@ class ProductInfo:
             return ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month)+1
         return -1
 
+    def get_expected_files_between_two_dates(self,start_date,end_date):
+        frequency = self.get_frequency()
+        if frequency is None:
+            return None
+        name_files = []
+        if frequency.lower()=='d':
+            date_here = start_date
+            while date_here<=end_date:
+                date_here_str = date_here.strftime('%Y%m%d')
+                name_file = f'{date_here_str}_{self.dataset_name}.nc'
+                name_files.append(name_file)
+                date_here = date_here + timedelta(hours=24)
+
+        return name_files
     def get_dtype(self):
         return self.get_dinfo_param('dataset')
 

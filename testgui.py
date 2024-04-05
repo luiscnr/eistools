@@ -72,24 +72,29 @@ class GUI():
 
         # files
         frame_files = Frame(root)
-        frame_files.grid(row=5, column=1, pady=10, padx=0, columnspan=10, rowspan=5)
+        frame_files.grid(row=5, column=0, pady=10, padx=5, columnspan=8, rowspan=5)
         self.listbox_files = self.set_tree_view(frame_files)
 
-        ##buttons
-        frame_bop = Frame(root)
-        frame_bop.grid(row=5,column=0,rowspan=5)
-        self.set_buttons_bop(frame_bop)
+        # list missing
+        frame_fm = Frame(root)
+        frame_fm.grid(row=5, column=8, pady=5, padx=0, columnspan=5, rowspan=5)
+        self.listbox_missing = self.set_list_box(frame_fm, 68, 25)
 
 
         # label info
         self.info_var = StringVar()
         self.info_var.set('No files')
         label_info = Label(root, textvariable=self.info_var)
-        label_info.grid(row=10, column=1, columnspan=10,padx=100, sticky=W)
+        label_info.grid(row=10, column=1, columnspan=10,padx=100, pady=2,sticky=W)
+
+        ##buttons
+        frame_bop = Frame(root)
+        frame_bop.grid(row=11, column=0, columnspan=12)
+        self.set_buttons_bop(frame_bop)
 
         # buttons last line
         frame_buttons = Frame(root, bg="white")
-        frame_buttons.grid(row=11, column=1, pady=10, padx=10, columnspan=10)
+        frame_buttons.grid(row=12, column=1, pady=10, padx=10, columnspan=10)
         button_search = Button(frame_buttons, text='SEARCH', command=self.search_files)
         button_search.pack()
 
@@ -126,6 +131,52 @@ class GUI():
 
         line_str = f'Files retrieved: {nfiles} / {nexpected_files}. Missing files: {nmissing}. Total size: {total_size_str}'
         self.info_var.set(line_str)
+
+        self.listbox_missing.delete(0, END)
+
+        if nmissing>0:
+            available_files = list(files.keys())
+            misssing_files = []
+            from datetime import timedelta
+            from datetime import datetime as dt
+            for dataset in datasets:
+                product = self.dproducts[dataset]
+                self.pinfo.set_dataset_info(product, dataset)
+                frequency = self.pinfo.get_frequency()
+                if frequency is None:
+                    continue
+                if frequency.lower()=='d':
+                    check_date = start_date
+                    while check_date<=end_date:
+                        remote_file_name = self.pinfo.get_remote_file_name(check_date)
+                        if self.pinfo.dinfo['mode'] == 'MY':
+                            datemyintref = dt.strptime(self.pinfo.dinfo['myint_date'], '%Y-%m-%d')
+                            if check_date >= datemyintref:
+                                remote_file_name = remote_file_name.replace('my', 'myint')
+                        if remote_file_name not in available_files:
+                            misssing_files.append(remote_file_name)
+                        check_date = check_date + timedelta(hours=24)
+
+                if frequency.lower()=='m':
+                    end_date = end_date.replace(day=15,hour=0,minute=0,second=0,microsecond=0)
+                    check_date = start_date.replace(day=15,hour=0,minute=0,second=0,microsecond=0)
+                    while check_date <= end_date:
+                        remote_file_name = self.pinfo.get_remote_file_name_monthly(check_date)
+                        if self.pinfo.dinfo['mode'] == 'MY':
+                            datemyintref = dt.strptime(self.pinfo.dinfo['myint_date'], '%Y-%m-%d')
+                            if check_date >= datemyintref:
+                                remote_file_name = remote_file_name.replace('my', 'myint')
+                        if remote_file_name not in available_files:
+                            misssing_files.append(remote_file_name)
+                        next_year = check_date.year
+                        next_month = check_date.month+1
+                        if next_month==13:
+                            next_month= 1
+                            next_year = next_year+1
+                        check_date = check_date.replace(year=next_year,month=next_month)
+
+            for idx, fname in enumerate(misssing_files):
+                self.listbox_missing.insert(idx, fname)
 
     def get_size_str(self ,size):
         size_kb = size /1024
@@ -195,10 +246,8 @@ class GUI():
 
     def set_tree_view(self, frame):
         from tkinter import ttk
-
-
         tree = ttk.Treeview(frame, column=("c1", "c2", "c3"), show='headings', height=18)
-        tree.column("# 1", anchor=W, width=570)
+        tree.column("# 1", anchor=W, width=450)
         tree.heading("# 1", text="File")
         tree.column("# 2", anchor=W, width=130)
         tree.heading("# 2", text="Datetime")
@@ -290,20 +339,32 @@ class GUI():
         self.entrye.insert(0,end_date_s)
 
     def set_buttons_bop(self,frame):
-        text_b = ['NRTd','DTd8','DTd12','NRTm','DTm']
+        text_b = ['NRTd','DTd8','DTd12','NRTm','DTm','X','Y','Z']
 
         button0 = Button(frame,text=text_b[0],command=lambda: self.set_dataset_and_dates_options(0))
-        button0.grid(row=0,column=0,pady=25)
+        button0.grid(row=0,column=0,padx=25)
         button1 = Button(frame, text=text_b[1], command=lambda: self.set_dataset_and_dates_options(1))
-        button1.grid(row=1, column=0, pady=25)
+        button1.grid(row=0, column=1, padx=25)
         button2 = Button(frame, text=text_b[2], command=lambda: self.set_dataset_and_dates_options(2))
-        button2.grid(row=2, column=0, pady=25)
+        button2.grid(row=0, column=2, padx=25)
         button3 = Button(frame, text=text_b[3], command=lambda: self.set_dataset_and_dates_options(3))
-        button3.grid(row=3, column=0, pady=25)
+        button3.grid(row=0, column=3, padx=25)
         button4 = Button(frame, text=text_b[4], command=lambda: self.set_dataset_and_dates_options(4))
-        button4.grid(row=4, column=0, pady=25)
+        button4.grid(row=0, column=4, padx=25)
+
+        ##no implemented buttons
+        button5 = Button(frame, text=text_b[5], command=lambda: self.set_dataset_and_dates_options(5))
+        button5.grid(row=0, column=5, padx=25)
+
+        button6 = Button(frame, text=text_b[6], command=lambda: self.set_dataset_and_dates_options(6))
+        button6.grid(row=0, column=6, padx=25)
+
+        button7 = Button(frame, text=text_b[7], command=lambda: self.set_dataset_and_dates_options(7))
+        button7.grid(row=0, column=7, padx=25)
 
     def set_dataset_and_dates_options(self,idx):
+        if idx>=5: ##NO IMPLEMENTED
+            return
         text_b = ['NRTd', 'DTd8', 'DTd12', 'NRTm', 'DTm']
         dates = [-1,-8,-12,-999,-999]
         datasets = self.get_list_datasets(text_b[idx])
@@ -449,7 +510,8 @@ def main():
 
 
     if args.mode=='update_buckets':
-        getting_s3_buckect_boto3(args.use_dta,None)
+        #getting_s3_buckect_boto3(args.use_dta,None)
+        getting_s3_buckets_copernicus_marine()
 
     # from datetime import datetime as dt
     # sd = dt(2024,2,27)
