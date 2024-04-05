@@ -72,12 +72,12 @@ class GUI():
 
         # files
         frame_files = Frame(root)
-        frame_files.grid(row=5, column=0, pady=10, padx=5, columnspan=8, rowspan=5)
+        frame_files.grid(row=5, column=0, pady=10, padx=5, columnspan=8, rowspan=4)
         self.listbox_files = self.set_tree_view(frame_files)
 
         # list missing
         frame_fm = Frame(root)
-        frame_fm.grid(row=5, column=8, pady=5, padx=0, columnspan=5, rowspan=5)
+        frame_fm.grid(row=5, column=8, pady=5, padx=0, columnspan=5, rowspan=4)
         self.listbox_missing = self.set_list_box(frame_fm, 68, 25)
 
 
