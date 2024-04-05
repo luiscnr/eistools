@@ -85,16 +85,16 @@ class GUI():
         self.info_var = StringVar()
         self.info_var.set('No files')
         label_info = Label(root, textvariable=self.info_var)
-        label_info.grid(row=10, column=1, columnspan=10,padx=100, pady=2,sticky=W)
+        label_info.grid(row=9, column=1, columnspan=10,padx=100, pady=2,sticky=W)
 
         ##buttons
         frame_bop = Frame(root)
-        frame_bop.grid(row=11, column=0, columnspan=12)
+        frame_bop.grid(row=10, column=0, columnspan=12)
         self.set_buttons_bop(frame_bop)
 
         # buttons last line
         frame_buttons = Frame(root, bg="white")
-        frame_buttons.grid(row=12, column=1, pady=10, padx=10, columnspan=10)
+        frame_buttons.grid(row=11, column=1, pady=10, padx=10, columnspan=10)
         button_search = Button(frame_buttons, text='SEARCH', command=self.search_files)
         button_search.pack()
 
