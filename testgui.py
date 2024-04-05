@@ -37,7 +37,7 @@ class GUI():
             return
 
         root = Tk()
-        root.geometry('1200x600')
+        root.geometry('1200x700')
 
         # combo products
         frame_cb = Frame(root,relief=SOLID,borderwidth=1)
