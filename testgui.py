@@ -78,7 +78,7 @@ class GUI():
         # list missing
         frame_fm = Frame(root)
         frame_fm.grid(row=5, column=8, pady=5, padx=0, columnspan=5, rowspan=4)
-        self.listbox_missing = self.set_list_box(frame_fm, 68, 25)
+        self.listbox_missing = self.set_list_box(frame_fm, 68, 20)#25
 
 
         # label info
@@ -246,7 +246,7 @@ class GUI():
 
     def set_tree_view(self, frame):
         from tkinter import ttk
-        tree = ttk.Treeview(frame, column=("c1", "c2", "c3"), show='headings', height=18)
+        tree = ttk.Treeview(frame, column=("c1", "c2", "c3"), show='headings', height=12)#18
         tree.column("# 1", anchor=W, width=450)
         tree.heading("# 1", text="File")
         tree.column("# 2", anchor=W, width=130)
