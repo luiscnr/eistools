@@ -388,7 +388,7 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, use_mds, verbo
         delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt,use_mds,verbose)
 
 
-# method for deleting nrt datasets after uploading to mying
+# method for deleting nrt datasets after uploading to myint
 def delete_nrt_daily_dataset(pinfo, start_date, end_date, use_mds,verbose):
     year_ini = start_date.year
     year_fin = end_date.year

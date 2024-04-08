@@ -132,7 +132,11 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
     # ftpnormal = FTPUpload('normal', mode, False)
     from s3buckect import S3Bucket
     sb = S3Bucket()
-    sb.star_client()
+    conn = sb.star_client()
+    if not conn:
+        print(f'[ERROR] Connection error with s3 bucket. Daily dataset could not be deleted')
+        return
+
     sb.update_params_from_pinfo(pinfo)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path(year, month)
