@@ -94,18 +94,19 @@ def make_delete_daily_dataset(pinfo, mode, start_date, end_date, use_mds, verbos
 
             delete_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, use_mds, verbose)
 
-    for year in range(year_ini, year_fin + 1):
-        month_ini = 1
-        month_fin = 12
-        if year == year_ini:
-            month_ini = start_date.month
-        if year == year_fin:
-            month_fin = end_date.month
-        for month in range(month_ini, month_fin + 1):
-            delete_month_folder(pinfo, mode, year, month, use_mds, verbose)
-
-    for year in range(year_ini, year_fin + 1):
-        delete_year_folder(pinfo, mode, year, use_mds, verbose)
+    ##DEPRECATED: Year and month folders don't need to be removed manually
+    # for year in range(year_ini, year_fin + 1):
+    #     month_ini = 1
+    #     month_fin = 12
+    #     if year == year_ini:
+    #         month_ini = start_date.month
+    #     if year == year_fin:
+    #         month_fin = end_date.month
+    #     for month in range(month_ini, month_fin + 1):
+    #         delete_month_folder(pinfo, mode, year, month, use_mds, verbose)
+    #
+    # for year in range(year_ini, year_fin + 1):
+    #     delete_year_folder(pinfo, mode, year, use_mds, verbose)
 
 
 def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, use_mds, verbose):
@@ -120,8 +121,9 @@ def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, use_mds, verb
             month_fin = end_date.month
         delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds, verbose)
 
-    for year in range(year_ini, year_fin + 1):
-        delete_year_folder(pinfo, mode, year, use_mds, verbose)
+    ## DEPRECATED, MANUAL DELETE OF EMPTY FOLDERS IS NOT NEEDED ANYMORE
+    # for year in range(year_ini, year_fin + 1):
+    #     delete_year_folder(pinfo, mode, year, use_mds, verbose)
 
 
 def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_mds, verbose):
