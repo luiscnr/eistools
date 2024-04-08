@@ -115,14 +115,23 @@ class S3Bucket():
             size_mb = size_kb / 1024
             return f'{size_mb:.2f} Mb'
 
-    def check_daily_file(self,mode,pinfo,date,verbose):
+    def check_daily_file(self, mode, pinfo, date, verbose):
+        if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
+            pmode = pinfo.mode['mode']
+            print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
+            return None, None, False
+        if (mode == 'MY' or mode == 'MYINT') and pinfo.dinfo['mode'] != 'MY':
+            pmode = pinfo.mode['mode']
+            print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
+            return None, None, False
         subdir = date.strftime('%Y/%m')
         self.update_params_from_pinfo(pinfo)
         remote_name = pinfo.get_remote_file_name(date)
-        if mode == 'DT':
-            remote_name = remote_name.replace('nrt', 'dt')
-        if mode == 'MYINT':
-            remote_name = remote_name.replace('my', 'myint')
+        if mode == 'MY' or mode == 'MYINT':
+            from datetime import datetime as dt
+            datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
+            if date >= datemyintref:
+                remote_name = remote_name.replace('my', 'myint')
 
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
 
@@ -137,7 +146,40 @@ class S3Bucket():
             print(f'[INFO] Remote file key: {key}')
             print(f'[INFO] Uploaded: {isuploaded}')
 
-        return self.S3_BUCKET_NAME,key,isuploaded
+        return self.S3_BUCKET_NAME, key, isuploaded
+
+    def check_monthly_file(self, mode, pinfo, date, verbose):
+        if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
+            pmode = pinfo.mode['mode']
+            print(f'[ERROR] Error checking monthly file. Mode is {mode} but dataset is {pmode}')
+            return None, None, False
+        if (mode == 'MY' or mode == 'MYINT') and pinfo.dinfo['mode'] != 'MY':
+            pmode = pinfo.mode['mode']
+            print(f'[ERROR] Error checking monthly file. Mode is {mode} but dataset is {pmode}')
+            return None, None, False
+        subdir = date.strftime('%Y')
+        self.update_params_from_pinfo(pinfo)
+        remote_name = pinfo.get_remote_file_name_monthly(date)
+        if mode == 'MY' or mode == 'MYINT':
+            from datetime import datetime as dt
+            datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
+            if date >= datemyintref:
+                remote_name = remote_name.replace('my', 'myint')
+
+        key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+
+        isuploaded = True
+        try:
+            self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+        except:
+            isuploaded = False
+
+        if verbose:
+            print(f'[INFO] Bucket name: {self.S3_BUCKET_NAME}')
+            print(f'[INFO] Remote file key: {key}')
+            print(f'[INFO] Uploaded: {isuploaded}')
+
+        return self.S3_BUCKET_NAME, key, isuploaded
 
     def list_files(self, files, subdir, start_date, end_date):  # subdir yyyy/mm
         from datetime import datetime as dt
@@ -214,3 +256,22 @@ class S3Bucket():
                     }
 
         return files
+
+
+    def is_empty_month(self,year,month):
+        from datetime import datetime as dt
+        date_m = dt(year,month,15)
+        subdir = date_m.strftime('%Y/%m')
+        files = self.list_files(None,subdir,None,None)
+        if len(files)==0:
+            return True
+        else:
+            return False
+
+    def is_empty_year(self,year):
+        subdir = str(year)
+        files = self.list_files_month(None,subdir,None,None)
+        if len(files)==0:
+            return True
+        else:
+            return False

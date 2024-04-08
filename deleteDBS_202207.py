@@ -14,16 +14,16 @@ parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-umds", "--use_mds", help="Use MDS server", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
-parser.add_argument("-noupload","--no_upload", help="No upload mode, only reformat.",action="store_true")
-parser.add_argument("-noreformat","--no_reformat",help="No reformat mode, only upload.",action="store_true")
+parser.add_argument("-noupload", "--no_upload", help="No upload mode, only reformat.", action="store_true")
+parser.add_argument("-noreformat", "--no_reformat", help="No reformat mode, only upload.", action="store_true")
 parser.add_argument('-del', "--del_folder", help="Delete folders mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
-                    choices=['reflectance', 'plankton', 'optics', 'transp','pp'])
+                    choices=['reflectance', 'plankton', 'optics', 'transp', 'pp'])
 parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
-                    choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology','cci'])
+                    choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology', 'cci'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pname", "--name_product", help="Product name")
@@ -36,50 +36,6 @@ args = parser.parse_args()
 
 def main():
     print('[INFO] Started delete DBS')
-    # ##DATASETS SELECTION
-    # pinfo = ProductInfo()
-    # name_products = []
-    # name_datasets = []
-    # n_datasets = 0
-    #
-    # if args.region:
-    #     region = args.region
-    #     if region == 'BS':
-    #         region = 'BLK'
-    #
-    # if args.mode and args.region and args.level:
-    #     dataset_type = None
-    #     sensor = None
-    #     mode_search = args.mode
-    #     frequency = None
-    #     if args.mode == 'DT':
-    #         mode_search = 'NRT'
-    #     if args.dataset_type:
-    #         dataset_type = args.dataset_type
-    #     if args.sensor:
-    #         sensor = args.sensor
-    #     if args.frequency_product:
-    #         frequency = args.frequency_product
-    #     name_products, name_datasets = pinfo.get_list_datasets_params(mode_search, region, args.level,
-    #                                                                   dataset_type,
-    #                                                                   sensor, frequency)
-    #     n_datasets = len(name_products)
-    # elif args.name_product and args.name_dataset:
-    #     name_products.append(args.name_product)
-    #     name_datasets.append(args.name_dataset)
-    #     n_datasets = 1
-    # elif args.name_product and not args.name_dataset:
-    #     name_products, name_datasets = pinfo.get_list_datasets(args.name_product)
-    #     n_datasets = len(name_products)
-    #
-    # if n_datasets == 0:
-    #     print(f'[ERROR] No datasets selected')
-    #     return
-    #
-    # if args.verbose:
-    #     print(f'[INFO] Number of selected datasets: {n_datasets}')
-    #     for idataset in range(n_datasets):
-    #         print(f'[INFO]  {name_products[idataset]}/{name_datasets[idataset]}')
 
     ##DATASETS SELECTION
     name_products, name_datasets = get_datasets()
@@ -104,46 +60,18 @@ def main():
     if args.check_param:
         return
 
-    ##DATES SELECTION
-    # if not args.start_date and not args.end_date:
-    #     print(f'[ERROR] Start date(-sd) is not given.')
-    #     return
-    # start_date_p = args.start_date
-    # if args.end_date:
-    #     end_date_p = args.end_date
-    # else:
-    #     end_date_p = start_date_p
-    # start_date = get_date_from_param(start_date_p)
-    # end_date = get_date_from_param(end_date_p)
-    # if start_date is None:
-    #     print(
-    #         f'[ERROR] Start date {start_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
-    #     return
-    # if end_date is None:
-    #     print(
-    #         f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
-    #     return
-    # if start_date > end_date:
-    #     print(f'[ERROR] End date should be greater or equal than start date')
-    #     return
-    # if args.verbose:
-    #     print(f'[INFO] Start date: {start_date} End date: {end_date}')
-
-    if args.check_param:
-        return
-
     pinfo = ProductInfo()
     for idataset in range(n_datasets):
         pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
         if args.verbose:
             print(f'[INFO] Working with dataset: {name_products[idataset]}/{name_datasets[idataset]}')
         if pinfo.dinfo['frequency'] == 'd':
-            make_delete_daily_dataset(pinfo, args.mode, start_date, end_date, args.verbose)
+            make_delete_daily_dataset(pinfo, args.mode, start_date, end_date, args.use_mds, args.verbose)
         if pinfo.dinfo['frequency'] == 'm':
-            make_delete_monthly_dataset(pinfo, args.mode, start_date, end_date, args.verbose)
+            make_delete_monthly_dataset(pinfo, args.mode, start_date, end_date, args.use_mds, args.verbose)
 
 
-def make_delete_daily_dataset(pinfo, mode, start_date, end_date, verbose):
+def make_delete_daily_dataset(pinfo, mode, start_date, end_date, use_mds, verbose):
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -164,7 +92,7 @@ def make_delete_daily_dataset(pinfo, mode, start_date, end_date, verbose):
                 print('-------------------------------------------------------------------')
                 print(f'[INFO] Launching delete from DU for year {year} and month {month}')
 
-            delete_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, verbose)
+            delete_daily_dataset_impl(pinfo, mode, year, month, day_ini, day_fin, use_mds, verbose)
 
     for year in range(year_ini, year_fin + 1):
         month_ini = 1
@@ -174,13 +102,13 @@ def make_delete_daily_dataset(pinfo, mode, start_date, end_date, verbose):
         if year == year_fin:
             month_fin = end_date.month
         for month in range(month_ini, month_fin + 1):
-            delete_month_folder(pinfo, mode, year, month, verbose)
+            delete_month_folder(pinfo, mode, year, month, use_mds, verbose)
 
     for year in range(year_ini, year_fin + 1):
-        delete_year_folder(pinfo, mode, year, verbose)
+        delete_year_folder(pinfo, mode, year, use_mds, verbose)
 
 
-def make_delete_monthly_dataset(pinfo, mode, start_date, end_date,use_mds, verbose):
+def make_delete_monthly_dataset(pinfo, mode, start_date, end_date, use_mds, verbose):
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -190,27 +118,31 @@ def make_delete_monthly_dataset(pinfo, mode, start_date, end_date,use_mds, verbo
             month_ini = start_date.month
         if year == year_fin:
             month_fin = end_date.month
-        delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin,use_mds, verbose)
+        delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds, verbose)
 
     for year in range(year_ini, year_fin + 1):
-        delete_year_folder(pinfo, mode, year, verbose)
+        delete_year_folder(pinfo, mode, year, use_mds, verbose)
 
 
-def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verbose):
-    ftpdu = FTPUpload('cnr', mode, args.use_mds)
-    ftpnormal = FTPUpload('normal', mode, False)
+def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_mds, verbose):
+    ftpdu = FTPUpload('cnr', mode, use_mds)
+    # DEPRECATED FTP to check files, replaced by S3Bucket
+    # ftpnormal = FTPUpload('normal', mode, False)
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path(year, month)
     if verbose:
         print(f'[INFO] Remote path: {rpath}/{sdir}')
     ftpdu.go_month_subdir(rpath, year, month)
 
-    rpathnormal, sdir = pinfo.get_remote_path_normal(year, month)
-    #print(rpathnormal,sdir)
-    gomonth = ftpnormal.go_month_subdir(rpathnormal, year, month)
-    if not gomonth:
-        print(f'[INFO] No directory found for year {year} and month {month}')
-        return
+    ##DEPRECTATED FTP NORMAL, REPLACED BY S3 BUCKECT
+    # rpathnormal, sdir = pinfo.get_remote_path_normal(year, month)
+    # gomonth = ftpnormal.go_month_subdir(rpathnormal, year, month)
+    # if not gomonth:
+    #     print(f'[INFO] No directory found for year {year} and month {month}')
+    #     return
 
     use_dt_suffix = goptions.use_dt_suffix()
 
@@ -222,16 +154,20 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
         remote_file_name = pinfo.get_remote_file_name(date_here)
         if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
-        if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
+        if (mode == 'MY' or mode == 'MYINT') and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
-            if date_here>=datemyintref:
+            if date_here >= datemyintref:
                 remote_file_name = remote_file_name.replace('my', 'myint')
-            # if dt.now() >= datemyintref:
-            #     remote_file_name = remote_file_name.replace('my', 'myint')
 
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
-        if not ftpnormal.exist_file_name(remote_file_name):
+
+        ##DEPRECATED,USING S3 BUCKET
+        # if not ftpnormal.exist_file_name(remote_file_name):
+        #     print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
+        #     continue
+        s3bname,key,isuploaded = sb.check_daily_file(mode, pinfo, date_here, False)
+        if not isuploaded :
             print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
             continue
 
@@ -249,24 +185,31 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, verb
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
 
     ftpdu.close()
-    ftpnormal.close()
+    sb.close_client()
+    # ftpnormal.close()
 
 
-def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose):
-    ftpdu = FTPUpload('cnr', mode, args.use_mds)
-    ftpnormal = FTPUpload('normal', mode, False)
+def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds, verbose):
+    ftpdu = FTPUpload('cnr', mode, use_mds)
+    # DEPRECATED FTP to check files, replaced by S3Bucket
+    #ftpnormal = FTPUpload('normal', mode, False)
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
         print(f'[INFO] Remote path: {rpath}/{sdir}')
     ftpdu.go_year_subdir(rpath, year)
 
-    rpathnormal, sdir = pinfo.get_remote_path_monthly_normal(year)
-    goyear = ftpnormal.go_year_subdir(rpathnormal, year)
-    if not goyear:
-        print(f'[INFO] No directory found for year: {year}')
-        return
-    use_dt_suffix = goptions.use_dt_suffix()
+    # DEPRECATED
+    # rpathnormal, sdir = pinfo.get_remote_path_monthly_normal(year)
+    # goyear = ftpnormal.go_year_subdir(rpathnormal, year)
+    # if not goyear:
+    #     print(f'[INFO] No directory found for year: {year}')
+    #     return
+
+    use_dt_suffix = goptions.use_dt_suffix() ##always false, use_dt_suffix is deprecated
 
     for month in range(month_ini, month_fin + 1):
         date_here = dt(year, month, 15)
@@ -276,13 +219,17 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
         remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
         if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
-        if mode == 'MY' and pinfo.dinfo['mode'] == 'MY':
+        if (mode == 'MY' or mode=='MYINT') and pinfo.dinfo['mode'] == 'MY':
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
             if date_here >= datemyintref:
                 remote_file_name = remote_file_name.replace('my', 'myint')
         if args.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
-        if not ftpnormal.exist_file_name(remote_file_name):
+        # if not ftpnormal.exist_file_name(remote_file_name):
+        #     print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
+        #     continue
+        s3bname, key, isuploaded = sb.check_monthly_file(mode, pinfo, date_here, False)
+        if not isuploaded:
             print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
             continue
         sdir_remote_file_name = os.path.join(sdir, remote_file_name)
@@ -299,24 +246,32 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, verbose
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
 
     ftpdu.close()
-    ftpnormal.close()
+    sb.close_client()
+    #ftpnormal.close()
 
 
-def delete_year_folder(pinfo, mode, year, verbose):
-    ftpdu = FTPUpload('cnr', mode, args.use_mds)
-    ftpnormal = FTPUpload('normal', mode, False)
+def delete_year_folder(pinfo, mode, year, use_mds, verbose):
+    ftpdu = FTPUpload('cnr', mode, use_mds)
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
         print('-------------------------')
         print(f'[INFO] Deleting remote path for {year}: {rpath}/{sdir}...')
+
+    ##DEPRECATED BY S3BUCKET
+    # ftpnormal = FTPUpload('normal', mode, False)
     rpathnormal, sdir = pinfo.get_remote_path_monthly_normal(year)
-    goyear = ftpnormal.go_year_subdir(rpathnormal, year)
-    if not goyear:
-        print(f'[INFO] No directory found for year: {year}')
-        return
+    # goyear = ftpnormal.go_year_subdir(rpathnormal, year)
+    # if not goyear:
+    #     print(f'[INFO] No directory found for year: {year}')
+    #     return
+
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
+
     ftpdu.go_year_subdir(rpath, year)
 
-    if ftpnormal.isempty():
+    if sb.is_empty_year(year):
         deliveriesf = Deliveries()
         tagged_dataset = pinfo.get_tagged_dataset()
         upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
@@ -336,28 +291,35 @@ def delete_year_folder(pinfo, mode, year, verbose):
         if verbose:
             print(f'[INFO] Year directory: {pinfo.product_name}/{tagged_dataset}/{year} is not empty. Skiping...')
     ftpdu.close()
-    ftpnormal.close()
+    #ftpnormal.close()
+    sb.close_client()
 
+def delete_month_folder(pinfo, mode, year, month, use_mds, verbose):
+    ftpdu = FTPUpload('cnr', mode, use_mds)
 
-def delete_month_folder(pinfo, mode, year, month, verbose):
-    ftpdu = FTPUpload('cnr', mode, args.use_mds)
-    ftpnormal = FTPUpload('normal', mode, False)
-    rpath, sdir = pinfo.get_remote_path(year,month)
+    rpath, sdir = pinfo.get_remote_path(year, month)
     if verbose:
         print('-------------------------')
         print(f'[INFO] Deleting remote path for {year}-{month}: {rpath}/{sdir}...')
-    rpathnormal, sdir = pinfo.get_remote_path_normal(year,month)
-    gomonth = ftpnormal.go_month_subdir(rpathnormal,year,month)
-    if not gomonth:
-        print(f'[INFO] No directory found for year-month: {year}-{month} ')
-        return
-    ftpdu.go_month_subdir(rpath,year,month)
+    rpathnormal, sdir = pinfo.get_remote_path_normal(year, month)
 
-    if ftpnormal.isempty():
+    ##DEPRECATED BY S3BUCKET
+    # ftpnormal = FTPUpload('normal', mode, False)
+    # gomonth = ftpnormal.go_month_subdir(rpathnormal, year, month)
+    # if not gomonth:
+    #     print(f'[INFO] No directory found for year-month: {year}-{month} ')
+    #     return
+    ftpdu.go_month_subdir(rpath, year, month)
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
+
+
+    if sb.is_empty_month(year,month):
         deliveriesf = Deliveries()
         tagged_dataset = pinfo.get_tagged_dataset()
         upload_TS = dt.utcnow().strftime('%Y%m%dT%H%M%SZ')
-        deliveriesf.add_delete_month(pinfo.product_name,tagged_dataset,year,month,upload_TS)
+        deliveriesf.add_delete_month(pinfo.product_name, tagged_dataset, year, month, upload_TS)
         if verbose:
             print(f'[INFO] Deleting empty month directory: {pinfo.product_name}/{tagged_dataset}/{year}/{month}')
         dnt_file_name, dnt_file_path = deliveriesf.create_dnt_file(pinfo.product_name)
@@ -371,9 +333,11 @@ def delete_month_folder(pinfo, mode, year, month, verbose):
     else:
         tagged_dataset = pinfo.get_tagged_dataset()
         if verbose:
-            print(f'[INFO] Year/Month directory: {pinfo.product_name}/{tagged_dataset}/{year}/{month} is not empty. Skiping...')
+            print(
+                f'[INFO] Year/Month directory: {pinfo.product_name}/{tagged_dataset}/{year}/{month} is not empty. Skiping...')
     ftpdu.close()
-    ftpnormal.close()
+    #ftpnormal.close()
+    sb.close_client()
 
 
 ##DATASET SELECTION
@@ -460,8 +424,6 @@ def check_datasets(name_products, name_datasets):
                 print(f'[ERROR] Dataset level is {level_here} but {level} was given in the script')
                 return False
 
-
-
     return True
 
 
@@ -492,6 +454,7 @@ def get_dates():
         return None, None
     return start_date, end_date
 
+
 def get_date_from_param(dateparam):
     datefin = None
     try:
@@ -514,16 +477,7 @@ class FTPUpload():
         path2script = os.path.dirname(sdir)
         credentials = RawConfigParser()
         credentials.read(os.path.join(path2script, 'credentials.ini'))
-        # if mode == 'MY':
-        #     if usardevserver:
-        #         du_server = "my-dev.cmems-du.eu"
-        #     else:
-        #         du_server = "my.cmems-du.eu"
-        # elif mode == 'NRT' or mode == 'DT':
-        #     if usardevserver:
-        #         du_server = "nrt-dev.cmems-du.eu"
-        #     else:
-        #         du_server = "nrt.cmems-du.eu"
+
         if mode == 'MY':
             if use_mds:
                 du_server = 'ftp-my.marine.copernicus.eu'
@@ -536,10 +490,8 @@ class FTPUpload():
             else:
                 du_server = "nrt.cmems-du.eu"
 
-
         du_uname = credentials.get(user, 'uname')
         du_passwd = credentials.get(user, 'passwd')
-        #print(du_server,du_uname,du_passwd)
         self.ftpdu = FTP(du_server, du_uname, du_passwd)
 
     def go_subdir(self, rpath):

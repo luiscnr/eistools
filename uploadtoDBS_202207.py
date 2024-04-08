@@ -97,7 +97,7 @@ def main():
                 pinfomy.MODE = 'UPLOAD'
                 upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date,args.use_mds, args.verbose)
                 # delete nrt
-                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
+                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.use_mds,args.verbose)
             else:
                 upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.use_mds,args.verbose)
             if args.verbose:
@@ -143,7 +143,7 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
     if delete_nrt:
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
-        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt, args.verbose)
+        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt,args.use_mds, args.verbose)
 
     if args.verbose:
         print(f'[INFO] Uploading files to DU: Completed')
@@ -385,11 +385,11 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, use_mds, verbo
     if delete_nrt:
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
-        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt)
+        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt,use_mds,verbose)
 
 
 # method for deleting nrt datasets after uploading to mying
-def delete_nrt_daily_dataset(pinfo, start_date, end_date, verbose):
+def delete_nrt_daily_dataset(pinfo, start_date, end_date, use_mds,verbose):
     year_ini = start_date.year
     year_fin = end_date.year
     for year in range(year_ini, year_fin + 1):
@@ -407,7 +407,7 @@ def delete_nrt_daily_dataset(pinfo, start_date, end_date, verbose):
             if year == year_fin and month == month_fin:
                 day_fin = end_date.day
             # delete also nrt
-            delete.delete_daily_dataset_impl(pinfo, 'NRT', year, month, day_ini, day_fin, verbose)
+            delete.delete_daily_dataset_impl(pinfo, 'NRT', year, month, day_ini, day_fin, use_mds,verbose)
 
 
 def upload_climatology_dataset_pinfo(pinfo, mode, start_date, end_date):
