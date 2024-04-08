@@ -132,12 +132,11 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
     # ftpnormal = FTPUpload('normal', mode, False)
     from s3buckect import S3Bucket
     sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
     conn = sb.star_client()
     if not conn:
         print(f'[ERROR] Connection error with s3 bucket. Daily dataset could not be deleted')
         return
-
-    sb.update_params_from_pinfo(pinfo)
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path(year, month)
     if verbose:
@@ -202,8 +201,11 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds
     #ftpnormal = FTPUpload('normal', mode, False)
     from s3buckect import S3Bucket
     sb = S3Bucket()
-    sb.star_client()
     sb.update_params_from_pinfo(pinfo)
+    conn = sb.star_client()
+    if not conn:
+        print(f'[ERROR] Connection error with s3 bucket. Daily dataset could not be deleted')
+        return
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path_monthly(year)
     if verbose:
@@ -275,8 +277,9 @@ def delete_year_folder(pinfo, mode, year, use_mds, verbose):
 
     from s3buckect import S3Bucket
     sb = S3Bucket()
-    sb.star_client()
     sb.update_params_from_pinfo(pinfo)
+    sb.star_client()
+
 
     ftpdu.go_year_subdir(rpath, year)
 
@@ -321,6 +324,7 @@ def delete_month_folder(pinfo, mode, year, month, use_mds, verbose):
     ftpdu.go_month_subdir(rpath, year, month)
     from s3buckect import S3Bucket
     sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
     sb.star_client()
     sb.update_params_from_pinfo(pinfo)
 
