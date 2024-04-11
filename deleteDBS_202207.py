@@ -222,7 +222,7 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds
 
     use_dt_suffix = goptions.use_dt_suffix() ##always false, use_dt_suffix is deprecated
 
-    print('---> use_dt_suffix', use_dt_suffix)
+
 
     for month in range(month_ini, month_fin + 1):
         date_here = dt(year, month, 15)
@@ -230,7 +230,6 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds
             print('-------------------------')
             print(f'[INFO] Date: {date_here}')
         remote_file_name = pinfo.get_remote_file_name_monthly(date_here)
-        print('--->',remote_file_name)
         if mode == 'DT' and pinfo.dinfo['mode'] == 'NRT' and use_dt_suffix:
             remote_file_name = remote_file_name.replace('nrt', 'dt')
         if (mode == 'MY' or mode=='MYINT') and pinfo.dinfo['mode'] == 'MY':
