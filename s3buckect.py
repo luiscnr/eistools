@@ -160,6 +160,8 @@ class S3Bucket():
         subdir = date.strftime('%Y')
         self.update_params_from_pinfo(pinfo)
         remote_name = pinfo.get_remote_file_name_monthly(date)
+        remote_name = remote_name.replace('nrt', 'dt')
+        
         if mode == 'MY' or mode == 'MYINT':
             from datetime import datetime as dt
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
