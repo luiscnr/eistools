@@ -314,15 +314,16 @@ def get_lines_upload(products, datasets, dates):
                 upload_mode = 'MYINT'
         from s3buckect import S3Bucket
         sb = S3Bucket()
+        sb.star_client()
         if upload_mode == 'MYINT':
             sb.update_params_from_pinfo(pinfomy)
             bucket_name, key, isuploaded = sb.check_daily_file('MYINT',pinfomy,date,False)
             #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
         else:
-            sb.update_params_from_pinfo(pinfo)
+            #sb.update_params_from_pinfo(pinfo)
             bucket_name, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
             #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
-
+        sb.close_client()
         lines.append(f'[INFO]{products[idx]}/{datasets[idx]}')
         lines.append(f'[INFO]  ->Upload mode:  {upload_mode.lower()}')
         lines.append(f'[INFO]  ->Path: {bucket_name}-->{key}')

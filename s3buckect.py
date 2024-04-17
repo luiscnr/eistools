@@ -124,6 +124,7 @@ class S3Bucket():
             pmode = pinfo.mode['mode']
             print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
             return None, None, False
+
         subdir = date.strftime('%Y/%m')
         self.update_params_from_pinfo(pinfo)
         remote_name = pinfo.get_remote_file_name(date)
@@ -134,6 +135,8 @@ class S3Bucket():
                 remote_name = remote_name.replace('my', 'myint')
 
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+
+
 
         isuploaded = True
         try:

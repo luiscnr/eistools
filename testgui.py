@@ -9,7 +9,7 @@ import argparse
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-gui", "--launch_gui", help="Launch GUI", action="store_true")
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
-parser.add_argument("-m", "--mode", help="Mode",choices=['check_files','update_buckets','check_daily_file'])
+parser.add_argument("-m", "--mode", help="Mode",choices=['check_files','update_buckets','check_daily_file','test'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pname", "--name_product", help="Product name")
@@ -512,6 +512,11 @@ def main():
     if args.mode=='update_buckets':
         #getting_s3_buckect_boto3(args.use_dta,None)
         getting_s3_buckets_copernicus_marine()
+
+
+    if args.mode=='test':
+        print('make test')
+        import s3buckect
 
     # from datetime import datetime as dt
     # sd = dt(2024,2,27)
