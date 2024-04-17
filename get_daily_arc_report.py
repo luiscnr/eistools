@@ -312,15 +312,20 @@ def get_lines_upload(products, datasets, dates):
             pinfomy = pinfo.get_pinfomy_equivalent()
             if not pinfomy is None:
                 upload_mode = 'MYINT'
-
+        from s3buckect import S3Bucket
+        sb = S3Bucket()
         if upload_mode == 'MYINT':
-            rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
+            sb.update_params_from_pinfo(pinfomy)
+            bucket_name, key, isuploaded = sb.check_daily_file('MYINT',pinfomy,date,False)
+            #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du('MYINT', pinfomy, date, False)
         else:
-            rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
+            sb.update_params_from_pinfo(pinfo)
+            bucket_name, key, isuploaded = sb.check_daily_file(upload_mode, pinfo, date, False)
+            #rpath, remote_file_name, isuploaded = checkftp.check_dailyfile_du(upload_mode, pinfo, date, False)
 
         lines.append(f'[INFO]{products[idx]}/{datasets[idx]}')
         lines.append(f'[INFO]  ->Upload mode:  {upload_mode.lower()}')
-        lines.append(f'[INFO]  ->Path: {rpath}/{remote_file_name}')
+        lines.append(f'[INFO]  ->Path: {bucket_name}-->{key}')
         if isuploaded:
             lines.append('[INFO]  ->Upload completed')
         else:
