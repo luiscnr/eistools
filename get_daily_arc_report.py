@@ -224,9 +224,9 @@ def get_lines_resampling(date, downloadedFiles):
         lines.append('[STATUS] OK')
         return 1, lines
     elif nresampled == 0:
-        lines.append('[ERROR] No granules were resampled')
-        lines.append('[STATUS] FAIL')
-        return 0, lines
+        lines.append('[WARNING] No granules were resampled')
+        lines.append('[STATUS] WARNING')
+        return 2, lines
 
 
 def get_lines_integration(date):
