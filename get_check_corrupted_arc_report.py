@@ -27,7 +27,7 @@ def main():
     if args.mode=='DT':
         timeliness = '_NT_'
     print(f'---------------------------------------------------------------------------------------------------------')
-    print(f'Starting checking of corrupted files for {date.strftime("%Y-%m-%d")}')
+    print(f'Starting checking of corrupted granules for {date.strftime("%Y-%m-%d")}')
     print(f'Mode: {args.mode}')
     print(f'Timeliness: {timeliness}')
     print('')
@@ -75,7 +75,8 @@ def main():
 
     ncorrupted = len(granules_corrupted)
     print(f'Number of downloaded granules: {ngranules}')
-    print(f'Number of corrupted granuels: {ncorrupted}')
+    print(f'Number of corrupted granules: {ncorrupted}')
+    print('')
     if ncorrupted>0:
         print(f'Corrupted granules:')
         for granule in granules_corrupted:
