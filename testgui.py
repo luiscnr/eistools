@@ -516,7 +516,18 @@ def main():
 
     if args.mode=='test':
         print('make test')
-        import s3buckect
+        path_out = '/mnt/c/DATA_LUIS/OCTAC_WORK/AQUA_SOURCES'
+        from s3buckect import S3Bucket
+        from product_info import ProductInfo
+        from datetime import datetime as dt
+        pinfo = ProductInfo()
+        pinfo.set_dataset_info('OCEANCOLOUR_BLK_BGC_L3_NRT_009_151','cmems_obs-oc_blk_bgc-plankton_nrt_l3-multi-1km_P1D')
+        sb = S3Bucket()
+        sb.update_params_from_pinfo(pinfo)
+        sb.star_client()
+        sb.download_daily_file('NRT',pinfo,dt(2023,4,16),path_out,True)
+        sb.close_client()
+
 
     # from datetime import datetime as dt
     # sd = dt(2024,2,27)
