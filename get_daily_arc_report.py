@@ -147,6 +147,21 @@ def get_lines_download(mode, date):
                 missingFiles.append(name)
     f1.close()
 
+    nmissing = len(missingFiles)
+    corruptedFiles = []
+    if nmissing>0:
+        fcorrupted = os.path.join(dir_date,'CorruptedFiles.txt')
+        if os.path.exists(fcorrupted):
+            f2 = open(fcorrupted,'r')
+            for line in f2:
+                name = line.strip()
+                if name.find(wce) > 0 and name.find(timeliness) > 0 and name.find('OL_2_WFR') > 0:
+                    corruptedFiles.append(corruptedFiles)
+            f2.close()
+    ncorrupted = len(corruptedFiles)
+    n_nodownloaded = nmissing-ncorrupted
+
+
     if nexpected == 0 and ndownloaded == 0:
         ##situation when granules were not found
         lines.append(f'[WARNING] No granules found in the Arctic area')
@@ -164,8 +179,17 @@ def get_lines_download(mode, date):
         lines.append('[STATUS] FAIL')
         return 0, lines, downloadedFiles
     elif ndownloaded < nexpected:
-        lines.append('[WARNING] Some expected granules are missing')
+        lines.append(f'[WARNING] {nmissing} expected granules are missing:')
+        lines.append(f'[WARNING] -> No downloaded: {n_nodownloaded}')
+        lines.append(f'[WARNING] -> Corrupted: {ncorrupted}')
         lines.append('[STATUS] WARNING')
+
+    if ncorrupted>0:
+        lines.append('')
+        lines.append('Corrupted granules: ')
+        for granule in corruptedFiles:
+            lines.append(granule)
+
         return -1, lines, downloadedFiles
 
 
