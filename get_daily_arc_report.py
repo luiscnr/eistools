@@ -156,7 +156,7 @@ def get_lines_download(mode, date):
             for line in f2:
                 name = line.strip()
                 if name.find(wce) > 0 and name.find(timeliness) > 0 and name.find('OL_2_WFR') > 0:
-                    corruptedFiles.append(corruptedFiles)
+                    corruptedFiles.append(name)
             f2.close()
     ncorrupted = len(corruptedFiles)
     n_nodownloaded = nmissing-ncorrupted
