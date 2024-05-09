@@ -827,6 +827,24 @@ class ProductInfo:
             return None
         return file_path
 
+    def get_file_path_orig_monthly_noreformat(self, path, datehere):
+        if path is None:
+            path = self.get_path_orig(datehere.year)
+        if path is None:
+            return None
+        name_file = self.dinfo['name_origin']
+        name_file = name_file.replace('CMEMS2_','')
+        yearstr = datehere.strftime('%Y')
+        dateinimonth = datehere.replace(day=1).strftime('%j')
+        last_day = calendar.monthrange(datehere.year, datehere.month)[1]
+        datefinmonth = datehere.replace(day=last_day).strftime('%j')
+        date_file_str = f'{yearstr}{dateinimonth}{datefinmonth}'
+        file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
+        if not os.path.exists(file_path):
+            print(f'[ERROR] Expected file orig path {file_path} does not exist')
+            return None
+        return file_path
+
     def get_list_file_path_orig_monthly(self, start_date, end_date):
         filelist = []
         for y in range(start_date.year, end_date.year + 1):

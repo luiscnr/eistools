@@ -32,7 +32,7 @@ def main():
     ls = calendar.monthrange(last_date_month.year,last_date_month.month)
     last_date_month = last_date_month.replace(day=ls[1])
 
-    file_orig = pinfo.get_file_path_orig_monthly(None,last_date_month)
+    file_orig = pinfo.get_file_path_orig_monthly_noreformat(None,last_date_month)
     file_exist = False
     if file_orig is not None:
         file_exist = os.path.exists(file_orig)
