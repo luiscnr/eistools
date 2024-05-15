@@ -161,7 +161,9 @@ def main():
                 pinfomy.MODE = 'UPLOAD'
                 upload.upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date, args.use_mds,args.verbose)
                 # delete nrt
-                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.use_mds,args.verbose)
+                start_date_before = start_date.replace(day=15)-timedelta(days=30)
+                end_date_before = end_date.replace(day=15)-timedelta(days=30)
+                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date_before, end_date_before, args.use_mds,args.verbose)
             else:
                 upload.upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.use_mds,args.verbose)
             if args.verbose:
