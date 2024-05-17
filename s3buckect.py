@@ -115,15 +115,15 @@ class S3Bucket():
             size_mb = size_kb / 1024
             return f'{size_mb:.2f} Mb'
 
-    def download_daily_file(self, mode, pinfo, date, path_out, verbose):
+    def download_daily_file(self, mode, pinfo, date, path_out, overwrite,verbose):
         if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
             pmode = pinfo.mode['mode']
             print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
-            return None, None, False
+            return None, False
         if (mode == 'MY' or mode == 'MYINT') and pinfo.dinfo['mode'] != 'MY':
             pmode = pinfo.mode['mode']
             print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
-            return None, None, False
+            return None, False
 
         subdir = date.strftime('%Y/%m')
         self.update_params_from_pinfo(pinfo)
@@ -134,30 +134,42 @@ class S3Bucket():
             if date >= datemyintref:
                 remote_name = remote_name.replace('my', 'myint')
 
+        file_out = os.path.join(path_out, remote_name)
+        if os.path.exists(file_out) and not overwrite:
+            print(f'[WARNING] File out: {file_out} already exists. Skipping....')
+            return file_out,False
+
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
 
-        file_out = os.path.join(path_out,remote_name)
+
         isuploaded = True
         try:
             self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
         except:
             isuploaded = False
 
-        print(isuploaded)
+        if verbose:
+            print(f'[INFO] Bucket name: {self.S3_BUCKET_NAME}')
+            print(f'[INFO] Remote file key: {key}')
+            print(f'[INFO] Uploaded: {isuploaded}')
 
-        with open(file_out, 'wb') as data:
-            print(self.S3_BUCKET_NAME)
-            print(key)
-            self.s3client.download_fileobj(self.S3_BUCKET_NAME,key, data)
+        from pathlib import Path
 
+        if isuploaded:
+            self.s3client.download_file(self.S3_BUCKET_NAME,key,Path(file_out))
 
+        # with open(file_out, 'wb') as data:
+        #     print(self.S3_BUCKET_NAME)
+        #     print(key)
+        #     self.s3client.download_fileobj(self.S3_BUCKET_NAME,key, data)
 
         isdownloaded = os.path.exists(file_out)
 
         if verbose:
-            print(f'[INFO] Bucket name: {self.S3_BUCKET_NAME}')
-            print(f'[INFO] Remote file key: {key}')
-            print(f'[INFO] Uploaded: {isdownloaded}')
+            print(f'[INFO] Remote file name: {file_out}')
+            print(f'[INFO] Dowloaded: {isdownloaded}')
+
+        return file_out,isdownloaded
 
     def check_daily_file(self, mode, pinfo, date, verbose):
         if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
@@ -168,10 +180,12 @@ class S3Bucket():
             pmode = pinfo.mode['mode']
             print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
             return None, None, False
-
+        print('LINE 183')
         subdir = date.strftime('%Y/%m')
+        print('LINE 185 ',subdir)
         self.update_params_from_pinfo(pinfo)
         remote_name = pinfo.get_remote_file_name(date)
+        print('LINE 188 ',remote_name)
         if mode == 'MY' or mode == 'MYINT':
             from datetime import datetime as dt
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
@@ -179,7 +193,7 @@ class S3Bucket():
                 remote_name = remote_name.replace('my', 'myint')
 
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
-
+        print('LINE 196: ',key)
         isuploaded = True
         try:
             self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)

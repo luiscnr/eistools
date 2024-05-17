@@ -447,7 +447,43 @@ def create_copy_with_sensor_mask(input_file,output_file):
 
     return True
 
+def check_med():
+    mode = 'NRT'
+    from product_info import ProductInfo
+    from datetime import datetime as dt
+    pinfo = ProductInfo()
+    pinfo.set_dataset_info('OCEANCOLOUR_MED_BGC_L3_NRT_009_141','cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D')
+    date_here = dt(2024,5,7)
+    from s3buckect import S3Bucket
+    sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
+    conn = sb.star_client()
+    s3bname, key, isuploaded = sb.check_daily_file(mode, pinfo, date_here, False)
+    print(s3bname)
+    print(key)
+    print(isuploaded)
+    return True
+
+def check_download():
+    from product_info import ProductInfo
+    from s3buckect import S3Bucket
+    pinfo = ProductInfo()
+    pinfo.set_dataset_info('OCEANCOLOUR_MED_BGC_L3_NRT_009_141', 'cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D')
+    date_here = dt(2024, 5, 14)
+    sb = S3Bucket()
+    sb.update_params_from_pinfo(pinfo)
+    conn = sb.star_client()
+    s3bname, key, isuploaded = sb.check_daily_file('NRT', pinfo, date_here, False)
+    path_out = '/mnt/c/DATA_LUIS/OCTACWORK'
+    sb.download_daily_file('NRT',pinfo,date_here,path_out,True,True)
+    return True
+
+
 def main():
+    if check_download():
+        return
+    if check_med():
+        return
     if resolve_CCOC_778():
         return
     if do_empty_copy():

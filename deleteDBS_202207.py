@@ -151,6 +151,7 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
     #     return
 
     use_dt_suffix = goptions.use_dt_suffix()
+    print('use_dt_suffix questo dovrebe essere false: ',use_dt_suffix)
 
 
     for day in range(start_day, end_day + 1):
@@ -173,6 +174,7 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
         # if not ftpnormal.exist_file_name(remote_file_name):
         #     print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
         #     continue
+
         s3bname,key,isuploaded = sb.check_daily_file(mode, pinfo, date_here, False)
         if not isuploaded :
             print(f'[INFO] Expected file name to be deleted {remote_file_name} does not exist.')
