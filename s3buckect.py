@@ -180,12 +180,12 @@ class S3Bucket():
             pmode = pinfo.mode['mode']
             print(f'[ERROR] Error checking daily file. Mode is {mode} but dataset is {pmode}')
             return None, None, False
-        print('LINE 183')
+
         subdir = date.strftime('%Y/%m')
-        print('LINE 185 ',subdir)
+
         self.update_params_from_pinfo(pinfo)
         remote_name = pinfo.get_remote_file_name(date)
-        print('LINE 188 ',remote_name)
+
         if mode == 'MY' or mode == 'MYINT':
             from datetime import datetime as dt
             datemyintref = dt.strptime(pinfo.dinfo['myint_date'], '%Y-%m-%d')
@@ -193,7 +193,7 @@ class S3Bucket():
                 remote_name = remote_name.replace('my', 'myint')
 
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
-        print('LINE 196: ',key)
+
         isuploaded = True
         try:
             self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
