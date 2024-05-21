@@ -6,10 +6,13 @@ class CMEMS_LOIS:
     def __init__(self, verbose):
         self.verbose = verbose
 
-    def make_cmems_download(self,cmems_options, make_download, output_directory, ods):
+    def make_cmems_download(self,cmems_options, make_download, output_directory, ods, overwrite):
         from s3buckect import S3Bucket
         sb = S3Bucket()
-        sb.star_client()
+        b = sb.star_client()
+        if not b:
+            print(f'[WARNING] Client S3 could not be started')
+            return
         sb.update_params_from_dict(cmems_options)
         work_date = cmems_options['start_date']
         end_date = cmems_options['end_date']
@@ -20,7 +23,7 @@ class CMEMS_LOIS:
             if make_download and available:
                 folder_out = self.get_folder_out(work_date, output_directory, ods)
                 if folder_out is not None:
-                    file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, args.overwrite)
+                    file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, overwrite)
                     if self.verbose:
                         print(f'--> Output file: {file_out} Download status: {os.path.exists(file_out)}')
 
@@ -47,3 +50,6 @@ class CMEMS_LOIS:
                 return False
 
         return True
+
+    def test(self):
+        print('TESTING MODE...')
