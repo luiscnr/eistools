@@ -151,7 +151,7 @@ def delete_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
     #     return
 
     use_dt_suffix = goptions.use_dt_suffix()
-    
+
 
 
     for day in range(start_day, end_day + 1):

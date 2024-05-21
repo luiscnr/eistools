@@ -511,7 +511,10 @@ def main():
 
     if args.mode=='update_buckets':
         #getting_s3_buckect_boto3(args.use_dta,None)
-        getting_s3_buckets_copernicus_marine()
+        if args.name_product and args.name_dataset:
+            getting_s3_buckets_copernicus_marine_pd(args.name_product,args.name_dataset)
+        else:
+            getting_s3_buckets_copernicus_marine()
 
 
     if args.mode=='test':
@@ -639,12 +642,41 @@ def getting_s3_buckect_boto3(use_dta, type):
             pinfo.update_json(pinfo_out)
 
 
+def getting_s3_buckets_copernicus_marine_pd(product_name,dataset_name):
+    import copernicusmarine
+    print('[INFO] -----------------------------------------')
+    print('[INFO] Product: ', product_name)
+    res = copernicusmarine.describe(include_datasets=True, contains=[dataset_name])
+    product = res['products'][0]
+    for dataset_dict in product['datasets']:
+        if dataset_dict['dataset_id'] == dataset_name:
+            dataset_info = dataset_dict
+            version = dataset_info['versions'][0]
+            remote_tag = version['label']
+            parts = version['parts'][0]
+            for service in parts['services']:
+                if service['service_type']['service_name'] == 'original-files':
+                    uri = service['uri'].split('/')
+                    remote_end_point = '/'.join(uri[0:3])
+                    remote_buckect_name = uri[3]
+            print(f'[INFO] Product: {product_name}')
+            print(f'[INFO] Dataset: {dataset_name}')
+            print(f'[INFO] Endpoint: {remote_end_point}')
+            print(f'[INFO] Bucket: {remote_buckect_name}')
+            print(f'[INFO] Tag: {remote_tag}')
+        else:
+            print(f'[WARNING] {product_name}/{dataset_name} was not found')
+
+
+
 def getting_s3_buckets_copernicus_marine():
     import copernicusmarine
     from product_info import ProductInfo
     pinfo = ProductInfo()
 
     pnames = pinfo.get_list_all_products()
+
+
     for pname in pnames:
         print('[INFO] -----------------------------------------')
         print('[INFO] Product: ', pname)

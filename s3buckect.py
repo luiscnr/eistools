@@ -92,6 +92,14 @@ class S3Bucket():
 
         return True
 
+    ##method launched from donwload_tool, options are always incluided
+    def update_params_from_dict(self,options_dict):
+        self.PRODUCT = options_dict['product']
+        self.DATASET = options_dict['dataset']
+        self.S3_ENDPOINT = options_dict['endpoint']
+        self.S3_BUCKET_NAME = options_dict['bucket']
+        self.TAG = options_dict['tag']
+
     def star_client(self):
 
         try:
@@ -114,6 +122,28 @@ class S3Bucket():
         else:
             size_mb = size_kb / 1024
             return f'{size_mb:.2f} Mb'
+
+    def download_daily_file_params(self,date,path_out,check,overwrite):
+        subdir = date.strftime('%Y/%m')
+        remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
+        key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+        file_out = os.path.join(path_out, remote_name)
+        if os.path.exists(file_out) and not overwrite:
+            return file_out,False
+        isuploaded = True
+        if check:
+            try:
+                self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+            except:
+                isuploaded = False
+
+        from pathlib import Path
+        if isuploaded:
+            self.s3client.download_file(self.S3_BUCKET_NAME, key, Path(file_out))
+        isdownloaded = os.path.exists(file_out)
+
+        return file_out, isdownloaded
+
 
     def download_daily_file(self, mode, pinfo, date, path_out, overwrite,verbose):
         if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
@@ -170,6 +200,18 @@ class S3Bucket():
             print(f'[INFO] Dowloaded: {isdownloaded}')
 
         return file_out,isdownloaded
+
+    def check_daily_file_params(self,date):
+        subdir = date.strftime('%Y/%m')
+        remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
+        key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+        isuploaded = True
+        try:
+            self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+        except:
+            isuploaded = False
+        return self.S3_BUCKET_NAME,key, isuploaded
+
 
     def check_daily_file(self, mode, pinfo, date, verbose):
         if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
