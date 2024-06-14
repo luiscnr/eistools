@@ -209,7 +209,14 @@ class S3Bucket():
         try:
             self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
         except:
-            isuploaded = False
+            dataset_myint =self.DATASET.replace('my','myint')
+            remote_name = f'{date.strftime("%Y%m%d_")}{dataset_myint}.nc'
+            key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+            try:
+                self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+            except:
+                isuploaded = False
+
         return self.S3_BUCKET_NAME,key, isuploaded
 
 
