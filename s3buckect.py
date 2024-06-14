@@ -144,6 +144,28 @@ class S3Bucket():
 
         return file_out, isdownloaded
 
+    def download_daily_file_params_myint(self,date,path_out,check,overwrite):
+        subdir = date.strftime('%Y/%m')
+        dataset_name_myint = self.DATASET.replace('my','myint')
+        remote_name = f'{date.strftime("%Y%m%d_")}{dataset_name_myint}.nc'
+        key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+        file_out = os.path.join(path_out, remote_name)
+        if os.path.exists(file_out) and not overwrite:
+            return file_out,False
+        isuploaded = True
+        if check:
+            try:
+                self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+            except:
+                isuploaded = False
+
+        from pathlib import Path
+        if isuploaded:
+            self.s3client.download_file(self.S3_BUCKET_NAME, key, Path(file_out))
+        isdownloaded = os.path.exists(file_out)
+
+        return file_out, isdownloaded
+
 
     def download_daily_file(self, mode, pinfo, date, path_out, overwrite,verbose):
         if (mode == 'NRT' or mode == 'DT') and pinfo.dinfo['mode'] != 'NRT':
@@ -206,6 +228,7 @@ class S3Bucket():
         remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
         isuploaded = True
+        use_myint = False
         try:
             self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
         except:
@@ -214,10 +237,11 @@ class S3Bucket():
             key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
             try:
                 self.s3client.head_object(Bucket=self.S3_BUCKET_NAME, Key=key)
+                use_myint = True
             except:
                 isuploaded = False
 
-        return self.S3_BUCKET_NAME,key, isuploaded
+        return self.S3_BUCKET_NAME,key, isuploaded, use_myint
 
 
     def check_daily_file(self, mode, pinfo, date, verbose):
