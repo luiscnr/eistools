@@ -18,8 +18,8 @@ def main():
     last_date_server = clois.check_last_file(cmems_options).replace(hour=0,second=0,minute=0,microsecond=0)
 
     ##CHECK LAST FILE PROCESSED IN OUR SERVER
-    #dir_base = '/store/COP2-OC-TAC/arc/multi'
-    dir_base = '/mnt/c/DATA_LUIS/OCTACWORK'
+    dir_base = '/store/COP2-OC-TAC/arc/multi'
+    #dir_base = '/mnt/c/DATA_LUIS/OCTACWORK'
     work_date = dt.now()
     min_date = dt(2000,1,1)
     last_date_local = None
@@ -39,7 +39,7 @@ def main():
         if os.path.exists(fout):
             os.remove(fout)
 
-    if last_date_server>last_date_local:
+    if last_date_server>=last_date_local:
         first_date_processing = last_date_local+timedelta(hours=24)
         print(f'[INFO] Data are avaialable for processing')
         fw = open(fout, 'w')
