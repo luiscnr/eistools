@@ -1,10 +1,31 @@
 import os
 from datetime import timedelta
+from datetime import datetime as dt
 
 class CMEMS_LOIS:
 
     def __init__(self, verbose):
         self.verbose = verbose
+
+
+    def check_last_file(self,cmems_options):
+        from s3buckect import S3Bucket
+        sb = S3Bucket()
+        b = sb.star_client()
+        if not b:
+            print(f'[WARNING] Client S3 could not be started')
+            return
+        sb.update_params_from_dict(cmems_options)
+        date_here = dt.now()
+        date_last = dt(2000,1,1)
+        while date_here>=date_last:
+            bucket, key, available, usemyint = sb.check_daily_file_params(date_here)
+            if available:
+                date_last_file = date_here
+                break
+            date_here = date_here-timedelta(hours=24)
+
+        return date_last_file
 
     def make_cmems_download(self,cmems_options, make_download, output_directory, ods, overwrite):
         from s3buckect import S3Bucket
