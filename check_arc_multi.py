@@ -39,7 +39,7 @@ def main():
         if os.path.exists(fout):
             os.remove(fout)
 
-    if last_date_server>=last_date_local:
+    if last_date_server>last_date_local:
         first_date_processing = last_date_local+timedelta(hours=24)
         print(f'[INFO] Data are avaialable for processing')
         fw = open(fout, 'w')
