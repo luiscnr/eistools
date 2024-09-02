@@ -32,6 +32,7 @@ if __name__ == '__main__':
     parser.add_argument("-R", "--Region", help="specify the Region Label of the area: BlackSea or Mediterranean",required=False)
     parser.add_argument("-lat_p", "--lat_point",help="Station latitude")
     parser.add_argument("-lon_p", "--lon_point",help="Stationg longitude")
+    parser.add_argument("-ed","--end_date",help="End date for DOWNLOAD option in yyyymmdd format (=date if this option is ignored")
     parser.add_argument("-o","--path_out",help="Path out")
     args = parser.parse_args()
 
@@ -71,27 +72,33 @@ if __name__ == '__main__':
         if args.path_out and os.path.isdir(args.path_out):
             ndownload.sensors[sensor]['nrt_cnr_server_dir'] = args.path_out
 
-        path_out = ndownload.get_path_orig(sensor,date_here)
+        end_date = date_here
+        if args.end_date:
+            end_date =  dt.strptime(args.end_date, '%Y%m%d')
+        import obdaac_download as od
+        import os
+        from datetime import timedelta
+        appkey = '22da4a89034645c3653f75dcd49ea11639976cef'
 
-        if region is not None:
-            list = ndownload.get_list_files(date_here, sensor, region, 'DT')
-        elif lat_point is not None and lon_point is not None:
-            list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point)
+        while date_here<=end_date:
 
+            path_out = ndownload.get_path_orig(sensor,date_here)
 
-        if len(list)>0:
-            print(f'[INFO] Granules identified: {len(list)}')
-            # download
-            import obdaac_download as od
-            import os
-            appkey = '22da4a89034645c3653f75dcd49ea11639976cef'
-            for granule in list:
-                print(f'[INFO] Downloading granule: {granule}')
-                url = ndownload.get_url_download(granule)
-                od.do_download(url,path_out,appkey)
-        else:
-            print(f'[INFO] No granules were found to be downloaded')
+            if region is not None:
+                list = ndownload.get_list_files(date_here, sensor, region, 'DT')
+            elif lat_point is not None and lon_point is not None:
+                list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point)
 
+            if len(list)>0:
+                print(f'[INFO] {len(list)} granules identified for date {date_here}')
+                for granule in list:
+                    print(f'[INFO] Downloading granule: {granule}')
+                    url = ndownload.get_url_download(granule)
+                    od.do_download(url,path_out,appkey)
+            else:
+                print(f'[INFO] No granules were found to be downloaded for date: {date_here}')
+
+            date_here = date_here + timedelta(hours=24)
 
     if args.mode=='NRT_TO_DT':
         ndownload = NASA_DOWNLOAD()
