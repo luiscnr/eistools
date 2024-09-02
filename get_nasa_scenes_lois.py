@@ -22,14 +22,17 @@
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     import argparse
+    import os
 
     parser = argparse.ArgumentParser(description='NASA Get Scenes. Patch to retrieve DT scenes')
-    parser.add_argument("-m", "--mode", help="Mode",choices=["LIST","NRT_TO_DT"])
+    parser.add_argument("-m", "--mode", help="Mode",choices=["LIST","DOWNLOAD","NRT_TO_DT"])
     parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
     parser.add_argument("-sen", "--sensor", help="Specify sensor: VIIRS, VIIRSJ, AQUA", required=True)
     parser.add_argument("-d", "--date", help="Specify a date in yyyymmdd format", required=True)
-    parser.add_argument("-R", "--Region", help="specify the Region Label of the area: BlackSea or Mediterranean",
-                        required=False)
+    parser.add_argument("-R", "--Region", help="specify the Region Label of the area: BlackSea or Mediterranean",required=False)
+    parser.add_argument("-lat_p", "--lat_point",help="Station latitude")
+    parser.add_argument("-lon_p", "--lon_point",help="Stationg longitude")
+    parser.add_argument("-o","--path_out",help="Path out")
     args = parser.parse_args()
 
     from nasa_download import NASA_DOWNLOAD
@@ -39,11 +42,17 @@ if __name__ == '__main__':
         date_here = dt.strptime(args.date, '%Y%m%d')
         sensor = args.sensor
         region = None
+        lat_point  = None
+        lon_point =  None
         if args.Region:
             if args.Region == 'BlackSea':
                 region = 'BS'
             elif args.Region == 'Mediterranean':
                 region = 'MED'
+        if args.lat_point:
+            lat_point = float(args.lat_point)
+        if args.lon_point:
+            lon_point = float(args.lon_point)
         # date_here = dt(2022,9,30)
     except:
         print('[ERROR] Error parsing arguments')
@@ -51,7 +60,38 @@ if __name__ == '__main__':
 
     if args.mode=='LIST':
         ndownload = NASA_DOWNLOAD()
-        list = ndownload.get_list_files(date_here, sensor, region, 'DT')
+        if region is not None:
+            list = ndownload.get_list_files(date_here, sensor, region, 'DT')
+        elif lat_point is not None and lon_point is not None:
+            list = ndownload.getscenes_by_point_EarthData_API(sensor,date_here,lat_point,lon_point)
+
+    if args.mode=='DOWNLOAD':
+        ndownload = NASA_DOWNLOAD()
+        path_out = None
+        if args.path_out and os.path.isdir(args.path_out):
+            ndownload.sensors[sensor]['nrt_cnr_server_dir'] = args.path_out
+
+        path_out = ndownload.get_path_orig(sensor,date_here)
+
+        if region is not None:
+            list = ndownload.get_list_files(date_here, sensor, region, 'DT')
+        elif lat_point is not None and lon_point is not None:
+            list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point)
+
+
+        if len(list)>0:
+            print(f'[INFO] Granules identified: {len(list)}')
+            # download
+            import obdaac_download as od
+            import os
+            appkey = '22da4a89034645c3653f75dcd49ea11639976cef'
+            for granule in list:
+                print(f'[INFO] Downloading granule: {granule}')
+                url = ndownload.get_url_download(granule)
+                od.do_download(url,path_out,appkey)
+        else:
+            print(f'[INFO] No granules were found to be downloaded')
+
 
     if args.mode=='NRT_TO_DT':
         ndownload = NASA_DOWNLOAD()
@@ -74,7 +114,7 @@ if __name__ == '__main__':
                     print('WARNING',name,'->',namen)
                     list_dest[name_orig] = 'NaN'
 
-        print(list_dest)
+
 
         #download
         import obdaac_download as od
@@ -99,5 +139,3 @@ if __name__ == '__main__':
 
 
 
-            #ndownload.download_file(name,file_out)
-            #obdaac_download(file_out --odir file_out)

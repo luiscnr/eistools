@@ -1,16 +1,22 @@
 import time
 from datetime import datetime as dt
+from datetime import timedelta
 import os, re
 import urllib.request
 import urllib.parse
 import ssl
 import requests
+import urllib3
+import json
 
 
 class NASA_DOWNLOAD:
     def __init__(self):
         self.direct_access_base_url = 'https://oceandata.sci.gsfc.nasa.gov/directdataaccess/Level-2/'
         self.url_download = 'https://oceandata.sci.gsfc.nasa.gov/ob/getfile/'
+        self.api_download = 'https://cmr.earthdata.nasa.gov/search/granules.umm_json?page_size=20&sort_key=short_name&sort_key=start_date'
+        self.time_min = 6
+        self.time_max = 18
         self.sensors = {
             'AQUA': {
                 'direct_access_folder': 'Aqua-MODIS',
@@ -20,7 +26,8 @@ class NASA_DOWNLOAD:
                 "prefix": "AQUA_MODIS.DATE",
                 "suffix_dt": ".L2.OC.nc",
                 "name_cnr_prefix": "A",
-                "name_cnr_suffix": ".L2_LAC_OC.nc"
+                "name_cnr_suffix": ".L2_LAC_OC.nc",
+                "short_name": "MODISA_L2_OC_NRT"
             },
             'VIIRSJ': {
                 'direct_access_folder': 'NOAA20-VIIRS',
@@ -31,7 +38,8 @@ class NASA_DOWNLOAD:
                 "prefix": "JPSS1_VIIRS.DATE",
                 "suffix_dt": ".L2.OC.nc",
                 "name_cnr_prefix": "V",
-                "name_cnr_suffix": ".L2_JPSS1_OC.nc"
+                "name_cnr_suffix": ".L2_JPSS1_OC.nc",
+                "short_name": "VIIRSJ1_L2_OC_NRT"
 
             },
             'VIIRS': {
@@ -43,9 +51,47 @@ class NASA_DOWNLOAD:
                 "prefix": "SNPP_VIIRS.DATE",
                 "suffix_dt": ".L2.OC.nc",
                 "name_cnr_prefix": "V",
-                "name_cnr_suffix": ".L2_SNPP_OC.nc"
+                "name_cnr_suffix": ".L2_SNPP_OC.nc",
+                "short_name": "VIIRSN_L2_OC_NRT"
+            },
+            'PACE_AOP':{
+                'direct_access_folder': 'PACE-OCI',
+                'nrt_wce': "PACE_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.NRT\.nc",
+                'dt_wce': "PACO_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.nc",
+                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/PACESOURCES",
+                "nrt_cnr_server_wce": "DATE_PACE_NRT_REGION_oc_proc_L2_",
+                "prefix": "PACE_OCI.DATE",
+                "suffix_dt": ".L2.OC_AOP.V2_0.nc",
+                "name_cnr_prefix": "P",
+                "name_cnr_suffix": ".L2_OCI_OC.nc",
+                "short_name": "PACE_OCI_L2_AOP_NRT"
             }
         }
+
+    def getscenes_by_point_EarthData_API(self, sen, date_here, insitu_lat,insitu_lon):
+        short_name = self.sensors[sen]['short_name']
+        lon_min = insitu_lon - 0.5
+        lon_max = insitu_lon + 0.5
+        lat_min = insitu_lat - 0.5
+        lat_max = insitu_lat + 0.5
+        bounding_box = f'{lon_min},{lat_min},{lon_max},{lat_max}'
+        date_next = date_here + timedelta(hours=24)
+        temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
+        #url_complete = f'{self.api_download}&short_name={short_name}&provider=OB_DAAC&bounding_box={bounding_box}&temporal={temporal}'
+        url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
+        #url_complete = f'{self.api_download}&short_name={short_name}&temporal={temporal}'
+        http = urllib3.PoolManager()
+        resp = http.request("GET", url_complete)
+        data = json.loads(resp.data)
+        ngranules = data['hits']
+        granules = []
+        if ngranules > 0:
+            for item in data['items']:
+                name = item['umm']['DataGranule']['ArchiveAndDistributionInformation'][0]['Name']
+                date_name = dt.strptime(name.split('.')[1], '%Y%m%dT%H%M%S')
+                if self.time_min <= date_name.hour <= self.time_max:
+                    granules.append(item['umm']['DataGranule']['ArchiveAndDistributionInformation'][0]['Name'])
+        return granules
 
     def get_path_orig(self, sensor, date_here):
         path = self.sensors[sensor]['nrt_cnr_server_dir']
@@ -154,11 +200,6 @@ class NASA_DOWNLOAD:
             this_try = this_try + 1
             time.sleep(10)
         return -1
-
-
-
-
-
 
     def get_list_files(self, date_here, sensor, region, mode):
 
