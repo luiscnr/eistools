@@ -35,9 +35,17 @@ class CMEMS_LOIS:
             print(f'[WARNING] Client S3 could not be started')
             return
         sb.update_params_from_dict(cmems_options)
-        work_date = cmems_options['start_date']
-        end_date = cmems_options['end_date']
-        while work_date <= end_date:
+        date_list = []
+        if cmems_options['date_list'] is not None:
+            date_list = cmems_options['date_list']
+        else:
+            work_date = cmems_options['start_date']
+            end_date = cmems_options['end_date']
+            while work_date <= end_date:
+                date_list.append(work_date)
+                work_date = work_date + timedelta(hours=24)
+
+        for work_date in date_list:
             bucket, key, available, usemyint = sb.check_daily_file_params(work_date)
             if self.verbose or not make_download:
                 print(f'[INFO]{work_date.strftime("%Y-%m-%d")}:{bucket}/{key}->{available}')
@@ -50,8 +58,6 @@ class CMEMS_LOIS:
                         file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, overwrite)
                     if self.verbose:
                         print(f'--> Output file: {file_out} Download status: {os.path.exists(file_out)}')
-
-            work_date = work_date + timedelta(hours=24)
         sb.close_client()
 
     def get_folder_out(self,work_date, od, ods):

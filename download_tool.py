@@ -11,6 +11,7 @@ parser.add_argument("-ods", "--output_directory_structure", help="Output directo
 
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
+parser.add_argument("-date_list","--date_list_file",help="Date list file (format yyyy-mm-dd)")
 parser.add_argument("-download", "--make_download", help="Make download", action="store_true")
 
 # cmems options
@@ -86,11 +87,26 @@ def create_if_not_exists(folder):
 def get_cmems_options():
     from product_info import ProductInfo
     from s3buckect import S3Bucket
-    keyList = ['start_date', 'end_date', 'product', 'dataset', 'endpoint', 'bucket', 'tag']
+    from datetime import datetime as dt
+    keyList = ['start_date', 'end_date', 'date_list','product', 'dataset', 'endpoint', 'bucket', 'tag']
     cmems_options = {key: None for key in keyList}
-    start_date, end_date = get_start_end_dates()
-    cmems_options['start_date'] = start_date
-    cmems_options['end_date'] = end_date
+    if args.date_list_file:
+        date_list = []
+        fr = open(args.date_list_file,'r')
+        for line in fr:
+            try:
+                date_here = dt.strptime(line.strip(),'%Y-%m-%d')
+                date_list.append(date_here)
+            except:
+                pass
+        cmems_options['date_list'] = date_list
+        cmems_options['start_date'] = 'NotNeeded'
+        cmems_options['end_date'] = 'NotNeeded'
+    else:
+        start_date, end_date = get_start_end_dates()
+        cmems_options['start_date'] = start_date
+        cmems_options['end_date'] = end_date
+        cmems_options['date_list'] = 'NotNeeded'
     if args.config_file:
         return None
     else:
