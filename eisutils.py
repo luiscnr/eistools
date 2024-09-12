@@ -693,7 +693,7 @@ def check_CCOC_878():
                 if valid:
                     ngood_med = ngood_med + 1
                 else:
-                    print(f'[ERROR] Error in med file: {file_med}')
+                    print(f'[ERROR] Error in med file: {file_med} {valid_min_file} - {med[var]["valid_min"]} {valid_max_file} - {med[var]["valid_max"]}')
                 dataset_med.close()
 
             if os.path.exists(file_bs):
@@ -711,7 +711,7 @@ def check_CCOC_878():
                 if valid:
                     ngood_bs = ngood_bs + 1
                 else:
-                    print(f'[ERROR] Error in bs file: {file_bs}')
+                    print(f'[ERROR] Error in bs file: {file_bs} {valid_min_file} - {bs[var]["valid_min"]} {valid_max_file} - {bs[var]["valid_max"]}')
                 dataset_bs.close()
 
 
