@@ -684,12 +684,12 @@ def check_CCOC_878():
                 dataset_med = Dataset(file_med)
                 for var in med:
                     if var in dataset_med.variables:
-                        valid_min_file = dataset_med.variables[var].valid_min
-                        valid_max_file = dataset_med.variables[var].valid_max
-                        if valid_min_file!=med[var]['valid_min']:
+                        valid_min_file = f'{dataset_med.variables[var].valid_min:.10f}'
+                        valid_max_file = f'{dataset_med.variables[var].valid_max:.10f}'
+                        if valid_min_file!=f'{med[var]["valid_min"]:.10f}':
                             print(var,valid_min_file,'<->',med[var]['valid_min'])
                             valid = False
-                        if valid_max_file!=med[var]['valid_max']:
+                        if valid_max_file!=f'{med[var]["valid_max"]:.10f}':
                             print(var, valid_max_file, '<->', med[var]['valid_max'])
                             valid = False
                 if valid:
@@ -704,16 +704,18 @@ def check_CCOC_878():
                 dataset_bs = Dataset(file_bs)
                 for var in bs:
                     if var in dataset_bs.variables:
-                        valid_min_file = dataset_bs.variables[var].valid_min
-                        valid_max_file = dataset_bs.variables[var].valid_max
-                        if valid_min_file!=bs[var]['valid_min']:
+                        valid_min_file = f'{dataset_bs.variables[var].valid_min:.10f}'
+                        valid_max_file = f'{dataset_bs.variables[var].valid_max:.10f}'
+                        if valid_min_file!=f'{bs[var]["valid_min"]:.10f}':
+                            print(var, valid_min_file, '<->', bs[var]['valid_min'])
                             valid = False
-                        if valid_max_file!=bs[var]['valid_max']:
+                        if valid_max_file!=f'{bs[var]["valid_max"]:.10f}':
+                            print(var, valid_max_file, '<->', bs[var]['valid_max'])
                             valid = False
                 if valid:
                     ngood_bs = ngood_bs + 1
                 else:
-                    print(f'[ERROR] Error in bs file: {file_bs} {valid_min_file} - {bs[var]["valid_min"]} {valid_max_file} - {bs[var]["valid_max"]}')
+                    print(f'[ERROR] Error in bs file: {file_bs}')
                 dataset_bs.close()
 
 
