@@ -9,7 +9,7 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR'])
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST'])
 parser.add_argument("-p", "--path", help="Path for FTPDOWNLOAD")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
@@ -478,8 +478,257 @@ def check_download():
     sb.download_daily_file('NRT',pinfo,date_here,path_out,True,True)
     return True
 
+def resolve_CCOC_878(year):
+    file_slurm = f'/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-878/resolve_ccoc_878_{year}.slurm'
+    fw = open(file_slurm,'w')
+    fw.write('#!/bin/bash')
+    start_lines = [
+        '#SBATCH --nodes=1',
+        '#SBATCH --ntasks=1',
+        '#SBATCH -p octac',
+        '#SBATCH --mail-type=BEGIN,END,FAIL',
+        '#SBATCH --mail-user=luis.gonzalezvilas@artov.ismar.cnr.it,lorenzo.amodio@artov.ismar.cnr.it',
+        '',
+        '',
+        'source /home/gosuser/load_miniconda3.source',
+        'conda activate op_proc_202211v2',
+        'cd /store/COP2-OC-TAC/OCTACMANAGER/CCOC-878',
+        '',
+        ''
+    ]
+    for line in start_lines:
+        fw.write('\n')
+        fw.write(line)
+
+    start_date = dt(year,1,1)
+    end_date = dt(year,12,31)
+    if year==1997:
+        start_date = dt(year,9,16)
+    if year==2024:
+        end_date = dt(year,9,3)
+
+    base_folder = '/store3/OC/MULTI/daily_v202311_x'
+    work_date =start_date
+    while work_date<=end_date:
+        yyyy = work_date.strftime('%Y')
+        jjj = work_date.strftime('%j')
+        file_med = os.path.join(base_folder,yyyy,jjj,f'X{yyyy}{jjj}-pft-med-hr.nc')
+        file_bs = os.path.join(base_folder,yyyy,jjj,f'X{yyyy}{jjj}-pft-bs-hr.nc')
+        fw = resolve_CCOC_878_impl(file_med,file_bs,fw)
+        work_date = work_date + timedelta(hours=24)
+
+
+    fw.close()
+
+    return True
+
+def resolve_CCOC_878_impl(file_med,file_bs,fw):
+
+    med = {
+        'DIATO':{
+            'valid_min': 0.0001,
+            'valid_max': 4.0
+        },
+        'DINO': {
+            'valid_min': 0.00001,
+            'valid_max': 1.0
+        },
+        'CRYPTO': {
+            'valid_min': 0.00001,
+            'valid_max': 2.0
+        },
+        'HAPTO': {
+            'valid_min': 0.001,
+            'valid_max': 1.0
+        },
+        'GREEN': {
+            'valid_min': 0.00001,
+            'valid_max': 1.0
+        },
+        'PROKAR':{
+            'valid_min': 0.001,
+            'valid_max': 1.0
+        },
+        'MICRO':{
+            'valid_min': 0.0001,
+            'valid_max': 4.0
+        },
+        'NANO':{
+            'valid_min': 0.0001,
+            'valid_max': 2.0
+        },
+        'PICO':{
+            'valid_min': 0.0001,
+            'valid_max': 1.0
+        }
+    }
+
+
+    bs = {
+        'MICRO': {
+            'valid_min': 0.001,
+            'valid_max': 50.0
+        },
+        'NANO': {
+            'valid_min': 0.01,
+            'valid_max': 2.0
+        },
+        'PICO': {
+            'valid_min': 0.01,
+            'valid_max': 1.0
+        }
+    }
+
+
+    for var in med:
+        line_min = f'ncatted -O -a valid_min,{var},o,f,{med[var]["valid_min"]} {file_med}'
+        line_max = f'ncatted -O -a valid_max,{var},o,f,{med[var]["valid_max"]} {file_med}'
+        fw.write('\n')
+        fw.write(line_min)
+        fw.write('\n')
+        fw.write(line_max)
+
+
+
+
+    for var in bs:
+        line_min = f'ncatted -O -a valid_min,{var},o,f,{bs[var]["valid_min"]} {file_bs}'
+        line_max = f'ncatted -O -a valid_max,{var},o,f,{bs[var]["valid_max"]} {file_bs}'
+        fw.write('\n')
+        fw.write(line_min)
+        fw.write('\n')
+        fw.write(line_max)
+
+    fw.write('\n')
+    fw.write('\n')
+
+
+    return fw
+
+
+
+
+def check_CCOC_878():
+    from netCDF4 import Dataset
+    med = {
+        'DIATO': {
+            'valid_min': 0.0001,
+            'valid_max': 4.0
+        },
+        'DINO': {
+            'valid_min': 0.00001,
+            'valid_max': 1.0
+        },
+        'CRYPTO': {
+            'valid_min': 0.00001,
+            'valid_max': 2.0
+        },
+        'HAPTO': {
+            'valid_min': 0.001,
+            'valid_max': 1.0
+        },
+        'GREEN': {
+            'valid_min': 0.00001,
+            'valid_max': 1.0
+        },
+        'PROKAR': {
+            'valid_min': 0.001,
+            'valid_max': 1.0
+        },
+        'MICRO': {
+            'valid_min': 0.0001,
+            'valid_max': 4.0
+        },
+        'NANO': {
+            'valid_min': 0.0001,
+            'valid_max': 2.0
+        },
+        'PICO': {
+            'valid_min': 0.0001,
+            'valid_max': 1.0
+        }
+    }
+
+    bs = {
+        'MICRO': {
+            'valid_min': 0.001,
+            'valid_max': 50.0
+        },
+        'NANO': {
+            'valid_min': 0.01,
+            'valid_max': 2.0
+        },
+        'PICO': {
+            'valid_min': 0.01,
+            'valid_max': 1.0
+        }
+    }
+
+    base_folder = '/store3/OC/MULTI/daily_v202311_x'
+    for year in range(1997,2025):
+        work_date = dt(year,1,1)
+        end_date = dt(year,1,1)
+        nfound_med = 0
+        ngood_med = 0
+        nfound_bs = 0
+        ngood_bs = 0
+
+        while work_date <= end_date:
+            yyyy = work_date.strftime('%Y')
+            jjj = work_date.strftime('%j')
+            file_med = os.path.join(base_folder, yyyy, jjj, f'X{yyyy}{jjj}-pft-med-hr.nc')
+            file_bs = os.path.join(base_folder, yyyy, jjj, f'X{yyyy}{jjj}-pft-bs-hr.nc')
+            if os.path.exists(file_med):
+                nfound_med = nfound_med+1
+                valid = True
+                dataset_med = Dataset(file_med)
+                for var in med:
+                    if var in dataset_med.variables:
+                        valid_min_file = dataset_med.variables[var].valid_min
+                        valid_max_file = dataset_med.variables[var].valid_max
+                        if valid_min_file!=med[var]['valid_min']:
+                            valid = False
+                        if valid_max_file!=med[var]['valid_max']:
+                            valid = False
+                if valid:
+                    ngood_med = ngood_med + 1
+                else:
+                    print(f'[ERROR] Error in med file: {file_med}')
+                dataset_med.close()
+
+            if os.path.exists(file_bs):
+                nfound_bs = nfound_bs+1
+                valid = True
+                dataset_bs = Dataset(file_bs)
+                for var in bs:
+                    if var in dataset_bs.variables:
+                        valid_min_file = dataset_bs.variables[var].valid_min
+                        valid_max_file = dataset_bs.variables[var].valid_max
+                        if valid_min_file!=bs[var]['valid_min']:
+                            valid = False
+                        if valid_max_file!=bs[var]['valid_max']:
+                            valid = False
+                if valid:
+                    ngood_bs = ngood_bs + 1
+                else:
+                    print(f'[ERROR] Error in bs file: {file_bs}')
+                dataset_bs.close()
+
+
+
+
+            work_date = work_date + timedelta(hours=24)
+
+        print(f'YEAR: {year} MED: {ngood_med}/{nfound_med} BS: {ngood_bs}/{nfound_bs}')
+
+    return True
 
 def main():
+    if args.mode=='TEST':
+        # for year in range(1998,2025):
+        #     resolve_CCOC_878(year)
+        check_CCOC_878()
+        return
     if check_download():
         return
     if check_med():
