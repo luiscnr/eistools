@@ -684,13 +684,13 @@ def check_CCOC_878():
                 dataset_med = Dataset(file_med)
                 for var in med:
                     if var in dataset_med.variables:
-                        valid_min_file = f'{dataset_med.variables[var].valid_min:.10f}'
-                        valid_max_file = f'{dataset_med.variables[var].valid_max:.10f}'
-                        if valid_min_file!=f'{med[var]["valid_min"]:.10f}':
-                            print(var,valid_min_file,'<->',med[var]['valid_min'])
+                        dif_min = abs(dataset_med.variables[var].valid_min - med[var]["valid_min"])
+                        dif_max = abs(dataset_med.variables[var].valid_max - med[var]["valid_max"])
+                        if dif_min>1e-8:
+                            print(var,dataset_med.variables[var].valid_min,'<->',med[var]['valid_min'])
                             valid = False
-                        if valid_max_file!=f'{med[var]["valid_max"]:.10f}':
-                            print(var, valid_max_file, '<->', med[var]['valid_max'])
+                        if dif_max>1e-8:
+                            print(var, dataset_med.variables[var].valid_max, '<->', med[var]['valid_max'])
                             valid = False
                 if valid:
                     ngood_med = ngood_med + 1
@@ -704,13 +704,13 @@ def check_CCOC_878():
                 dataset_bs = Dataset(file_bs)
                 for var in bs:
                     if var in dataset_bs.variables:
-                        valid_min_file = f'{dataset_bs.variables[var].valid_min:.10f}'
-                        valid_max_file = f'{dataset_bs.variables[var].valid_max:.10f}'
-                        if valid_min_file!=f'{bs[var]["valid_min"]:.10f}':
-                            print(var, valid_min_file, '<->', bs[var]['valid_min'])
+                        dif_min = abs(dataset_bs.variables[var].valid_min - bs[var]["valid_min"])
+                        dif_max = abs(dataset_bs.variables[var].valid_max - bs[var]["valid_max"])
+                        if dif_min > 1e-8:
+                            print(var, dataset_bs.variables[var].valid_min, '<->', bs[var]['valid_min'])
                             valid = False
-                        if valid_max_file!=f'{bs[var]["valid_max"]:.10f}':
-                            print(var, valid_max_file, '<->', bs[var]['valid_max'])
+                        if dif_max > 1e-8:
+                            print(var, dataset_bs.variables[var].valid_min, '<->', bs[var]['valid_max'])
                             valid = False
                 if valid:
                     ngood_bs = ngood_bs + 1
