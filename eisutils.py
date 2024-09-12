@@ -667,7 +667,7 @@ def check_CCOC_878():
     base_folder = '/store3/OC/MULTI/daily_v202311_x'
     for year in range(1997,2025):
         work_date = dt(year,1,1)
-        end_date = dt(year,1,1)
+        end_date = dt(year,12,31)
         nfound_med = 0
         ngood_med = 0
         nfound_bs = 0
