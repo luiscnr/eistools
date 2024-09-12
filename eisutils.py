@@ -687,13 +687,15 @@ def check_CCOC_878():
                         valid_min_file = dataset_med.variables[var].valid_min
                         valid_max_file = dataset_med.variables[var].valid_max
                         if valid_min_file!=med[var]['valid_min']:
+                            print(var,valid_min_file,'<->',med[var]['valid_min'])
                             valid = False
                         if valid_max_file!=med[var]['valid_max']:
+                            print(var, valid_max_file, '<->', med[var]['valid_max'])
                             valid = False
                 if valid:
                     ngood_med = ngood_med + 1
                 else:
-                    print(f'[ERROR] Error in med file: {file_med} {valid_min_file} - {med[var]["valid_min"]} {valid_max_file} - {med[var]["valid_max"]}')
+                    print(f'[ERROR] Error in med file: {file_med}')
                 dataset_med.close()
 
             if os.path.exists(file_bs):
