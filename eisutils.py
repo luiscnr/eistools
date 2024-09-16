@@ -505,7 +505,8 @@ def resolve_CCOC_878(year):
     if year==1997:
         start_date = dt(year,9,16)
     if year==2024:
-        end_date = dt(year,9,3)
+        start_date = dt(year, 9, 5)
+        end_date = dt(year,9,10)
 
     base_folder = '/store3/OC/MULTI/daily_v202311_x'
     work_date =start_date
@@ -727,11 +728,23 @@ def check_CCOC_878():
 
     return True
 
+def move_msi_sources():
+    folder_orig = '/store/TARA_VALIDATION/sources_msi'
+    folder_dest = '/store/TARA_VALIDATION/sources'
+    for name in os.listdir(folder_orig):
+        file_orig = os.path.join(folder_orig,name)
+        date_orig = dt.strptime(name.split('_')[0],'%Y%m%d')
+        file_dest = os.path.join(folder_dest,date_orig.strftime('%Y'),date_orig.strftime('%j'),name)
+        print(f'Moving {file_orig} -> {file_dest}')
+        
+
 def main():
     if args.mode=='TEST':
         # for year in range(1998,2025):
         #     resolve_CCOC_878(year)
-        check_CCOC_878()
+        # resolve_CCOC_878(2024)
+        #check_CCOC_878()
+        move_msi_sources()
         return
     if check_download():
         return
