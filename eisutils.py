@@ -736,7 +736,8 @@ def move_msi_sources():
         date_orig = dt.strptime(name.split('_')[0],'%Y%m%d')
         file_dest = os.path.join(folder_dest,date_orig.strftime('%Y'),date_orig.strftime('%j'),name)
         print(f'Moving {file_orig} -> {file_dest}')
-        
+        os.rename(file_orig,file_dest)
+
 
 def main():
     if args.mode=='TEST':
