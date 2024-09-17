@@ -133,7 +133,8 @@ class NASA_DOWNLOAD:
 
     def get_url_date(self, sensor, date_here):
         year_str = date_here.strftime('%Y')
-        jday_str = date_here.strftime('%j')
+        #jday_str = date_here.strftime('%j')
+        jday_str = date_here.strftime('%d-%b-%Y')
         url = os.path.join(self.direct_access_base_url, self.sensors[sensor]['direct_access_folder'], year_str,
                            jday_str)
         return url
@@ -180,7 +181,6 @@ class NASA_DOWNLOAD:
         datestr = date_here.strftime('%Y%m%d')
         ssl._create_default_https_context = ssl._create_unverified_context
         url_date = self.get_url_date(sensor, date_here)
-
 
         wce = self.sensors[sensor]['dt_wce']
         wce = wce.replace('DATE', datestr)
