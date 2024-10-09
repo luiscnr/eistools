@@ -738,6 +738,77 @@ def move_msi_sources():
         print(f'Moving {file_orig} -> {file_dest}')
         os.rename(file_orig,file_dest)
 
+def kk():
+    dir_base = '/mnt/c/DATA_LUIS/TARA_TEST/station_match-ups/extracts_chl_CMEMS_OLCI_BAL'
+    for name in os.listdir(dir_base):
+        line = f'ncrename -v satellite_chl,satellite_CHL {os.path.join(dir_base,name)}'
+        print(line)
+    return True
+
+def update_time_impl(input_file,date_here):
+    print(f'Updating file: {input_file}')
+    output_file = input_file.replace('X2023','X2024')
+    print(output_file)
+    from netCDF4 import Dataset
+    from datetime import datetime as dt
+    from datetime import timedelta
+    date_ref = dt(1981,1,1,0,0,0)
+    seconds_new = (date_here-date_ref).total_seconds()
+
+    input_dataset = Dataset(input_file)
+    ncout = Dataset(output_file, 'w', format='NETCDF4')
+
+    # copy global attributes all at once via dictionary
+    ncout.setncatts(input_dataset.__dict__)
+
+    # copy dimensions
+    for name, dimension in input_dataset.dimensions.items():
+        ncout.createDimension(
+            name, (len(dimension) if not dimension.isunlimited() else None))
+
+    for name, variable in input_dataset.variables.items():
+        fill_value = None
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                             shuffle=True, complevel=6)
+
+        # copy variable attributes all at once via dictionary
+        ncout[name].setncatts(input_dataset[name].__dict__)
+
+        if name=='time':
+            seconds_prev = input_dataset[name][0]
+            seconds_prev = int(seconds_prev)
+            date_prev = date_ref+timedelta(seconds=seconds_prev)
+            date_new = date_ref+timedelta(seconds=seconds_new)
+            print('Changing date from',date_prev,'-->',date_new)
+            ncout[name][:] = int(seconds_new)
+
+        else:
+            ncout[name][:] = input_dataset[name][:]
+    ncout.start_date = date_here.strftime('%Y-%m-%d')
+    ncout.stop_date = date_here.strftime('%Y-%m-%d')
+    ncout.close()
+    input_dataset.close()
+
+def update_time(path,start_date,end_date):
+    from datetime import datetime as dt
+    from datetime import timedelta
+    start_date = dt.strptime(start_date,'%Y-%m-%d')
+    end_date = dt.strptime(end_date, '%Y-%m-%d')
+    date_here = start_date
+    while date_here<=end_date:
+        yearstr = date_here.strftime('%Y')
+        jjj = date_here.strftime('%j')
+        file_med = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-med-lr.nc')
+
+        file_blk = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-bs-lr.nc')
+        if os.path.exists(file_med):
+            update_time_impl(file_med,date_here)
+        if os.path.exists(file_blk):
+            update_time_impl(file_blk, date_here)
+        date_here = date_here + timedelta(hours=24)
 
 def main():
     if args.mode=='TEST':
@@ -745,7 +816,11 @@ def main():
         #     resolve_CCOC_878(year)
         # resolve_CCOC_878(2024)
         #check_CCOC_878()
-        move_msi_sources()
+        ##move_msi_sources()
+        ##kk()
+
+        update_time(args.path,args.start_date,args.end_date)
+
         return
     if check_download():
         return
