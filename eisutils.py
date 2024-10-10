@@ -9,11 +9,12 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST'])
-parser.add_argument("-p", "--path", help="Path for FTPDOWNLOAD")
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST','UPDATE_TIME_CMEMS_DAILY','UPDATE_TIME_CMEMS_MONTHLY'])
+parser.add_argument("-p", "--path", help="Path")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
-
+parser.add_argument("-pr", "--preffix", help="Preffix")
+parser.add_argument("-sf", "--suffix", help="Suffix")
 args = parser.parse_args()
 
 def do_check():
@@ -745,10 +746,10 @@ def kk():
         print(line)
     return True
 
-def update_time_impl(input_file,date_here):
-    print(f'Updating file: {input_file}')
-    output_file = input_file.replace('X2023','X2024')
-    print(output_file)
+def update_time_impl(input_file,output_file,date_here,date_last):
+    # print(f'Updating file: {input_file}')
+    # output_file = input_file.replace('X2023','X2024')
+    # print(output_file)
     from netCDF4 import Dataset
     from datetime import datetime as dt
     from datetime import timedelta
@@ -782,33 +783,105 @@ def update_time_impl(input_file,date_here):
             seconds_prev = int(seconds_prev)
             date_prev = date_ref+timedelta(seconds=seconds_prev)
             date_new = date_ref+timedelta(seconds=seconds_new)
-            print('Changing date from',date_prev,'-->',date_new)
+            print(f'[INFO ] Updating date from {date_prev} to {date_new}')
             ncout[name][:] = int(seconds_new)
-
         else:
             ncout[name][:] = input_dataset[name][:]
     ncout.start_date = date_here.strftime('%Y-%m-%d')
-    ncout.stop_date = date_here.strftime('%Y-%m-%d')
+    ncout.stop_date = date_last.strftime('%Y-%m-%d')
     ncout.close()
     input_dataset.close()
 
-def update_time(path,start_date,end_date):
+def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
     from datetime import datetime as dt
     from datetime import timedelta
-    start_date = dt.strptime(start_date,'%Y-%m-%d')
-    end_date = dt.strptime(end_date, '%Y-%m-%d')
+    if not os.path.isdir(path):
+        print(f'[ERROR] {path} does not exist or it is not a directory')
+        return
+    try:
+        start_date = dt.strptime(start_date_str,'%Y-%m-%d')
+    except:
+        print(f'[ERROR] Start date is not a valid date')
+        return
+    try:
+        end_date = dt.strptime(end_date_str, '%Y-%m-%d')
+    except:
+        print(f'[ERROR] End date {end_date_str} is not a valid date')
+        return
+    if end_date<start_date:
+        print(f'[ERROR] End date {end_date_str} should be greater or equal to {start_date_str}')
+        return
+
     date_here = start_date
     while date_here<=end_date:
+        print(f'[INFO] Working with date: {date_here}')
         yearstr = date_here.strftime('%Y')
         jjj = date_here.strftime('%j')
-        file_med = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-med-lr.nc')
+        path_date = os.path.join(path,yearstr,jjj)
+        if not os.path.exists(path_date):
+            continue
+        for name in os.listdir(path_date):
+            if not name.startswith(preffix):continue
+            if not name.endswith(suffix):continue
 
-        file_blk = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-bs-lr.nc')
-        if os.path.exists(file_med):
-            update_time_impl(file_med,date_here)
-        if os.path.exists(file_blk):
-            update_time_impl(file_blk, date_here)
+            file_in = os.path.join(path_date,name)
+            name_out = f'{preffix}{yearstr}{jjj}{suffix}'
+            file_out = os.path.join(path_date,name_out)
+            update_time_impl(file_in, file_out,date_here,date_here)
+            # TEST
+            # file_med = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-med-lr.nc')
+            #
+            # file_blk = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-bs-lr.nc')
+            # if os.path.exists(file_med):
+            #     update_time_impl(file_med,date_here)
+            # if os.path.exists(file_blk):
+            #     update_time_impl(file_blk, date_here)
         date_here = date_here + timedelta(hours=24)
+
+def update_time_monthly(path,start_date_str,end_date_str,preffix,suffix):
+    from datetime import datetime as dt
+    from datetime import timedelta
+    import calendar
+    if not os.path.isdir(path):
+        print(f'[ERROR] {path} does not exist or it is not a directory')
+        return
+    try:
+        start_date = dt.strptime(start_date_str, '%Y-%m-%d')
+    except:
+        print(f'[ERROR] Start date is not a valid date')
+        return
+    try:
+        end_date = dt.strptime(end_date_str, '%Y-%m-%d')
+    except:
+        print(f'[ERROR] End date {end_date_str} is not a valid date')
+        return
+    if end_date < start_date:
+        print(f'[ERROR] End date {end_date_str} should be greater or equal to {start_date_str}')
+        return
+
+    date_here = start_date
+    while date_here <= end_date:
+        yearstr = date_here.strftime('%Y')
+        print(f'[INFO] Working with year: {yearstr}')
+        path_date = os.path.join(path, yearstr)
+        if not os.path.exists(path_date):
+            continue
+        for name in os.listdir(path_date):
+            if not name.startswith(preffix):continue
+            if not name.endswith(suffix):continue
+
+            date_file_str = name[name.find(preffix)+len(preffix):name.find(suffix)]
+            date_file = dt.strptime(date_file_str[:-3],'%Y%j')
+            date_out_start = dt(date_here.year,date_file.month,1)
+            date_out_end = dt(date_here.year,date_file.month,calendar.monthrange(date_here.year, date_file.month)[1])
+            name_out = f'{preffix}{yearstr}{date_out_start.strftime("%j")}{date_out_end.strftime("%j")}{suffix}'
+            file_in = os.path.join(path_date,name)
+            file_out = os.path.join(path_date,name_out)
+            update_time_impl(file_in,file_out,date_out_start,date_out_end)
+
+        date_here = date_here + timedelta(days=365)
+
+
 
 def main():
     if args.mode=='TEST':
@@ -819,19 +892,29 @@ def main():
         ##move_msi_sources()
         ##kk()
 
-        update_time(args.path,args.start_date,args.end_date)
+        #update_time(args.path,args.start_date,args.end_date)
+
+
 
         return
-    if check_download():
-        return
-    if check_med():
-        return
-    if resolve_CCOC_778():
-        return
-    if do_empty_copy():
-        return
-    if do_check():
-        return
+    # if check_download():
+    #     return
+    # if check_med():
+    #     return
+    # if resolve_CCOC_778():
+    #     return
+    # if do_empty_copy():
+    #     return
+    # if do_check():
+    #     return
+    if args.mode == 'UPDATE_TIME_CMEMS_DAILY':
+        update_time_daily(args.path, args.start_date, args.end_date,args.preffix,args.suffix)
+    if args.mode == 'UPDATE_TIME_CMEMS_MONTHLY':
+        update_time_monthly(args.path,args.start_date,args.end_date,args.preffix,args.suffix)
+
+
+
+
     if args.mode == 'COPYAQUA':
         copy_aqua()
     if args.mode == 'CHECKFTPCONTENTS':
