@@ -9,7 +9,7 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST','UPDATE_TIME_CMEMS_DAILY','UPDATE_TIME_CMEMS_MONTHLY'])
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST','UPDATE_TIME_CMEMS_DAILY','UPDATE_TIME_CMEMS_MONTHLY','REMOVE_NR_SOURCES'])
 parser.add_argument("-p", "--path", help="Path")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
@@ -792,6 +792,40 @@ def update_time_impl(input_file,output_file,date_here,date_last):
     ncout.close()
     input_dataset.close()
 
+def remove_nr_sources_impl(path,start_date_str,end_date_str):
+    from datetime import datetime as dt
+    from datetime import timedelta
+    if not os.path.isdir(path):
+        print(f'[ERROR] {path} does not exist or it is not a directory')
+        return
+    try:
+        start_date = dt.strptime(start_date_str, '%Y-%m-%d')
+    except:
+        print(f'[ERROR] Start date is not a valid date')
+        return
+    try:
+        end_date = dt.strptime(end_date_str, '%Y-%m-%d')
+    except:
+        print(f'[ERROR] End date {end_date_str} is not a valid date')
+        return
+    if end_date < start_date:
+        print(f'[ERROR] End date {end_date_str} should be greater or equal to {start_date_str}')
+        return
+
+    date_here = start_date
+    while date_here <= end_date:
+        print(f'[INFO] Working with date: {date_here}')
+        yearstr = date_here.strftime('%Y')
+        jjj = date_here.strftime('%j')
+        path_date = os.path.join(path, yearstr, jjj)
+        if not os.path.exists(path_date):
+            continue
+        for name in os.listdir(path_date):
+            if name.find('_NR_') and name.endswith('.zip'):
+                file_remove = os.path.join(path_date,name)
+                os.remove(file_remove)
+        date_here = date_here + timedelta(hours=24)
+
 def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
     from datetime import datetime as dt
     from datetime import timedelta
@@ -949,6 +983,10 @@ def main():
     #     return
     # if do_check():
     #     return
+
+    if args.mode == 'REMOVE_NR_SOURCES':
+        remove_nr_sources_impl(args.path,args.start_date, args.end_date)
+
     if args.mode == 'UPDATE_TIME_CMEMS_DAILY':
         update_time_daily(args.path, args.start_date, args.end_date,args.preffix,args.suffix)
     if args.mode == 'UPDATE_TIME_CMEMS_MONTHLY':
