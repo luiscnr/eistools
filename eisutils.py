@@ -821,7 +821,7 @@ def remove_nr_sources_impl(path,start_date_str,end_date_str):
         if not os.path.exists(path_date):
             continue
         for name in os.listdir(path_date):
-            if name.find('_NR_') and name.endswith('.zip'):
+            if name.find('_NR_')>0 and name.endswith('.zip'):
                 file_remove = os.path.join(path_date,name)
                 os.remove(file_remove)
         date_here = date_here + timedelta(hours=24)
