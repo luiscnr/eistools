@@ -881,10 +881,52 @@ def update_time_monthly(path,start_date_str,end_date_str,preffix,suffix):
 
         date_here = date_here + timedelta(days=365)
 
+def check_sources_from_source_list_files(list_files,dir_out,fout):
+    all_files = {}
+    for file in list_files:
+        f1 = open(file,'r')
+        for line in f1:
+            line_s = [x.strip() for x in line.split(';')]
+            if line_s[0] not in all_files.keys():
+                all_files[line_s[0]] = [line_s[1]]
+            else:
+                if line_s[1] not in all_files[line_s[0]]:
+                    all_files[line_s[0]].append(line_s[1])
+        f1.close()
 
-
+    fw = open(fout,'w')
+    fw.write('Date;NAll;NAvailable;Complete')
+    for date in all_files:
+        date_here = dt.strptime(date,'%Y-%m-%d')
+        file_out_date = os.path.join(dir_out,date_here.strftime('%Y'),date_here.strftime('%j'))
+        nall = len(all_files[date])
+        ndate = 0
+        for name_here  in all_files[date]:
+            file_here = os.path.join(file_out_date,f'{name_here}.zip')
+            print(file_here)
+            if os.path.exists(file_here):
+                ndate = ndate + 1
+        complete = 1 if ndate==nall else 0
+        line = f'{date};{nall};{ndate};{complete}'
+        print(line)
+        fw.write('\n')
+        fw.write(line)
+    fw.close()
 def main():
     if args.mode=='TEST':
+        file_base_list_files = '/store3/OC/OLCI_BAL/org_scripts'
+        #file_base_list_files = '/mnt/c/DATA_LUIS/OCTACWORK'
+        list_files = []
+        for name in os.listdir(file_base_list_files):
+            if name.startswith('GranulesToDownload2024'):
+                list_files.append(os.path.join(file_base_list_files,name))
+
+        check_sources_from_source_list_files(list_files,'/store3/OC/OLCI_BAL/SOURCES',os.path.join(file_base_list_files,'SOURCES_2024_CHECK.txt'))
+        check_sources_from_source_list_files(list_files, '/store3/OC/OLCI_BAL/SOURCES_EXTRA',
+                                             os.path.join(file_base_list_files, 'SOURCES_EXTRA_2024_CHECK.txt'))
+        check_sources_from_source_list_files(list_files, '/store/COP2-OC-TAC/BAL_Evolutions/sources',
+                                             os.path.join(file_base_list_files, 'BAL_EVOLUTION_sources_2024_CHECK.txt'))
+
         # for year in range(1998,2025):
         #     resolve_CCOC_878(year)
         # resolve_CCOC_878(2024)
