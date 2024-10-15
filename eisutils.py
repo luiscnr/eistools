@@ -15,7 +15,7 @@ parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pr", "--preffix", help="Preffix")
 parser.add_argument("-sf", "--suffix", help="Suffix")
-parser.add_argument("-tsources","--type_sources",help="Sources type to REMOVE_NR_SOURCES option",choices=["ZIP","SEN3"],default="ZIP")
+parser.add_argument("-tsources","--type_sources",help="Sources type to REMOVE_NR_SOURCES option",choices=["ZIP","SEN3","NC"],default="ZIP")
 args = parser.parse_args()
 
 def do_check():
@@ -824,6 +824,9 @@ def remove_nr_sources_impl(path,start_date_str,end_date_str,type_s):
         for name in os.listdir(path_date):
             if name.find('_NR_')>0:
                 if type_s=="ZIP" and name.endswith('.zip'):
+                    file_remove = os.path.join(path_date,name)
+                    os.remove(file_remove)
+                if type_s=="NC" and name.endswith('.nc'):
                     file_remove = os.path.join(path_date,name)
                     os.remove(file_remove)
                 if type_s=="SEN3" and name.endswith('.SEN3'):
