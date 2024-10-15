@@ -15,6 +15,7 @@ parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pr", "--preffix", help="Preffix")
 parser.add_argument("-sf", "--suffix", help="Suffix")
+parser.add_argument("-tsources","--type_sources",help="Sources type to REMOVE_NR_SOURCES option",choices=["ZIP","SEN3"],default="ZIP")
 args = parser.parse_args()
 
 def do_check():
@@ -792,7 +793,7 @@ def update_time_impl(input_file,output_file,date_here,date_last):
     ncout.close()
     input_dataset.close()
 
-def remove_nr_sources_impl(path,start_date_str,end_date_str):
+def remove_nr_sources_impl(path,start_date_str,end_date_str,type_s):
     from datetime import datetime as dt
     from datetime import timedelta
     if not os.path.isdir(path):
@@ -821,9 +822,16 @@ def remove_nr_sources_impl(path,start_date_str,end_date_str):
         if not os.path.exists(path_date):
             continue
         for name in os.listdir(path_date):
-            if name.find('_NR_')>0 and name.endswith('.zip'):
-                file_remove = os.path.join(path_date,name)
-                os.remove(file_remove)
+            if name.find('_NR_')>0:
+                if type_s=="ZIP" and name.endswith('.zip'):
+                    file_remove = os.path.join(path_date,name)
+                    os.remove(file_remove)
+                if type_s=="SEN3" and name.endswith('.SEN3'):
+                    dir_remove = os.path.join(path_date,name)
+                    if os.path.isdir(dir_remove):
+                        for name_r in os.listdir(dir_remove):
+                            os.remove(os.path.join(dir_remove,name_r))
+                        os.rmdir(dir_remove)
         date_here = date_here + timedelta(hours=24)
 
 def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
@@ -985,7 +993,7 @@ def main():
     #     return
 
     if args.mode == 'REMOVE_NR_SOURCES':
-        remove_nr_sources_impl(args.path,args.start_date, args.end_date)
+        remove_nr_sources_impl(args.path,args.start_date, args.end_date,args.type_sources)
 
     if args.mode == 'UPDATE_TIME_CMEMS_DAILY':
         update_time_daily(args.path, args.start_date, args.end_date,args.preffix,args.suffix)
