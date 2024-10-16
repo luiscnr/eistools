@@ -873,7 +873,9 @@ def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
             file_in = os.path.join(path_date,name)
             name_out = f'{preffix}{yearstr}{jjj}{suffix}'
             file_out = os.path.join(path_date,name_out)
-            update_time_impl(file_in, file_out,date_here,date_here)
+            file_temp = os.path.join(path_date,'Temp.nc')
+            update_time_impl(file_in, file_temp,date_here,date_here)
+            os.rename(file_temp,file_out)
             # TEST
             # file_med = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-med-lr.nc')
             #
