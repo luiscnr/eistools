@@ -978,11 +978,14 @@ def run_distance(params):
     mask_land = params[4]
     dLand = params[5]
     print(f'Computing distance from: {y} , {x}')
+    min_dist_yx = None
     if mask_land[y,x]==0:##WATER PIXELS
         dist_yx = ((y-yPixels)**2) + ((x-xPixels)**2)
         dist_yx = dist_yx[mask_land==1]
         min_dist_yx = np.min(dist_yx)
-        dLand[y,x] = min_dist_yx
+        #dLand[y,x] = min_dist_yx
+
+    return min_dist_yx
 
 def create_mask(file_in,file_out,mask_variable,file_ref):
     from netCDF4 import Dataset
@@ -1004,17 +1007,53 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
         print('[ERROR] Dimension lat in file_ref does not coincide with the first dimension in the mask')
         return
 
-    # dLand = np.zeros((nlat,nlon))
-    # xPixels = np.tile(np.arange(nlon),(nlat,1))
-    # yPixels = np.tile(np.array([np.arange(nlat)]).transpose(), (1, nlon))
-    # from multiprocessing import Pool
-    # poolhere = Pool(8)
-    # param_list = []
-    # for y in range(0,nlat):
-    #     print(y)
-    #     for x in range(0,nlon):
-    #         if mask_land[y,x]==0:#WATER
-    #             param_list.append([yPixels,xPixels,y,x,mask_land,dLand])
+    dLand = np.zeros((nlat,nlon))
+    xPixels = np.tile(np.arange(nlon),(nlat,1))
+    yPixels = np.tile(np.array([np.arange(nlat)]).transpose(), (1, nlon))
+    from multiprocessing import Pool
+
+    param_list = []
+    all_ypoints = []
+    all_xpoints = []
+    for y in range(0,nlat):
+        print(y)
+        for x in range(0,nlon):
+            if mask_land[y,x]==0:#WATER
+                param_list.append([yPixels,xPixels,y,x,mask_land,dLand])
+                all_ypoints.append(y)
+                all_xpoints.append(x)
+
+    print(f'[INFO] Number of distances to be computed: {len(param_list)}')
+    for idx in range(0,len(param_list),1000):
+        start = idx
+        end = idx+1000
+        if end>len(param_list):
+            end = len(param_list)
+        param_list_here = param_list[start:end]
+        poolhere = Pool(8)
+        res_here = poolhere.map(run_distance,param_list_here)
+        ypoints = all_ypoints[start:end]
+        xpoints = all_xpoints[start:end]
+        print(len(ypoints))
+        print(len(xpoints))
+        dLand[ypoints,xpoints] = res_here[:]
+        # for idx in range(len(res_here)):
+        #     y = param_list[idx][2]
+        #     x = param_list[idx][3]
+        #     dLand[y,x] = res_here[idx]
+
+    # res = poolhere.map(run_distance,param_list)
+    #
+
+
+
+    # for params,val in zip(param_list,poolhere.map(run_distance,param_list)):
+    #     y = params[2]
+    #     x = params[3]
+    #     print(y,x,val)
+    #     if val is not None:
+    #         dLand[y,x] = val
+    #         print(y,x,'-->',val)
     # poolhere.map(run_distance, param_list)
 
     # for y in range(60):
@@ -1026,7 +1065,7 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     #             min_dist_yx = np.min(dist_yx)
     #             dLand[y,x] = min_dist_yx
 
-    #dLand = np.square(dLand)
+    dLand = np.square(dLand)
 
 
     print('[INFO] Creating output file...')
@@ -1039,8 +1078,8 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     var_lon[:] = lon
     var_land = nc_out.createVariable('Land_Mask','i2',('lat','lon'),zlib=True,complevel=6)
     var_land[:] = mask_land
-    # var_dist= nc_out.createVariable('Dist_Land', 'f4', ('lat', 'lon'), zlib=True, complevel=6)
-    # var_dist[:] = dLand
+    var_dist= nc_out.createVariable('Dist_Land', 'f4', ('lat', 'lon'), zlib=True, complevel=6)
+    var_dist[:] = dLand
 
     nc_out.close()
     print(f'[INFO] Completed')
@@ -1121,10 +1160,70 @@ def apply_mask_impl(input_file,mask,output_file):
 
     return mask_applied
 
+def test_impl(input_file,output_file):
+    from netCDF4 import Dataset
+    import numpy as np
+    nc_input = Dataset(input_file, 'r')
+    nc_out = Dataset(output_file, 'w')
+
+    # copy global attributes all at once via dictionary
+    nc_out.setncatts(nc_input.__dict__)
+
+    # copy dimensions
+    for name, dimension in nc_input.dimensions.items():
+        nc_out.createDimension(
+            name, (len(dimension) if not dimension.isunlimited() else None))
+
+    variables_to_flipup = ['RRS412','RRS443','RRS490','RRS510','RRS560','RRS665']
+    for name, variable in nc_input.variables.items():
+        fill_value = -999.0
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+
+        nc_out.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                              complevel=6)
+
+        # copy variable attributes all at once via dictionary
+        nc_out[name].setncatts(nc_input[name].__dict__)
+
+        if name in variables_to_flipup:
+            array = np.array(nc_input[name][:])
+            array = np.flipud(array)
+            nc_out[name][:] = array
+        else:
+            nc_out[name][:] = nc_input[name][:]
+
+    nc_input.close()
+    nc_out.close()
+
+
 def main():
     if args.mode=='TEST':
-        from eumdac_lois import EUMDAC_LOIS
-        edac = EUMDAC_LOIS(True, None)
+        # input_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data_BAL202411_prev.nc'
+        # output_path = os.path.join(os.path.dirname(input_path),'Temp.nc')
+        input_path = '/store3/OC/CCI_v2017/daily_v202411'
+        start_date,end_date = get_dates()
+        if start_date is None or end_date is None:
+            return
+        name_file = 'MDATE1.0000.bal.all_products.CCI.DATE20000.v0.DATE10000.data_BAL202411.nc'
+        work_date = start_date
+        while work_date <= end_date:
+            yyyy = work_date.strftime('%Y')
+            jjj = work_date.strftime('%j')
+            path_date = os.path.join(input_path, yyyy, jjj)
+            input_file = os.path.join(path_date, name_file.replace('DATE1', f'{yyyy}{jjj}'))
+            input_file = input_file.replace('DATE2',work_date.strftime('%d%b%y'))
+            if not os.path.exists(input_file):
+                print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
+                work_date = work_date + timedelta(hours=24)
+                continue
+            output_path = os.path.join(path_date,'TempKK.nc')
+            test_impl(input_file,output_path)
+            os.rename(output_path,input_file)
+
+
+        # from eumdac_lois import EUMDAC_LOIS
+        # edac = EUMDAC_LOIS(True, None)
 
         # file_base_list_files = '/store3/OC/OLCI_BAL/org_scripts'
         # #file_base_list_files = '/mnt/c/DATA_LUIS/OCTACWORK'
