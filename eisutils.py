@@ -1221,6 +1221,7 @@ def main():
             test_impl(input_file,output_path)
             os.rename(output_path,input_file)
 
+            work_date = work_date + timedelta(hours=24)
 
         # from eumdac_lois import EUMDAC_LOIS
         # edac = EUMDAC_LOIS(True, None)
