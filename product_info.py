@@ -30,6 +30,34 @@ class ProductInfo:
 
         self.MODE = 'UPLOAD'  # UPLOAD, REFORMAT, NONE
 
+        self.params_slurm = {
+            'nodes': '1',
+            'ntasks': '1',
+            'p': 'octac',
+            'mail-type': 'BEGIN,END,FAIL',
+            'mail-user': 'lgonzalezvilas@artov.ismar.cnr.it'
+        }
+
+        # self.parameter_code = {
+        #     'plankton':{
+        #         'code': 'PLANKTON',
+        #         'parameter': 'Chlorophyll-a concentration and Phytoplankton Functional Types'
+        #     },
+        #     'transp':{
+        #         'code': 'KD490',
+        #         'parameter': 'OLCI Diffuse Attenuation Coefficient at 490nm'
+        #     },
+        #     'reflectance':{
+        #         'code': 'RRS',
+        #         'parameter': 'Remote Sensing Reflectance'
+        #     },
+        #     'optics':{
+        #         'code': 'IOPs',
+        #         'parameter': 'Inherent Optical Properties'
+        #     }
+        #
+        # }
+
     def get_dataset_summary(self):
         if self.dataset_name is not None:
             path_summary = os.path.join(self.path2info, 'SUMMARY')
@@ -88,30 +116,31 @@ class ProductInfo:
     def get_frequency(self):
         return self.get_dinfo_param('frequency')
 
-    def get_number_expected_files_between_two_dates(self,start_date,end_date):
+    def get_number_expected_files_between_two_dates(self, start_date, end_date):
         frequency = self.get_frequency()
         if frequency is None:
             return -1
-        if frequency.lower()=='d':
-            return (end_date-start_date).days+1
-        elif frequency.lower()=='m':
-            return ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month)+1
+        if frequency.lower() == 'd':
+            return (end_date - start_date).days + 1
+        elif frequency.lower() == 'm':
+            return ((end_date.year - start_date.year) * 12 + end_date.month - start_date.month) + 1
         return -1
 
-    def get_expected_files_between_two_dates(self,start_date,end_date):
+    def get_expected_files_between_two_dates(self, start_date, end_date):
         frequency = self.get_frequency()
         if frequency is None:
             return None
         name_files = []
-        if frequency.lower()=='d':
+        if frequency.lower() == 'd':
             date_here = start_date
-            while date_here<=end_date:
+            while date_here <= end_date:
                 date_here_str = date_here.strftime('%Y%m%d')
                 name_file = f'{date_here_str}_{self.dataset_name}.nc'
                 name_files.append(name_file)
                 date_here = date_here + timedelta(hours=24)
 
         return name_files
+
     def get_dtype(self):
         return self.get_dinfo_param('dataset')
 
@@ -203,38 +232,37 @@ class ProductInfo:
             print(f'[ERROR] Product file {fproduct} does not exist')
         return valid
 
-    def set_param(self,pinfo_out,param_name,param_value):
+    def set_param(self, pinfo_out, param_name, param_value):
         if pinfo_out is None:
             pinfo_out = self.pinfo
         pinfo_out[self.dataset_name][param_name] = param_value
         return pinfo_out
 
-    def update_json(self,pinfo_out):
+    def update_json(self, pinfo_out):
         if pinfo_out is None:
             pinfo_out = self.pinfo
         fproduct = os.path.join(self.path2info, self.product_name + '.json')
-        fout = open(fproduct,'w')
+        fout = open(fproduct, 'w')
         fout.write('{')
         datasets = list(pinfo_out.keys())
         for dataset in pinfo_out:
-            self.write_new_line(fout,f'"{dataset}":')
-            self.write_new_line(fout,'{')
+            self.write_new_line(fout, f'"{dataset}":')
+            self.write_new_line(fout, '{')
             keys = list(pinfo_out[dataset].keys())
             for key in pinfo_out[dataset]:
                 val = pinfo_out[dataset][key]
-                if key==keys[-1]:
+                if key == keys[-1]:
                     self.write_new_line(fout, f'"{key}":"{val}"')
                 else:
-                    self.write_new_line(fout,f'"{key}":"{val}",')
-            if dataset==datasets[-1]:
+                    self.write_new_line(fout, f'"{key}":"{val}",')
+            if dataset == datasets[-1]:
                 self.write_new_line(fout, '}')
             else:
                 self.write_new_line(fout, '},')
-        self.write_new_line(fout,'}')
+        self.write_new_line(fout, '}')
         fout.close()
 
-
-    def write_new_line(self,fout,newline):
+    def write_new_line(self, fout, newline):
         fout.write('\n')
         fout.write(newline)
 
@@ -243,7 +271,7 @@ class ProductInfo:
         for name in os.listdir(self.path2info):
             if name.endswith('.json'):
                 name = name[:-5]
-                if name=='SOURCES':
+                if name == 'SOURCES':
                     continue
                 if name not in product_names:
                     product_names.append(name)
@@ -254,16 +282,14 @@ class ProductInfo:
         product_names = None
         dataset_names = None
         for p in all_products:
-            product_names_here,dataset_names_here = self.get_list_datasets(p,None)
+            product_names_here, dataset_names_here = self.get_list_datasets(p, None)
             if product_names is None:
                 product_names = product_names_here
                 dataset_names = dataset_names_here
             else:
                 product_names = product_names + product_names_here
                 dataset_names = dataset_names + dataset_names_here
-        return product_names,dataset_names
-
-
+        return product_names, dataset_names
 
     def get_list_datasets(self, product_name, frequency):
         product_names = []
@@ -340,9 +366,6 @@ class ProductInfo:
     def set_dataset_info_fromparam(self, mode, basin, level, dtype, sensor):
         product_name, dataset_name = self.get_dataset_name(mode, basin, level, dtype, sensor)
         self.set_dataset_info(product_name, dataset_name)
-
-
-
 
     def get_tag_print(self):
         if self.MODE == 'REFORMAT':
@@ -423,6 +446,7 @@ class ProductInfo:
         return file_path
 
     # same as get_file_path_orig, but it returns the complete path despite of it doen't exist, it's used for checking
+    # also it is used for reformat.
     def get_file_path_orig_name(self, path, datehere):
         if path is None:
             path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'))
@@ -833,7 +857,7 @@ class ProductInfo:
         if path is None:
             return None
         name_file = self.dinfo['name_origin']
-        name_file = name_file.replace('CMEMS2_','')
+        name_file = name_file.replace('CMEMS2_', '')
         yearstr = datehere.strftime('%Y')
         dateinimonth = datehere.replace(day=1).strftime('%j')
         last_day = calendar.monthrange(datehere.year, datehere.month)[1]
@@ -993,6 +1017,207 @@ class ProductInfo:
             return pmyinfo
         else:
             return None
+
+    def get_file_slurm_reformat_202411(self, datehere):
+        f = self.dinfo['f-option']
+
+        file_slurm = None
+
+        if f == 'D' or f == 'INTERP':
+            path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
+            if not os.path.exists(path):
+                print(f'[ERROR] Input path {path} does not exist. Reformat can not be done')
+                return [None]*2
+            file_slurm = os.path.join(path, f'reformat_{self.dataset_name}.slurm')
+
+        return path, file_slurm
+
+    def get_files_reformat(self, path, datehere):
+        if not 'files_reformat' in self.dinfo.keys(): return None
+        str_r = self.dinfo['files_reformat']
+        format_date_r = self.dinfo['format_date_files_reformat']
+        include_qi_bands = True if self.dinfo['include_qi_bands']=="1" else False
+
+        ldictfiles = [x.strip() for x in str_r.split(';')]
+
+        first_file = None
+        var_to_delete = []
+        rename_qi_to = None
+        no_qi_bands = []
+        extra_files = {}
+        added_lat_lon_time = [False] * 3
+
+        for ifile in range(len(ldictfiles)):
+            ldict = ldictfiles[ifile]
+            info = [x.strip() for x in ldict.split(',')]
+            name_file = info[0]
+            name_file_date = name_file.replace('DATE', datehere.strftime(format_date_r))
+            file_date = os.path.join(path, name_file_date)
+            if not os.path.exists(file_date):
+                print(f'[ERROR] {file_date} does not exist. Please review ')
+                return [None] * 5
+            var_config = []
+            if (len(info) == 2 and info[1] != '*') or len(info) > 2:
+                for ivar in range(1, len(info)):
+                    var_config.append(info[ivar])
+
+            dataset = Dataset(file_date)
+            variables = list(dataset.variables)
+            dataset.close()
+            if ifile == 0:
+                first_file = file_date
+            var_to_include = {}
+            for var_name in variables:
+                if var_name.lower().startswith('lat'):
+                    if ifile == 0: added_lat_lon_time[0] = True
+                    continue
+                if var_name.lower().startswith('lon'):
+                    if ifile == 0: added_lat_lon_time[1] = True
+                    continue
+                if var_name.lower().startswith('time'):
+                    if ifile==0:added_lat_lon_time[2] = True
+                    continue
+
+                if include_qi_bands and var_name.startswith('QI'): continue
+                if not include_qi_bands and var_name.startswith('QI') and ifile == 0: var_to_delete.append(var_name)
+
+                if len(info) == 2 and info[1] == '*':
+                    var_to_include[var_name] = None
+                else:
+                    if var_name in var_config:
+                        var_to_include[var_name] = None
+                    else:
+                        if ifile == 0: var_to_delete.append(var_name)
+
+            if include_qi_bands:
+                if ifile == 0:
+                    if 'QI' in variables:
+                        if len(var_to_include) == 1:
+                            rename_qi_to = f'QI_{list(var_to_include.keys())[0]}'
+                        else:
+                            print(f'[ERROR] Error in file {first_file}: ')
+                            print(
+                            f'[ERROR] Variable QI could not be correctly assigned to a data variable, as more than one variable ({list(var_to_include.keys())}) are available')
+                            return [None] * 5
+                    else:
+                        for var_name in var_to_include:
+                            qi_var = f'QI_{var_name}'
+                            if not qi_var in variables:
+                                no_qi_bands.append(var_name)
+                else:
+                    if 'QI' in variables:
+                        if len(var_to_include) == 1:
+                            name_var = list(var_to_include.keys())[0]
+                            var_to_include[name_var] = 'QI'
+                        else:
+                            print(f'[ERROR] Error in file {file_date}: ')
+                            print(
+                                f'[ERROR] Variable QI could not be correctly assigned to a data variable, as more than one variable ({list(var_to_include.keys())}) are available')
+                            return [None] * 5
+
+                    for var_name in var_to_include:
+                        var_qi = f'QI_{var_name}'
+                        if var_qi in variables:
+                            var_to_include[var_name] = var_qi
+
+            if ifile > 0:
+                extra_files[file_date] = var_to_include
+
+        if sum(added_lat_lon_time) < 3:
+            print(f'[ERROR] Lat, lon or time variable are not defined in file {first_file}')
+            return [None] * 5
+        return first_file, var_to_delete, rename_qi_to, no_qi_bands, extra_files
+
+    def get_reformat_cmd_202411(self, datehere):
+        path, file_slurm = self.get_file_slurm_reformat_202411(datehere)
+        if path is None:
+            return None
+
+
+
+        #f = self.dinfo['f-option']
+        first_file, var_to_delete, rename_qi_to, no_qi_bands, extra_files = self.get_files_reformat(path, datehere)
+        file_tmp = os.path.join(path, 'Temp.nc')
+
+        fw = open(file_slurm, 'w')
+        fw.write('#!/bin/bash')
+        for param_slurm in self.params_slurm:
+            if self.params_slurm[param_slurm] is not None:
+                line = f'SBATCH --{param_slurm}=self.params_slurm[param_slurm]'
+                self.add_new_line(fw, line)
+        self.add_new_line(fw, '')
+        ##self.add_new_line(fw,'source /home/$USER/load_miniconda3.source')
+        ##self.add_new_line(fw,'conda activate op_proc_202211v2')
+
+        ##copy first file as file out
+        file_out = self.get_file_path_orig_name(None, datehere)
+
+
+        self.add_new_line(fw, f'cp {first_file} {file_out}')
+        self.add_new_line(fw, '')
+
+        # delete variables not to be included in the reformat
+        if len(var_to_delete) > 0:
+            self.add_new_line(fw, '##Deleting variables...')
+            for var_name in var_to_delete:
+                self.add_new_line(fw, f'cp {file_out} {file_tmp}')
+                self.add_new_line(fw, f'ncks -h  -C -O -x -v {var_name} {file_tmp} {file_out}')
+                self.add_new_line(fw, f'rm {file_tmp}')
+                self.add_new_line(fw, '')
+        self.add_new_line(fw, '')
+
+        ##rename qi
+        if rename_qi_to is not None:#
+            self.add_new_line(fw, f'##Renaming QI variable to {rename_qi_to}...')
+            self.add_new_line(fw, f'ncrename --no_abc -h -a -v QI,{rename_qi_to}  {file_out} >/dev/null')
+            self.add_new_line(fw,'')
+        self.add_new_line(fw,'')
+
+        #global parameters
+        self.add_new_line(fw, f'##Setting global attributes...')
+        self.add_new_line(fw, f'ncatted -h -a title,global,o,c,\"{self.dataset_name}\" {file_out}')
+        self.add_new_line(fw, f'ncatted -h -a cmems_product_id,global,o,c,\"{self.product_name}\" {file_out}')
+        self.add_new_line(fw, f'ncatted -h -a parameter_code,global,o,c,\"{self.dinfo["parameter"]}\" {file_out}')
+        self.add_new_line(fw, f'ncatted -h -a parameter,global,o,c,\"{self.dinfo["parameter_code"]}\" {file_out}')
+        self.add_new_line(fw,'')
+        self.add_new_line(fw, '')
+
+        #extra variables
+        for file_in in extra_files:
+            self.add_new_line(fw, f'## Addding variables from file {file_in}:')
+            var_to_include = extra_files[file_in]
+            for var in var_to_include:
+                self.add_new_line(fw, f'## ----- {var}')
+                var_qi = var_to_include[var]
+                if var_qi is not None:
+                    var_qi_expected = f'QI_{var}'
+                    self.add_new_line(fw, f'cp {file_in} {file_tmp}')
+                    if var_qi_expected!=var_qi: ##rename must be done first
+                        self.add_new_line(fw,f'ncrename --no_abc -h -a -v {var_qi},{var_qi_expected}  {file_tmp} >/dev/null')
+                    self.add_new_line(fw,f'ncks -h  -A -v {var} {file_tmp} {file_out}')
+                    self.add_new_line(fw, f'ncks -h  -A -v {var_qi_expected} {file_tmp} {file_out}')
+                    self.add_new_line(fw, f'rm {file_tmp}')
+                else:
+                    self.add_new_line(fw, f'ncks -h  -A -v {var} {file_in} {file_out}')
+                    no_qi_bands.append(var)
+                self.add_new_line(fw, '## ------')
+            self.add_new_line(fw,'')
+
+        self.add_new_line(fw,'')
+        self.add_new_line(fw,'## Adding no_qi global attribute')
+        noqi_id = ",".join(no_qi_bands)
+        self.add_new_line(fw,f'ncatted -h -a noQI,global,o,c,\"{noqi_id}\" {file_out}')
+
+        fw.close()
+
+        ##creating cmd
+        cmd = f'sbatch --wait {file_slurm}'
+
+        return cmd
+
+    def add_new_line(self, fw, line):
+        fw.write('\n')
+        fw.write(line)
 
     def get_reformat_cmd(self, datehere):
         cmd = None

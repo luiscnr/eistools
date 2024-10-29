@@ -13,6 +13,7 @@ from dataset_selection import DatasetSelection
 parser = argparse.ArgumentParser(description='Reformat and upload 2DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-umds", "--use_mds", help="Use MDS server", action="store_true")
+parser.add_argument("-version","--reformat_version",help="Reformat version.",choices=['202207','202411'],default='202207')
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-noupload", "--no_upload", help="No upload mode, only reformat.", action="store_true")
 parser.add_argument("-noreformat", "--no_reformat", help="No reformat mode, only upload.", action="store_true")
@@ -39,7 +40,7 @@ args = parser.parse_args()
 
 
 def main():
-    print('[INFO] STARTED REFORMAT AND UPLOAD')
+    print('[INFO] STARTED REFORMAT')
 
     ##DATASETS SELECTION
     name_products, name_datasets = get_datasets()
@@ -324,7 +325,13 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
         if verbose:
             print('----------------------------------------------------')
             print(f'[INFO] Reformating file for date: {date_work}')
-        cmd = pinfo.get_reformat_cmd(date_work)
+
+        file_slurm = None
+        if args.reformat_version=='202207':
+            cmd = pinfo.get_reformat_cmd(date_work)
+        elif args.reformat_version=='202411':
+            cmd = pinfo.get_reformat_cmd_202411(date_work)
+
         if cmd is None:
             date_work = date_work + timedelta(hours=24)
             continue

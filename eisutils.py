@@ -2,6 +2,9 @@ import argparse
 import shutil
 from datetime import datetime as dt
 from datetime import timedelta
+
+import numpy as np
+
 from source_info import SourceInfo
 import calendar
 import os
@@ -9,8 +12,13 @@ import os
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST','UPDATE_TIME_CMEMS_DAILY','UPDATE_TIME_CMEMS_MONTHLY','REMOVE_NR_SOURCES'])
-parser.add_argument("-p", "--path", help="Path")
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST','UPDATE_TIME_CMEMS_DAILY','UPDATE_TIME_CMEMS_MONTHLY','REMOVE_NR_SOURCES','CREATE_MASK','APPLY_MASK'])
+parser.add_argument("-p", "--path", help="Input path")
+parser.add_argument("-o", "--output_path",help="Output path")
+parser.add_argument("-mvar","--mask_variable",help="Mask variable")
+parser.add_argument("-fref", "--file_ref",help="File ref with lat/lon variables for masking")
+parser.add_argument("-fmask","--file_mask",help="File mask for APPLY_MASK")
+parser.add_argument("-ifile","--input_file_name",help="Input file name for APPLY_MASK, DATE is replaced by YYYYjjj")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pr", "--preffix", help="Preffix")
@@ -960,6 +968,159 @@ def check_sources_from_source_list_files(list_files,dir_out,fout):
         fw.write('\n')
         fw.write(line)
     fw.close()
+
+def run_distance(params):
+    import numpy as np
+    yPixels = params[0]
+    xPixels = params[1]
+    y = params[2]
+    x = params[3]
+    mask_land = params[4]
+    dLand = params[5]
+    print(f'Computing distance from: {y} , {x}')
+    if mask_land[y,x]==0:##WATER PIXELS
+        dist_yx = ((y-yPixels)**2) + ((x-xPixels)**2)
+        dist_yx = dist_yx[mask_land==1]
+        min_dist_yx = np.min(dist_yx)
+        dLand[y,x] = min_dist_yx
+
+def create_mask(file_in,file_out,mask_variable,file_ref):
+    from netCDF4 import Dataset
+    import numpy as np
+    input_nc = Dataset(file_in,'r')
+    mask_land = input_nc.variables[mask_variable][:]
+    nlat = mask_land.shape[0]
+    nlon = mask_land.shape[1]
+    input_nc.close()
+
+    ref_nc = Dataset(file_ref,'r')
+    lat = ref_nc.variables['lat'][:]
+    lon = ref_nc.variables['lon'][:]
+    ref_nc.close()
+    if nlat!=lat.shape[0]:
+        print('[ERROR] Dimension lat in file_ref does not coincide with the first dimension in the mask')
+        return
+    if nlon!=lon.shape[0]:
+        print('[ERROR] Dimension lat in file_ref does not coincide with the first dimension in the mask')
+        return
+
+    # dLand = np.zeros((nlat,nlon))
+    # xPixels = np.tile(np.arange(nlon),(nlat,1))
+    # yPixels = np.tile(np.array([np.arange(nlat)]).transpose(), (1, nlon))
+    # from multiprocessing import Pool
+    # poolhere = Pool(8)
+    # param_list = []
+    # for y in range(0,nlat):
+    #     print(y)
+    #     for x in range(0,nlon):
+    #         if mask_land[y,x]==0:#WATER
+    #             param_list.append([yPixels,xPixels,y,x,mask_land,dLand])
+    # poolhere.map(run_distance, param_list)
+
+    # for y in range(60):
+    #     print(f'[INFO] Computing distances for line: {y}')
+    #     for x in range(nlon):
+    #         if mask_land[y,x]==0:##WATER PIXELS
+    #             dist_yx = ((y-yPixels)**2) + ((x-xPixels)**2)
+    #             dist_yx = dist_yx[mask_land==1]
+    #             min_dist_yx = np.min(dist_yx)
+    #             dLand[y,x] = min_dist_yx
+
+    #dLand = np.square(dLand)
+
+
+    print('[INFO] Creating output file...')
+    nc_out = Dataset(file_out,'w')
+    nc_out.createDimension('lat',nlat)
+    nc_out.createDimension('lon',nlon)
+    var_lat = nc_out.createVariable('lat', 'f4', ('lat',), zlib=True, complevel=6, fill_value=-999)
+    var_lat[:] = lat
+    var_lon = nc_out.createVariable('lon', 'f4', ('lon',), zlib=True, complevel=6, fill_value=-999)
+    var_lon[:] = lon
+    var_land = nc_out.createVariable('Land_Mask','i2',('lat','lon'),zlib=True,complevel=6)
+    var_land[:] = mask_land
+    # var_dist= nc_out.createVariable('Dist_Land', 'f4', ('lat', 'lon'), zlib=True, complevel=6)
+    # var_dist[:] = dLand
+
+    nc_out.close()
+    print(f'[INFO] Completed')
+
+
+def apply_mask(input_path,name_file,file_mask,mask_variable,start_date,end_date):
+    from netCDF4 import Dataset
+    dmask = Dataset(file_mask)
+    if not mask_variable in dmask.variables:
+        print(f'[ERROR] Mask variable {mask_variable} is not available in file {file_mask}')
+        dmask.close()
+        return
+    mask = dmask.variables[mask_variable][:]
+    dmask.close()
+    work_date = start_date
+    while work_date<=end_date:
+        yyyy = work_date.strftime('%Y')
+        jjj = work_date.strftime('%j')
+        path_date =  os.path.join(input_path,yyyy,jjj)
+        input_file = os.path.join(path_date,name_file.replace('DATE',f'{yyyy}{jjj}'))
+        if not os.path.exists(input_file):
+            print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
+            work_date = work_date + timedelta(hours=24)
+            continue
+        print(f'[INFO] -----------------------------------------------------------------------------------------------')
+        print(f'[INFO] Worning with: {input_file}')
+        file_tmp = os.path.join(path_date,'Temp.nc')
+        mask_applied = apply_mask_impl(input_file,mask,file_tmp)
+        if mask_applied:
+            print(f'[INFO] Masking completed')
+            os.rename(file_tmp,input_file)
+        else:
+            print(f'[WARNING] Masking was not applied as input file has not changed')
+            os.remove(file_tmp)
+        print(f'[INFO] -----------------------------------------------------------------------------------------------')
+        work_date =work_date+timedelta(hours=24)
+
+    return
+
+def apply_mask_impl(input_file,mask,output_file):
+    mask_applied = False
+    from netCDF4 import Dataset
+    nc_input = Dataset(input_file,'r')
+    nc_out = Dataset(output_file,'w')
+
+    # copy global attributes all at once via dictionary
+    nc_out.setncatts(nc_input.__dict__)
+
+    # copy dimensions
+    for name, dimension in nc_input.dimensions.items():
+        nc_out.createDimension(
+            name, (len(dimension) if not dimension.isunlimited() else None))
+
+    for name, variable in nc_input.variables.items():
+        fill_value = -999.0
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+
+        nc_out.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True, complevel=6)
+
+        # copy variable attributes all at once via dictionary
+        nc_out[name].setncatts(nc_input[name].__dict__)
+
+
+
+        if len(variable.dimensions)==3 and nc_input.variables[name].shape[1]==mask.shape[0] and nc_input.variables[name].shape[2]==mask.shape[1]:
+            print(f'[INFO] Applying mask to variable: {name}')
+            array = np.squeeze(nc_input[name][:])
+            array[mask==1] = fill_value
+            nc_out[name][0,:,:] = array[:,:]
+            mask_applied = True
+        else:
+            nc_out[name][:] = nc_input[name][:]
+
+
+    nc_input.close()
+    nc_out.close()
+
+    return mask_applied
+
 def main():
     if args.mode=='TEST':
         from eumdac_lois import EUMDAC_LOIS
@@ -1009,6 +1170,34 @@ def main():
     if args.mode == 'UPDATE_TIME_CMEMS_MONTHLY':
         update_time_monthly(args.path,args.start_date,args.end_date,args.preffix,args.suffix)
 
+    if args.mode == 'CREATE_MASK':
+        create_mask(args.path,args.output_path,args.mask_variable,args.file_ref)
+
+    if args.mode == 'APPLY_MASK':
+        #args.file_ref; Mask file w
+        start_date, end_date = get_dates()
+        if start_date is None or end_date is None:
+            return
+        if not args.path:
+            print(f'[ERROR] Input path (-p or --path) is required')
+            return
+        if not args.file_mask:
+            print(f'[ERROR] File mask (-fmask or --file_mask) is required')
+            return
+        mask_variable = 'Land_Mask'
+        if args.mask_variable:
+            mask_variable = args.mask_variable
+        if not args.input_file_name:
+            print(f'[ERROR] Input file name (-ifile or --input_file_name) is required')
+            return
+
+        if not os.path.isdir(args.path):
+            print(f'[ERROR] {args.path} does not exist')
+            return
+        if not os.path.exists(args.file_mask):
+            print(f'[ERROR] {args.file_mask} does not exist')
+            return
+        apply_mask(args.path,args.input_file_name,args.file_mask,mask_variable,start_date,end_date)
 
 
 
@@ -1427,7 +1616,7 @@ def get_dates():
     ##DATES SELECTION
     if not args.start_date and not args.end_date:
         print(f'[ERROR] Start date(-sd) is not given.')
-        return
+        return [None]*2
     start_date_p = args.start_date
     if args.end_date:
         end_date_p = args.end_date
@@ -1442,10 +1631,10 @@ def get_dates():
     if end_date is None:
         print(
             f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
-        return
+        return [None]*2
     if start_date > end_date:
         print(f'[ERROR] End date should be greater or equal than start date')
-        return
+        return [None]*2
     if args.verbose:
         print(f'[INFO] Start date: {start_date} End date: {end_date}')
 
