@@ -13,6 +13,7 @@ from dataset_selection import DatasetSelection
 parser = argparse.ArgumentParser(description='Reformat and upload to the DBS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-umds", "--use_mds", help="Use MDS server", action="store_true")
+parser.add_argument("-version","--reformat_version",help="Reformat version.",choices=['202207','202411'],default='202207')
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
 parser.add_argument("-noupload", "--no_upload", help="No upload mode, only reformat.", action="store_true")
 parser.add_argument("-noreformat", "--no_reformat", help="No reformat mode, only upload.", action="store_true")
