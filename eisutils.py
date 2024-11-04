@@ -1233,15 +1233,17 @@ def tal():
     #     fw.write(line)
     # fw.close()
     dir_base = '/store3/OC/CCI_v2017/V6_incoming'
+    #dir_base = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MASKS'
     file_out = os.path.join(dir_base,'variables_by_file.csv')
     fw = open(file_out,'w')
     fw.write('File;NVariables;Variables')
     for name in os.listdir(dir_base):
-        if name.endswith('_data.nc'):
+        if name.endswith('data.nc'):
             file_nc = os.path.join(dir_base,name)
             dataset = Dataset(file_nc)
             variables = list(dataset.variables)
-            var_str = ','.join(variables.sort())
+
+            var_str = ','.join(variables)
             line = f'{name};{len(variables)};{var_str}'
             fw.write('\n')
             fw.write(line)
