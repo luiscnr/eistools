@@ -1007,36 +1007,44 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
         print('[ERROR] Dimension lat in file_ref does not coincide with the first dimension in the mask')
         return
 
-    dLand = np.zeros((nlat,nlon))
-    xPixels = np.tile(np.arange(nlon),(nlat,1))
-    yPixels = np.tile(np.array([np.arange(nlat)]).transpose(), (1, nlon))
-    from multiprocessing import Pool
+    lon_limit = 13.070
+    x_min = -1
+    for x in range(lon.shape[0]):
+        if lon[x]>=lon_limit:
+            x_min = x
+            break
+    print(f'[INFO] Setting min_x to: {x_min} (Longitude: {lon[x_min]})')
 
-    param_list = []
-    all_ypoints = []
-    all_xpoints = []
-    for y in range(0,nlat):
-        print(y)
-        for x in range(0,nlon):
-            if mask_land[y,x]==0:#WATER
-                param_list.append([yPixels,xPixels,y,x,mask_land,dLand])
-                all_ypoints.append(y)
-                all_xpoints.append(x)
-
-    print(f'[INFO] Number of distances to be computed: {len(param_list)}')
-    for idx in range(0,len(param_list),1000):
-        start = idx
-        end = idx+1000
-        if end>len(param_list):
-            end = len(param_list)
-        param_list_here = param_list[start:end]
-        poolhere = Pool(8)
-        res_here = poolhere.map(run_distance,param_list_here)
-        ypoints = all_ypoints[start:end]
-        xpoints = all_xpoints[start:end]
-        print(len(ypoints))
-        print(len(xpoints))
-        dLand[ypoints,xpoints] = res_here[:]
+    # dLand = np.zeros((nlat,nlon))
+    # xPixels = np.tile(np.arange(nlon),(nlat,1))
+    # yPixels = np.tile(np.array([np.arange(nlat)]).transpose(), (1, nlon))
+    # from multiprocessing import Pool
+    #
+    # param_list = []
+    # all_ypoints = []
+    # all_xpoints = []
+    # for y in range(0,nlat):
+    #     print(y)
+    #     for x in range(0,nlon):
+    #         if mask_land[y,x]==0:#WATER
+    #             param_list.append([yPixels,xPixels,y,x,mask_land,dLand])
+    #             all_ypoints.append(y)
+    #             all_xpoints.append(x)
+    #
+    # print(f'[INFO] Number of distances to be computed: {len(param_list)}')
+    # for idx in range(0,len(param_list),1000):
+    #     start = idx
+    #     end = idx+1000
+    #     if end>len(param_list):
+    #         end = len(param_list)
+    #     param_list_here = param_list[start:end]
+    #     poolhere = Pool(8)
+    #     res_here = poolhere.map(run_distance,param_list_here)
+    #     ypoints = all_ypoints[start:end]
+    #     xpoints = all_xpoints[start:end]
+    #     print(len(ypoints))
+    #     print(len(xpoints))
+    #     dLand[ypoints,xpoints] = res_here[:]
         # for idx in range(len(res_here)):
         #     y = param_list[idx][2]
         #     x = param_list[idx][3]
@@ -1065,7 +1073,7 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     #             min_dist_yx = np.min(dist_yx)
     #             dLand[y,x] = min_dist_yx
 
-    dLand = np.square(dLand)
+    #dLand = np.square(dLand)
 
 
     print('[INFO] Creating output file...')
@@ -1077,9 +1085,10 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     var_lon = nc_out.createVariable('lon', 'f4', ('lon',), zlib=True, complevel=6, fill_value=-999)
     var_lon[:] = lon
     var_land = nc_out.createVariable('Land_Mask','i2',('lat','lon'),zlib=True,complevel=6)
+    mask_land[:,0:x_min]=1
     var_land[:] = mask_land
-    var_dist= nc_out.createVariable('Dist_Land', 'f4', ('lat', 'lon'), zlib=True, complevel=6)
-    var_dist[:] = dLand
+    # var_dist= nc_out.createVariable('Dist_Land', 'f4', ('lat', 'lon'), zlib=True, complevel=6)
+    # var_dist[:] = dLand
 
     nc_out.close()
     print(f'[INFO] Completed')
@@ -1196,9 +1205,58 @@ def test_impl(input_file,output_file):
     nc_input.close()
     nc_out.close()
 
+def tal():
+    from netCDF4 import Dataset
+    # file_old = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data.nc'
+    # file_new = os.path.join(os.path.dirname(file_old),'M2024105.0000.bal.all_products.CCI.14Apr240000.v0.20241050000.data.nc')
+    # dold = Dataset(file_old)
+    # lat_old = dold.variables['latitude'][:]
+    # lon_old = dold.variables['longitude'][:]
+    # dold.close()
+    #
+    # dnew = Dataset(file_new)
+    # lat_new = dnew.variables['lat'][:]
+    # lon_new = dnew.variables['lon'][:]
+    # dnew.close()
+    #
+    # fout = os.path.join(os.path.dirname(file_old),'LatLonBal.csv')
+    # fw = open(fout,'w')
+    # first_line = 'Index;LatOld(1147);LonOld(1185);LatNew(1210);LonNew(1992)'
+    # fw.write(first_line)
+    # for index in range(1992):
+    #     lat_old_v = lat_old[index] if index < len(lat_old) else -999
+    #     lon_old_v = lon_old[index] if index < len(lon_old) else -999
+    #     lat_new_v = lat_new[index] if index < len(lat_new) else -999
+    #     lon_new_v = lon_new[index] if index < len(lon_new) else -999
+    #     line = f'{index};{lat_old_v};{lon_old_v};{lat_new_v};{lon_new_v}'
+    #     fw.write('\n')
+    #     fw.write(line)
+    # fw.close()
+    dir_base = '/store3/OC/CCI_v2017/V6_incoming'
+    file_out = os.path.join(dir_base,'variables_by_file.csv')
+    fw = open(file_out,'w')
+    fw.write('File;NVariables;Variables')
+    for name in os.listdir(dir_base):
+        if name.endswith('_data.nc'):
+            file_nc = os.path.join(dir_base,name)
+            dataset = Dataset(file_nc)
+            variables = list(dataset.variables)
+            var_str = ','.join(variables.sort())
+            line = f'{name};{len(variables)};{var_str}'
+            fw.write('\n')
+            fw.write(line)
+            dataset.close()
 
+    fw.close()
+
+
+    return True
 def main():
+    # if tal():
+    #     return
     if args.mode=='TEST':
+        if tal():
+            return
         # input_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data_BAL202411_prev.nc'
         # output_path = os.path.join(os.path.dirname(input_path),'Temp.nc')
         input_path = '/store3/OC/CCI_v2017/daily_v202411'
