@@ -1207,8 +1207,9 @@ def test_impl(input_file,output_file):
 
 def tal():
     from netCDF4 import Dataset
-    # file_old = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data.nc'
-    # file_new = os.path.join(os.path.dirname(file_old),'M2024105.0000.bal.all_products.CCI.14Apr240000.v0.20241050000.data.nc')
+    # file_old = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MASKS/M1997263.0000.bal.all_products.CCI.20Sep970000.v0.19972630000.data.nc'
+    # file_new = os.path.join(os.path.dirname(file_old),'M2024132.0000.bal.all_products.CCI.11May240000.v0.20241320000.data.nc')
+    #
     # dold = Dataset(file_old)
     # lat_old = dold.variables['latitude'][:]
     # lon_old = dold.variables['longitude'][:]
@@ -1219,7 +1220,7 @@ def tal():
     # lon_new = dnew.variables['lon'][:]
     # dnew.close()
     #
-    # fout = os.path.join(os.path.dirname(file_old),'LatLonBal.csv')
+    # fout = os.path.join(os.path.dirname(file_old),'LatLonBal2.csv')
     # fw = open(fout,'w')
     # first_line = 'Index;LatOld(1147);LonOld(1185);LatNew(1210);LonNew(1992)'
     # fw.write(first_line)
@@ -1234,28 +1235,30 @@ def tal():
     # fw.close()
     dir_base = '/store3/OC/CCI_v2017/V6_incoming'
     #dir_base = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MASKS'
-    file_out = os.path.join(dir_base,'variables_by_file.csv')
+    file_out = os.path.join(dir_base,'variables_by_file_2.csv')
     fw = open(file_out,'w')
-    fw.write('File;NVariables;Variables')
+    fw.write('File;NVariables;Variables;DimLat;DimLon')
     for name in os.listdir(dir_base):
         if name.endswith('data.nc'):
             file_nc = os.path.join(dir_base,name)
             dataset = Dataset(file_nc)
+            nlat = dataset.variables['Rrs_412'].shape[1]
+            nlon = dataset.variables['Rrs_412'].shape[2]
             variables = list(dataset.variables)
-
             var_str = ','.join(variables)
-            line = f'{name};{len(variables)};{var_str}'
+            line = f'{name};{len(variables)};{var_str};{nlat};{nlon}'
             fw.write('\n')
             fw.write(line)
             dataset.close()
+
 
     fw.close()
 
 
     return True
 def main():
-    # if tal():
-    #     return
+    if tal():
+        return
     if args.mode=='TEST':
         if tal():
             return
