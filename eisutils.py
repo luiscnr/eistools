@@ -1106,9 +1106,16 @@ def apply_mask(input_path,name_file,file_mask,mask_variable,start_date,end_date)
     work_date = start_date
     while work_date<=end_date:
         yyyy = work_date.strftime('%Y')
-        jjj = work_date.strftime('%j')
-        path_date =  os.path.join(input_path,yyyy,jjj)
-        input_file = os.path.join(path_date,name_file.replace('DATE',f'{yyyy}{jjj}'))
+        if name_file.find('DATEM')>0:
+            path_date = os.path.join(input_path, yyyy)
+            date_month_ini = dt(work_date.year, work_date.month,1)
+            date_month_end = dt(work_date.year, work_date.month, calendar.monthrange(work_date.year, work_date.month)[1])
+            monthstr = f'{yyyy}{date_month_ini.strftime("%j")}{date_month_end.strftime("%j")}'
+            input_file = os.path.join(path_date, name_file.replace('DATEM', f'{monthstr}'))
+        else:
+            jjj = work_date.strftime('%j')
+            path_date =  os.path.join(input_path,yyyy,jjj)
+            input_file = os.path.join(path_date,name_file.replace('DATE',f'{yyyy}{jjj}'))
         if not os.path.exists(input_file):
             print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
             work_date = work_date + timedelta(hours=24)
@@ -1124,7 +1131,13 @@ def apply_mask(input_path,name_file,file_mask,mask_variable,start_date,end_date)
             print(f'[WARNING] Masking was not applied as input file has not changed')
             os.remove(file_tmp)
         print(f'[INFO] -----------------------------------------------------------------------------------------------')
-        work_date =work_date+timedelta(hours=24)
+        if name_file.find('DATEM')>0:
+            if work_date.month==12:
+                work_date = dt(work_date.year+1,1,15)
+            else:
+                work_date = dt(work_date.year,work_date.month+1,15)
+        else:
+            work_date =work_date+timedelta(days=1)
 
     return
 
@@ -1256,9 +1269,10 @@ def tal():
 
 
     return True
+
 def main():
-    if tal():
-        return
+    # if tal():
+    #     return
     if args.mode=='TEST':
         if tal():
             return
