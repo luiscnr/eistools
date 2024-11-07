@@ -50,9 +50,7 @@ def get_lat_lon_from_site_name(site):
 
 def download_date(ndownload, sensor, region, lat_point, lon_point, date_here):
     path_out = ndownload.get_path_orig(sensor, date_here)
-    if os.path.exists(path_out) and not args.overwrite:
-        print(f'[WARNING] Ouput file: {path_out} already exists. Skipping....')
-        return
+
     if region is not None:
         list = ndownload.get_list_files(date_here, sensor, region, 'DT')
     elif lat_point is not None and lon_point is not None:
@@ -62,6 +60,10 @@ def download_date(ndownload, sensor, region, lat_point, lon_point, date_here):
         print(f'[INFO] {len(list)} granules identified for date {date_here}')
         for granule in list:
             print(f'[INFO] Downloading granule: {granule}')
+            file_granule = os.path.join(path_out,granule)
+            if os.path.exists(file_granule) and not args.overwrite:
+                print(f'[WARNING] Ouput file: {file_granule} already exists. Skipping....')
+                return
 
             url = ndownload.get_url_download(granule)
             od.do_download(url, path_out, appkey)
