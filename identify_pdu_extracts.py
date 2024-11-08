@@ -3,13 +3,13 @@ import numpy as np
 import pandas as pd
 from datetime import datetime as dt
 from datetime import timedelta
+from eumdac_lois import EUMDAC_LOIS
 
 parser = argparse.ArgumentParser(description='Identifity PDU from CSVr files')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,choices=['OLCI'])
 parser.add_argument("-i", "--input_path", help="Input csv path with: OLCI: Sat_Time (as YYYY-mm-dd HH:MM), Platform and Site",required=True)
 parser.add_argument("-e", "--folder_extracts",help="Extracts folders",required=True)
-parser.add_argument("-s", "--folder_sources",help="Main source folder")
 args = parser.parse_args()
 
 
@@ -30,15 +30,10 @@ def make_olci():
         print(f'[ERROR] {input_file} is not a valid csv file')
         return
 
-    source_folder = None
-    if args.folder_sources:
-        if os.path.isdir(args.folder_sources):
-            source_folder = args.folder_sources
-        else:
-            print(f'[WARNING] {args.folder_sources} in not a valid directory and it could not be used')
 
 
-    col_names =  ['Sat_Time','Platform','Site']
+
+    col_names =  ['Sat_Time','Platform','Site','Ins_Lat','Ins_Lon']
     for col_name in col_names:
         if not col_name in df.columns:
             print(f'[ERROR] Column {col_name} is not avaialable in the CSV file')
@@ -46,6 +41,8 @@ def make_olci():
 
     sat_times = df['Sat_Time']
     platforms = df['Platform']
+    ins_lat = df['Ins_Lat']
+    ins_lon = df['Ins_Lon']
     sites = df['Site']
     sites_u = np.unique(sites)
     extract_list = {site:{} for site in sites_u}
@@ -87,30 +84,34 @@ def make_olci():
             product = extract_list[site][ref_less]
             print(f'[INFO] -> {site}_{ref}->{product}')
         if product is not None:
-            if product.find('_trim_')>0 and source_folder is not None:
+            if product.find('_trim_')>0:
+                print('------------------------------>',product)
                 start_product = dt.strptime(product.split('_')[7],'%Y%m%dT%H%M%S')
-                end_product =  dt.strptime(product.split('_')[8],'%Y%m%dT%H%M%S')
-                product_complete = search_product_complete(source_folder,name[0:12],start_product,end_product)
-                if product_complete is not None: product = product_complete
+                #end_product =  dt.strptime(product.split('_')[8],'%Y%m%dT%H%M%S')
+                product_complete = search_product_complete(product[0:12],ins_lat[idx],ins_lon[idx],start_product)
+                if product_complete is not None:
+                    product = product_complete
+                    print(f'[INFO] Trim product reassigned to: {product_complete}')
+
             pdu[idx] = product
 
     df['PRODUCT'] = pdu
     df.to_csv(input_file,sep=';')
     print(f'[INFO] Completed')
 
-def search_product_complete(source_folder,prename,start_product,end_product):
-    yyyy = start_product.strftime('%Y')
-    jjj = start_product.strftime('%')
-    path_source = os.path.join(source_folder,yyyy,jjj)
+def search_product_complete(prename,latP,lonP,start_product):
+    edac = EUMDAC_LOIS(args.verbose,None)
+    products, list_products, collection_id = edac.search_olci_by_point(start_product,'FR','L2',latP,lonP,0,24,'NT')
     product_complete = None
-    if os.path.isdir(path_source):
-        for name in os.listdir(path_source):
-            if name.startswith(prename):
-                start_here = dt.strptime(name.split('_')[7], '%Y%m%dT%H%M%S')
-                end_here = dt.strptime(name.split('_')[8], '%Y%m%dT%H%M%S')
-                if start_here<=start_product and end_here>=end_product:
-                    product_complete = name[:-4]
+    if len(list_products)>0:
+        for product in list_products:
+            if product.startswith(prename):
+                start_here = dt.strptime(product.split('_')[7], '%Y%m%dT%H%M%S')
+                end_here = dt.strptime(product.split('_')[8], '%Y%m%dT%H%M%S')
+                if start_here<=start_product<=end_here:
+                    product_complete = product
                     break
+
     return product_complete
 
 

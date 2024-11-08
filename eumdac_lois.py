@@ -10,7 +10,7 @@ def authorize(file_path):
     try:
         consumer_key = None
         consumer_secret = None
-        #file_path = os.path.join(os.path.dirname(__file__), 'credentials.ini')
+        file_path = os.path.join(os.path.dirname(__file__), 'credentials.ini')
         if os.path.exists(file_path):
             import configparser
             options = configparser.ConfigParser()
