@@ -1411,7 +1411,7 @@ def cual():
         file_nc = os.path.join(dir_base,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
         dataset = Dataset(file_nc)
         varmask = dataset.variables['SENSORMASK']
-        print(varmask.dimensions)
+        print(work_date.strftime('%Y-%m-%d'),varmask.dimensions)
         dataset.close()
         work_date =work_date+timedelta(hours=24)
 
