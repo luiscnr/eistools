@@ -9,22 +9,31 @@ from source_info import SourceInfo
 import calendar
 import os
 
+##ATTENTION: SOME OPTIONS WERE MOVE TO OTHER PROJECTS:
+#to map_toools in aceasy: CREATE_MASK, APPLY_MASK, CREATE_MASK_CDF
+
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
-                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES', 'LOG_HYPSTAR','TEST','UPDATE_TIME_CMEMS_DAILY','UPDATE_TIME_CMEMS_MONTHLY','REMOVE_NR_SOURCES','CREATE_MASK','APPLY_MASK'])
+                    choices=['COPYAQUA', 'CHECKFTPCONTENTS', 'CHECKGRANULES', 'CHECKSOURCES', 'ZIPGRANULES',
+                             'LOG_HYPSTAR',
+                             'TEST', 'UPDATE_TIME_CMEMS_DAILY', 'UPDATE_TIME_CMEMS_MONTHLY', 'REMOVE_NR_SOURCES',
+                             'CREATE_MASK',
+                             'APPLY_MASK', 'CREATE_MASK_CDF'])
 parser.add_argument("-p", "--path", help="Input path")
-parser.add_argument("-o", "--output_path",help="Output path")
-parser.add_argument("-mvar","--mask_variable",help="Mask variable")
-parser.add_argument("-fref", "--file_ref",help="File ref with lat/lon variables for masking")
-parser.add_argument("-fmask","--file_mask",help="File mask for APPLY_MASK")
-parser.add_argument("-ifile","--input_file_name",help="Input file name for APPLY_MASK, DATE is replaced by YYYYjjj")
+parser.add_argument("-o", "--output_path", help="Output path")
+parser.add_argument("-mvar", "--mask_variable", help="Mask variable")
+parser.add_argument("-fref", "--file_ref", help="File ref with lat/lon variables for masking")
+parser.add_argument("-fmask", "--file_mask", help="File mask for APPLY_MASK")
+parser.add_argument("-ifile", "--input_file_name", help="Input file name for APPLY_MASK, DATE is replaced by YYYYjjj")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-pr", "--preffix", help="Preffix")
 parser.add_argument("-sf", "--suffix", help="Suffix")
-parser.add_argument("-tsources","--type_sources",help="Sources type to REMOVE_NR_SOURCES option",choices=["ZIP","SEN3","NC"],default="ZIP")
+parser.add_argument("-tsources", "--type_sources", help="Sources type to REMOVE_NR_SOURCES option",
+                    choices=["ZIP", "SEN3", "NC"], default="ZIP")
 args = parser.parse_args()
+
 
 def do_check():
     # import json
@@ -41,13 +50,13 @@ def do_check():
     from datetime import datetime as dt
     path_hypernets = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/VEIT/2023/09/11'
     file_out = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/data_hypstar_20230911.csv'
-    f1 = open(file_out,'w')
+    f1 = open(file_out, 'w')
     first_line = 'File;Date;Time;solar_azimuth_angle;solar_zenith_angle;viewing_azimuth_angle;viewing_zenith_angle;quality_flag'
     wavelenght = None
     for name in os.listdir(path_hypernets):
         print(name)
-        file_hypernets = os.path.join(path_hypernets,name)
-        dataset = Dataset(file_hypernets,'r')
+        file_hypernets = os.path.join(path_hypernets, name)
+        dataset = Dataset(file_hypernets, 'r')
         if wavelenght is None:
             wavelenght = np.array(dataset.variables['wavelength'])
             for val in wavelenght:
@@ -64,13 +73,12 @@ def do_check():
         vza = dataset.variables['viewing_zenith_angle'][0]
         qf = dataset.variables['quality_flag'][0]
         line = f'{name};{date_str};{time_str};{saa};{sza};{vaa};{vza};{qf}'
-        rrs = np.array(dataset.variables['reflectance'][:])/np.pi
+        rrs = np.array(dataset.variables['reflectance'][:]) / np.pi
 
         for r in rrs:
             line = f'{line};{r[0]}'
         f1.write('\n')
         f1.write(line)
-
 
         dataset.close()
     f1.close()
@@ -92,6 +100,7 @@ def do_check():
 
     return True
 
+
 def do_check_cula():
     import pandas as pd
     dir_modelos = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_2/Modelos'
@@ -100,12 +109,12 @@ def do_check_cula():
     f1 = open(file_out, 'w')
     f1.write('GridSearch;Gamma;Cost;Sensitivity;Specificity;Precission;TSS;F1-Score;AUC')
     params = [5, 6, 14, 11, 19, 20]
-    for index in range(0,29):
+    for index in range(0, 29):
         line = 'Coarse'
-        fmodelo = os.path.join(dir_modelos,f'Modelos_Best_Coarse_{index}.model')
+        fmodelo = os.path.join(dir_modelos, f'Modelos_Best_Coarse_{index}.model')
         if not os.path.exists(fmodelo):
             continue
-        dmodel = pd.read_csv(fmodelo,sep='=')
+        dmodel = pd.read_csv(fmodelo, sep='=')
         gamma = dmodel.loc[1].iat[1]
         cost = dmodel.loc[2].iat[1]
         # dir_results = os.path.join(dir_res,f'Modelos_Best_Coarse_{index}')
@@ -115,62 +124,65 @@ def do_check_cula():
         # for iparam in params:
         #     val = dres.loc[iparam].at['DATOS_COMPLETO_TEST.csv']
         #     line = f'{line};{val}'
-        print(index,line)
+        print(index, line)
         f1.write('\n')
         f1.write(line)
-    for index in range(0,14):
+    for index in range(0, 14):
         line = 'Coarse'
-        fmodelo = os.path.join(dir_modelos,f'ModelTrain_Best_Fine1_{index}.model')
+        fmodelo = os.path.join(dir_modelos, f'ModelTrain_Best_Fine1_{index}.model')
         if not os.path.exists(fmodelo):
             continue
-        dmodel = pd.read_csv(fmodelo,sep='=')
+        dmodel = pd.read_csv(fmodelo, sep='=')
         gamma = dmodel.loc[1].iat[1]
         cost = dmodel.loc[2].iat[1]
-        dir_results = os.path.join(dir_res,f'Modelos_Best_Coarse_{index}')
-        fresults = os.path.join(dir_results,'Resultados.csv')
-        dres = pd.read_csv(fresults,sep=';')
+        dir_results = os.path.join(dir_res, f'Modelos_Best_Coarse_{index}')
+        fresults = os.path.join(dir_results, 'Resultados.csv')
+        dres = pd.read_csv(fresults, sep=';')
         line = f'{line};{gamma};{cost}'
         for iparam in params:
             val = dres.loc[iparam].at['DATOS_COMPLETO_TEST.csv']
             line = f'{line};{val}'
-        print(index,line)
+        print(index, line)
         f1.write('\n')
         f1.write(line)
     f1.close()
     return True
+
+
 def do_check_tal():
     import pandas as pd
     dir_base = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/MODELOS_DATOS_FIN_PA_4/'
     file_out = '/mnt/c/PERSONAL/ARTICULO_PSEUDONITZSCHIA/Results_GridSearch_BNB.csv'
-    f1 = open(file_out,'w')
+    f1 = open(file_out, 'w')
     f1.write('GridSearch;Gamma;Cost;Sensitivity;Specificity;Precission;TSS;F1-Score;AUC')
-    params = [5,6,14,11,19,20]
-    for index in range(1,130):
+    params = [5, 6, 14, 11, 19, 20]
+    for index in range(1, 130):
         line = 'Fine'
-        dir_model = os.path.join(dir_base,f'CVLOU_{index}')
-        fbest = os.path.join(dir_model,f'CVLOU_{index}_Best.csv')
-        dbest = pd.read_csv(fbest,sep=';')
+        dir_model = os.path.join(dir_base, f'CVLOU_{index}')
+        fbest = os.path.join(dir_model, f'CVLOU_{index}_Best.csv')
+        dbest = pd.read_csv(fbest, sep=';')
         gamma = dbest.loc[0].at['Gamma']
         cost = dbest.loc[0].at['Cost']
         line = f'{line};{gamma};{cost}'
-        fres = os.path.join(dir_model,'ResultadosCV.csv')
-        dres = pd.read_csv(fres,sep=';')
+        fres = os.path.join(dir_model, 'ResultadosCV.csv')
+        dres = pd.read_csv(fres, sep=';')
         for iparam in params:
             val = dres.loc[iparam].at['OptTh']
             line = f'{line};{val}'
-        print(index,line)
+        print(index, line)
         f1.write('\n')
         f1.write(line)
 
     f1.close()
     return True
 
+
 def do_log_hypstar():
     file_log = '/mnt/c/DATA_LUIS/ESA-POP_WORK/2023-11-sequence_12V-input.log'
     file_out = '/mnt/c/DATA_LUIS/ESA-POP_WORK/voltage_output_11.csv'
-    fout = open(file_out,'w')
+    fout = open(file_out, 'w')
     fout.write('Date;TimeSequence;Time;Datetime;Voltage;Current;TotalEnergyConsumed')
-    f1 = open(file_log,'r')
+    f1 = open(file_log, 'r')
 
     for line in f1:
         line_s = line.split(' ')
@@ -183,31 +195,31 @@ def do_log_hypstar():
         current = line_s[84]
         total_energy_consumed = line_s[112]
 
-
         # print(date,time_sequence)
-        #print(line)
+        # print(line)
 
         line_out = f'{date};{time_sequence};{time};{date}T{time};{voltage};{current};{total_energy_consumed}'
         fout.write('\n')
         fout.write(line_out)
         print(line_out)
-        #print('-------------')
+        # print('-------------')
     f1.close()
     fout.close()
+
 
 def do_empty_copy():
     input_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION/MonthlyEmptyFiles/O2023001031-kd490_monthly-bal-fr.nc'
     output_file = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION/MonthlyEmptyFiles/O2023335365-kd490_monthly-bal-fr.nc'
     from datetime import datetime as dt
 
-    date_jan = dt(1981,1,1,0,0,0)+timedelta(seconds=1325376000)
-    int_jan = (dt(2023,1,1,0,0,0)-dt(1981,1,1,0,0,0)).total_seconds()
-    int_dec = (dt(2023,12,1,0,0,0)-dt(1981,1,1,0,0,0)).total_seconds()
+    date_jan = dt(1981, 1, 1, 0, 0, 0) + timedelta(seconds=1325376000)
+    int_jan = (dt(2023, 1, 1, 0, 0, 0) - dt(1981, 1, 1, 0, 0, 0)).total_seconds()
+    int_dec = (dt(2023, 12, 1, 0, 0, 0) - dt(1981, 1, 1, 0, 0, 0)).total_seconds()
     print(int_jan)
     print(int_dec)
 
-    #start_date = '2023-12-01'
-    #end_date = '2023-12-31'
+    # start_date = '2023-12-01'
+    # end_date = '2023-12-31'
 
     from netCDF4 import Dataset
     input_dataset = Dataset(input_file)
@@ -235,39 +247,38 @@ def do_empty_copy():
         # copy variable attributes all at once via dictionary
         ncout[name].setncatts(input_dataset[name].__dict__)
 
-        if name=='lat' or name=='lon':
+        if name == 'lat' or name == 'lon':
             ncout[name][:] = input_dataset[name][:]
-        if name=='time':
+        if name == 'time':
             ncout[name][:] = 1354233600
 
     ncout.close()
     input_dataset.close()
-
 
     return True
 
 
 def resolve_CCOC_778():
     print('Resolving 778')
-    #1.CHECKING SENSOR MASK
+    # 1.CHECKING SENSOR MASK
     # path = '/dst04-data1/OC/OLCI/daily_v202311_bc'
     # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
     from datetime import datetime as dt
     from netCDF4 import Dataset
-    date_work = dt(2016,4,26)
-    date_fin = dt(2023,12,31)
+    date_work = dt(2016, 4, 26)
+    date_fin = dt(2023, 12, 31)
     file_out = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_daily_final_2016_2023.csv'
-    f1 = open(file_out,'w')
+    f1 = open(file_out, 'w')
     f1.write('Date;Status')
-    while date_work<=date_fin:
+    while date_work <= date_fin:
         yyyy = date_work.strftime('%Y')
         jjj = date_work.strftime('%j')
-        file_date = os.path.join(path,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+        file_date = os.path.join(path, yyyy, jjj, f'O{yyyy}{jjj}-chl-bal-fr.nc')
         status = -1
         if os.path.exists(file_date):
             status = 0
-            dataset = Dataset(file_date,'r')
+            dataset = Dataset(file_date, 'r')
             if 'SENSORMASK' in dataset.variables:
                 status = 1
             dataset.close()
@@ -279,7 +290,7 @@ def resolve_CCOC_778():
         date_work = date_work + timedelta(hours=24)
     f1.close()
 
-    #2. Checking S3A and S3B
+    # 2. Checking S3A and S3B
     # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     # input_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero.csv'
     # output_file = '/store/COP2-OC-TAC/BAL_Evolutions/CCOC-778/list_files_2016_2022_zero_check.csv'
@@ -310,7 +321,7 @@ def resolve_CCOC_778():
     # f1.close()
     # fout.close()
 
-    #3. Copy available files s3a (s3b is missing), from 2016 to 2022
+    # 3. Copy available files s3a (s3b is missing), from 2016 to 2022
     # path_proc = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     # path_polw = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMER_WATER'
     # path_output = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
@@ -345,7 +356,7 @@ def resolve_CCOC_778():
     #
     # f1.close()
 
-    #2. Adding SENSORMASK ONLY WITH S3A
+    # 2. Adding SENSORMASK ONLY WITH S3A
     # copy_path = '/store/COP2-OC-TAC/BAL_Evolutions/POLYMERWHPC'
     # path = '/store/COP2-OC-TAC/BAL_Evolutions/BAL_REPROC'
     # #copy_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-778/kk'
@@ -410,7 +421,8 @@ def resolve_CCOC_778():
 
     return True
 
-def create_copy_with_sensor_mask(input_file,output_file):
+
+def create_copy_with_sensor_mask(input_file, output_file):
     import numpy as np
     from netCDF4 import Dataset
     input_dataset = Dataset(input_file)
@@ -429,11 +441,12 @@ def create_copy_with_sensor_mask(input_file,output_file):
         if '_FillValue' in list(variable.ncattrs()):
             fill_value = variable._FillValue
 
-        if name!='time' and name!='lat' and name!='lon' and name!='QI':
+        if name != 'time' and name != 'lat' and name != 'lon' and name != 'QI':
             data = np.array(input_dataset[name][:])
-            data[data!=-999] = 1
-            data[data==999] = np.nan
-        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True, complevel=6)
+            data[data != -999] = 1
+            data[data == 999] = np.nan
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                             complevel=6)
 
         # copy variable attributes all at once via dictionary
         ncout[name].setncatts(input_dataset[name].__dict__)
@@ -441,10 +454,9 @@ def create_copy_with_sensor_mask(input_file,output_file):
         # copy data
         ncout[name][:] = input_dataset[name][:]
 
-
-    var = ncout.createVariable('SENSORMASK','i4',('time','lat','lon'),zlib=True,complevel=6)
+    var = ncout.createVariable('SENSORMASK', 'i4', ('time', 'lat', 'lon'), zlib=True, complevel=6)
     ncout['SENSORMASK'][:] = data
-    var.long_name='Sensor Mask'
+    var.long_name = 'Sensor Mask'
     var.comment = 'OLCI Sentinel-3A=1; OLCI Sentinel-3B=2. Each SENSORMASK pixel is the sum of all available sensor values. For example, if a pixel is observed by OLCI Sentinel-3A and OLCI Sentinel-3B then SENSORMASK = 3'
     var.type = 'surface'
     var.units = '1'
@@ -453,17 +465,16 @@ def create_copy_with_sensor_mask(input_file,output_file):
     ncout.close()
     input_dataset.close()
 
-
-
     return True
+
 
 def check_med():
     mode = 'NRT'
     from product_info import ProductInfo
     from datetime import datetime as dt
     pinfo = ProductInfo()
-    pinfo.set_dataset_info('OCEANCOLOUR_MED_BGC_L3_NRT_009_141','cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D')
-    date_here = dt(2024,5,7)
+    pinfo.set_dataset_info('OCEANCOLOUR_MED_BGC_L3_NRT_009_141', 'cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D')
+    date_here = dt(2024, 5, 7)
     from s3buckect import S3Bucket
     sb = S3Bucket()
     sb.update_params_from_pinfo(pinfo)
@@ -473,6 +484,7 @@ def check_med():
     print(key)
     print(isuploaded)
     return True
+
 
 def check_download():
     from product_info import ProductInfo
@@ -485,12 +497,13 @@ def check_download():
     conn = sb.star_client()
     s3bname, key, isuploaded = sb.check_daily_file('NRT', pinfo, date_here, False)
     path_out = '/mnt/c/DATA_LUIS/OCTACWORK'
-    sb.download_daily_file('NRT',pinfo,date_here,path_out,True,True)
+    sb.download_daily_file('NRT', pinfo, date_here, path_out, True, True)
     return True
+
 
 def resolve_CCOC_878(year):
     file_slurm = f'/mnt/c/DATA_LUIS/OCTAC_WORK/CCOC-878/resolve_ccoc_878_{year}.slurm'
-    fw = open(file_slurm,'w')
+    fw = open(file_slurm, 'w')
     fw.write('#!/bin/bash')
     start_lines = [
         '#SBATCH --nodes=1',
@@ -510,33 +523,32 @@ def resolve_CCOC_878(year):
         fw.write('\n')
         fw.write(line)
 
-    start_date = dt(year,1,1)
-    end_date = dt(year,12,31)
-    if year==1997:
-        start_date = dt(year,9,16)
-    if year==2024:
+    start_date = dt(year, 1, 1)
+    end_date = dt(year, 12, 31)
+    if year == 1997:
+        start_date = dt(year, 9, 16)
+    if year == 2024:
         start_date = dt(year, 9, 5)
-        end_date = dt(year,9,10)
+        end_date = dt(year, 9, 10)
 
     base_folder = '/store3/OC/MULTI/daily_v202311_x'
-    work_date =start_date
-    while work_date<=end_date:
+    work_date = start_date
+    while work_date <= end_date:
         yyyy = work_date.strftime('%Y')
         jjj = work_date.strftime('%j')
-        file_med = os.path.join(base_folder,yyyy,jjj,f'X{yyyy}{jjj}-pft-med-hr.nc')
-        file_bs = os.path.join(base_folder,yyyy,jjj,f'X{yyyy}{jjj}-pft-bs-hr.nc')
-        fw = resolve_CCOC_878_impl(file_med,file_bs,fw)
+        file_med = os.path.join(base_folder, yyyy, jjj, f'X{yyyy}{jjj}-pft-med-hr.nc')
+        file_bs = os.path.join(base_folder, yyyy, jjj, f'X{yyyy}{jjj}-pft-bs-hr.nc')
+        fw = resolve_CCOC_878_impl(file_med, file_bs, fw)
         work_date = work_date + timedelta(hours=24)
-
 
     fw.close()
 
     return True
 
-def resolve_CCOC_878_impl(file_med,file_bs,fw):
 
+def resolve_CCOC_878_impl(file_med, file_bs, fw):
     med = {
-        'DIATO':{
+        'DIATO': {
             'valid_min': 0.0001,
             'valid_max': 4.0
         },
@@ -556,24 +568,23 @@ def resolve_CCOC_878_impl(file_med,file_bs,fw):
             'valid_min': 0.00001,
             'valid_max': 1.0
         },
-        'PROKAR':{
+        'PROKAR': {
             'valid_min': 0.001,
             'valid_max': 1.0
         },
-        'MICRO':{
+        'MICRO': {
             'valid_min': 0.0001,
             'valid_max': 4.0
         },
-        'NANO':{
+        'NANO': {
             'valid_min': 0.0001,
             'valid_max': 2.0
         },
-        'PICO':{
+        'PICO': {
             'valid_min': 0.0001,
             'valid_max': 1.0
         }
     }
-
 
     bs = {
         'MICRO': {
@@ -590,7 +601,6 @@ def resolve_CCOC_878_impl(file_med,file_bs,fw):
         }
     }
 
-
     for var in med:
         line_min = f'ncatted -O -a valid_min,{var},o,f,{med[var]["valid_min"]} {file_med}'
         line_max = f'ncatted -O -a valid_max,{var},o,f,{med[var]["valid_max"]} {file_med}'
@@ -598,9 +608,6 @@ def resolve_CCOC_878_impl(file_med,file_bs,fw):
         fw.write(line_min)
         fw.write('\n')
         fw.write(line_max)
-
-
-
 
     for var in bs:
         line_min = f'ncatted -O -a valid_min,{var},o,f,{bs[var]["valid_min"]} {file_bs}'
@@ -613,10 +620,7 @@ def resolve_CCOC_878_impl(file_med,file_bs,fw):
     fw.write('\n')
     fw.write('\n')
 
-
     return fw
-
-
 
 
 def check_CCOC_878():
@@ -676,9 +680,9 @@ def check_CCOC_878():
     }
 
     base_folder = '/store3/OC/MULTI/daily_v202311_x'
-    for year in range(1997,2025):
-        work_date = dt(year,1,1)
-        end_date = dt(year,12,31)
+    for year in range(1997, 2025):
+        work_date = dt(year, 1, 1)
+        end_date = dt(year, 12, 31)
         nfound_med = 0
         ngood_med = 0
         nfound_bs = 0
@@ -690,17 +694,17 @@ def check_CCOC_878():
             file_med = os.path.join(base_folder, yyyy, jjj, f'X{yyyy}{jjj}-pft-med-hr.nc')
             file_bs = os.path.join(base_folder, yyyy, jjj, f'X{yyyy}{jjj}-pft-bs-hr.nc')
             if os.path.exists(file_med):
-                nfound_med = nfound_med+1
+                nfound_med = nfound_med + 1
                 valid = True
                 dataset_med = Dataset(file_med)
                 for var in med:
                     if var in dataset_med.variables:
                         dif_min = abs(dataset_med.variables[var].valid_min - med[var]["valid_min"])
                         dif_max = abs(dataset_med.variables[var].valid_max - med[var]["valid_max"])
-                        if dif_min>1e-8:
-                            print(var,dataset_med.variables[var].valid_min,'<->',med[var]['valid_min'])
+                        if dif_min > 1e-8:
+                            print(var, dataset_med.variables[var].valid_min, '<->', med[var]['valid_min'])
                             valid = False
-                        if dif_max>1e-8:
+                        if dif_max > 1e-8:
                             print(var, dataset_med.variables[var].valid_max, '<->', med[var]['valid_max'])
                             valid = False
                 if valid:
@@ -710,7 +714,7 @@ def check_CCOC_878():
                 dataset_med.close()
 
             if os.path.exists(file_bs):
-                nfound_bs = nfound_bs+1
+                nfound_bs = nfound_bs + 1
                 valid = True
                 dataset_bs = Dataset(file_bs)
                 for var in bs:
@@ -729,41 +733,41 @@ def check_CCOC_878():
                     print(f'[ERROR] Error in bs file: {file_bs}')
                 dataset_bs.close()
 
-
-
-
             work_date = work_date + timedelta(hours=24)
 
         print(f'YEAR: {year} MED: {ngood_med}/{nfound_med} BS: {ngood_bs}/{nfound_bs}')
 
     return True
 
+
 def move_msi_sources():
     folder_orig = '/store/TARA_VALIDATION/sources_msi'
     folder_dest = '/store/TARA_VALIDATION/sources'
     for name in os.listdir(folder_orig):
-        file_orig = os.path.join(folder_orig,name)
-        date_orig = dt.strptime(name.split('_')[0],'%Y%m%d')
-        file_dest = os.path.join(folder_dest,date_orig.strftime('%Y'),date_orig.strftime('%j'),name)
+        file_orig = os.path.join(folder_orig, name)
+        date_orig = dt.strptime(name.split('_')[0], '%Y%m%d')
+        file_dest = os.path.join(folder_dest, date_orig.strftime('%Y'), date_orig.strftime('%j'), name)
         print(f'Moving {file_orig} -> {file_dest}')
-        os.rename(file_orig,file_dest)
+        os.rename(file_orig, file_dest)
+
 
 def kk():
     dir_base = '/mnt/c/DATA_LUIS/TARA_TEST/station_match-ups/extracts_chl_CMEMS_OLCI_BAL'
     for name in os.listdir(dir_base):
-        line = f'ncrename -v satellite_chl,satellite_CHL {os.path.join(dir_base,name)}'
+        line = f'ncrename -v satellite_chl,satellite_CHL {os.path.join(dir_base, name)}'
         print(line)
     return True
 
-def update_time_impl(input_file,output_file,date_here,date_last):
+
+def update_time_impl(input_file, output_file, date_here, date_last):
     # print(f'Updating file: {input_file}')
     # output_file = input_file.replace('X2023','X2024')
     # print(output_file)
     from netCDF4 import Dataset
     from datetime import datetime as dt
     from datetime import timedelta
-    date_ref = dt(1981,1,1,0,0,0)
-    seconds_new = (date_here-date_ref).total_seconds()
+    date_ref = dt(1981, 1, 1, 0, 0, 0)
+    seconds_new = (date_here - date_ref).total_seconds()
 
     input_dataset = Dataset(input_file)
     ncout = Dataset(output_file, 'w', format='NETCDF4')
@@ -787,11 +791,11 @@ def update_time_impl(input_file,output_file,date_here,date_last):
         # copy variable attributes all at once via dictionary
         ncout[name].setncatts(input_dataset[name].__dict__)
 
-        if name=='time':
+        if name == 'time':
             seconds_prev = input_dataset[name][0]
             seconds_prev = int(seconds_prev)
-            date_prev = date_ref+timedelta(seconds=seconds_prev)
-            date_new = date_ref+timedelta(seconds=seconds_new)
+            date_prev = date_ref + timedelta(seconds=seconds_prev)
+            date_new = date_ref + timedelta(seconds=seconds_new)
             print(f'[INFO ] Updating date from {date_prev} to {date_new}')
             ncout[name][:] = int(seconds_new)
         else:
@@ -801,7 +805,8 @@ def update_time_impl(input_file,output_file,date_here,date_last):
     ncout.close()
     input_dataset.close()
 
-def remove_nr_sources_impl(path,start_date_str,end_date_str,type_s):
+
+def remove_nr_sources_impl(path, start_date_str, end_date_str, type_s):
     from datetime import datetime as dt
     from datetime import timedelta
     if not os.path.isdir(path):
@@ -830,29 +835,30 @@ def remove_nr_sources_impl(path,start_date_str,end_date_str,type_s):
         if not os.path.exists(path_date):
             continue
         for name in os.listdir(path_date):
-            if name.find('_NR_')>0:
-                if type_s=="ZIP" and name.endswith('.zip'):
-                    file_remove = os.path.join(path_date,name)
+            if name.find('_NR_') > 0:
+                if type_s == "ZIP" and name.endswith('.zip'):
+                    file_remove = os.path.join(path_date, name)
                     os.remove(file_remove)
-                if type_s=="NC" and name.endswith('.nc'):
-                    file_remove = os.path.join(path_date,name)
+                if type_s == "NC" and name.endswith('.nc'):
+                    file_remove = os.path.join(path_date, name)
                     os.remove(file_remove)
-                if type_s=="SEN3" and name.endswith('.SEN3'):
-                    dir_remove = os.path.join(path_date,name)
+                if type_s == "SEN3" and name.endswith('.SEN3'):
+                    dir_remove = os.path.join(path_date, name)
                     if os.path.isdir(dir_remove):
                         for name_r in os.listdir(dir_remove):
-                            os.remove(os.path.join(dir_remove,name_r))
+                            os.remove(os.path.join(dir_remove, name_r))
                         os.rmdir(dir_remove)
         date_here = date_here + timedelta(hours=24)
 
-def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
+
+def update_time_daily(path, start_date_str, end_date_str, preffix, suffix):
     from datetime import datetime as dt
     from datetime import timedelta
     if not os.path.isdir(path):
         print(f'[ERROR] {path} does not exist or it is not a directory')
         return
     try:
-        start_date = dt.strptime(start_date_str,'%Y-%m-%d')
+        start_date = dt.strptime(start_date_str, '%Y-%m-%d')
     except:
         print(f'[ERROR] Start date is not a valid date')
         return
@@ -861,29 +867,31 @@ def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
     except:
         print(f'[ERROR] End date {end_date_str} is not a valid date')
         return
-    if end_date<start_date:
+    if end_date < start_date:
         print(f'[ERROR] End date {end_date_str} should be greater or equal to {start_date_str}')
         return
 
     date_here = start_date
-    while date_here<=end_date:
+    while date_here <= end_date:
         print(f'[INFO] Working with date: {date_here}')
         yearstr = date_here.strftime('%Y')
         jjj = date_here.strftime('%j')
-        path_date = os.path.join(path,yearstr,jjj)
+        path_date = os.path.join(path, yearstr, jjj)
+
         if not os.path.exists(path_date):
             date_here = date_here + timedelta(hours=24)
             continue
         for name in os.listdir(path_date):
-            if not name.startswith(preffix):continue
-            if not name.endswith(suffix):continue
-
-            file_in = os.path.join(path_date,name)
+            print(name,preffix,suffix)
+            if not name.startswith(preffix): continue
+            if not name.endswith(suffix): continue
+            print('-----')
+            file_in = os.path.join(path_date, name)
             name_out = f'{preffix}{yearstr}{jjj}{suffix}'
-            file_out = os.path.join(path_date,name_out)
-            file_temp = os.path.join(path_date,'Temp.nc')
-            update_time_impl(file_in, file_temp,date_here,date_here)
-            os.rename(file_temp,file_out)
+            file_out = os.path.join(path_date, name_out)
+            file_temp = os.path.join(path_date, 'Temp.nc')
+            update_time_impl(file_in, file_temp, date_here, date_here)
+            os.rename(file_temp, file_out)
             # TEST
             # file_med = os.path.join(path,yearstr,jjj,f'X2023{jjj}-pp-med-lr.nc')
             #
@@ -894,7 +902,8 @@ def update_time_daily(path,start_date_str,end_date_str,preffix,suffix):
             #     update_time_impl(file_blk, date_here)
         date_here = date_here + timedelta(hours=24)
 
-def update_time_monthly(path,start_date_str,end_date_str,preffix,suffix):
+
+def update_time_monthly(path, start_date_str, end_date_str, preffix, suffix):
     from datetime import datetime as dt
     from datetime import timedelta
     import calendar
@@ -923,24 +932,25 @@ def update_time_monthly(path,start_date_str,end_date_str,preffix,suffix):
         if not os.path.exists(path_date):
             continue
         for name in os.listdir(path_date):
-            if not name.startswith(preffix):continue
-            if not name.endswith(suffix):continue
+            if not name.startswith(preffix): continue
+            if not name.endswith(suffix): continue
 
-            date_file_str = name[name.find(preffix)+len(preffix):name.find(suffix)]
-            date_file = dt.strptime(date_file_str[:-3],'%Y%j')
-            date_out_start = dt(date_here.year,date_file.month,1)
-            date_out_end = dt(date_here.year,date_file.month,calendar.monthrange(date_here.year, date_file.month)[1])
+            date_file_str = name[name.find(preffix) + len(preffix):name.find(suffix)]
+            date_file = dt.strptime(date_file_str[:-3], '%Y%j')
+            date_out_start = dt(date_here.year, date_file.month, 1)
+            date_out_end = dt(date_here.year, date_file.month, calendar.monthrange(date_here.year, date_file.month)[1])
             name_out = f'{preffix}{yearstr}{date_out_start.strftime("%j")}{date_out_end.strftime("%j")}{suffix}'
-            file_in = os.path.join(path_date,name)
-            file_out = os.path.join(path_date,name_out)
-            update_time_impl(file_in,file_out,date_out_start,date_out_end)
+            file_in = os.path.join(path_date, name)
+            file_out = os.path.join(path_date, name_out)
+            update_time_impl(file_in, file_out, date_out_start, date_out_end)
 
         date_here = date_here + timedelta(days=365)
 
-def check_sources_from_source_list_files(list_files,dir_out,fout):
+
+def check_sources_from_source_list_files(list_files, dir_out, fout):
     all_files = {}
     for file in list_files:
-        f1 = open(file,'r')
+        f1 = open(file, 'r')
         for line in f1:
             line_s = [x.strip() for x in line.split(';')]
             if line_s[0] not in all_files.keys():
@@ -950,24 +960,25 @@ def check_sources_from_source_list_files(list_files,dir_out,fout):
                     all_files[line_s[0]].append(line_s[1])
         f1.close()
 
-    fw = open(fout,'w')
+    fw = open(fout, 'w')
     fw.write('Date;NAll;NAvailable;Complete')
     for date in all_files:
-        date_here = dt.strptime(date,'%Y-%m-%d')
-        file_out_date = os.path.join(dir_out,date_here.strftime('%Y'),date_here.strftime('%j'))
+        date_here = dt.strptime(date, '%Y-%m-%d')
+        file_out_date = os.path.join(dir_out, date_here.strftime('%Y'), date_here.strftime('%j'))
         nall = len(all_files[date])
         ndate = 0
-        for name_here  in all_files[date]:
-            file_here = os.path.join(file_out_date,f'{name_here}.zip')
+        for name_here in all_files[date]:
+            file_here = os.path.join(file_out_date, f'{name_here}.zip')
             print(file_here)
             if os.path.exists(file_here):
                 ndate = ndate + 1
-        complete = 1 if ndate==nall else 0
+        complete = 1 if ndate == nall else 0
         line = f'{date};{nall};{ndate};{complete}'
         print(line)
         fw.write('\n')
         fw.write(line)
     fw.close()
+
 
 def run_distance(params):
     import numpy as np
@@ -979,38 +990,159 @@ def run_distance(params):
     dLand = params[5]
     print(f'Computing distance from: {y} , {x}')
     min_dist_yx = None
-    if mask_land[y,x]==0:##WATER PIXELS
-        dist_yx = ((y-yPixels)**2) + ((x-xPixels)**2)
-        dist_yx = dist_yx[mask_land==1]
+    if mask_land[y, x] == 0:  ##WATER PIXELS
+        dist_yx = ((y - yPixels) ** 2) + ((x - xPixels) ** 2)
+        dist_yx = dist_yx[mask_land == 1]
         min_dist_yx = np.min(dist_yx)
-        #dLand[y,x] = min_dist_yx
+        # dLand[y,x] = min_dist_yx
 
     return min_dist_yx
 
-def create_mask(file_in,file_out,mask_variable,file_ref):
+
+def create_mask_cfc(file_mask, mask_variable, file_cfc):
+    from netCDF4 import Dataset
+    input_nc = Dataset(file_mask, 'r')
+    land_mask = input_nc.variables[mask_variable][:]
+    lat_array = input_nc.variables['lat'][:]
+    lon_array = input_nc.variables['lon'][:]
+    #input_nc.close()
+
+    input_cfc = Dataset(file_cfc, 'r')
+    lat_cfc = input_cfc.variables['lat'][:]
+    lon_cfc = input_cfc.variables['lon'][:]
+    input_cfc.close()
+
+    nlat = lat_array.shape[0]
+    nlon = lon_array.shape[0]
+    y_cfc = np.zeros((nlat, nlon))
+    x_cfc = np.zeros((nlat, nlon))
+    index_cfc = np.zeros((nlat, nlon))
+    y_cfc[:] = -999
+    x_cfc[:] = -999
+    index_cfc[:] = -999
+    nlat_cfc = lat_cfc.shape[0]
+    nlon_cfc = lon_cfc.shape[0]
+    land_mask_cfc = np.zeros((nlat_cfc, nlon_cfc))
+
+    for y in range(nlat):
+        print(y,'/',nlat)
+        for x in range(nlon):
+            row,column = find_row_column_from_lat_lon(lat_cfc,lon_cfc,lat_array[y],lon_array[x])
+            index = (row*nlon_cfc)+column
+            y_cfc[y,x] = row
+            x_cfc[y,x] = column
+            index_cfc[y,x] = index
+            if land_mask[y,x]==1:
+                land_mask_cfc[row,column]=1
+
+    y_middle = int(nlat_cfc/2)
+    x_ini = -1
+    for x in range(nlon_cfc):
+        if land_mask_cfc[y_middle,x]==1:
+            x_ini = x
+            break
+    print(f'[INFO] XIni: {x_ini}')
+    if x_ini>=0: land_mask_cfc[:,0:x_ini]=1
+
+    x_end = -1
+    for x in range(nlon_cfc-1,0,-1):
+        if land_mask_cfc[y_middle,x]==1:
+            x_end = x+1
+            break
+    print(f'[INFO] XEnd: {x_end}')
+    if x_end<nlon_cfc: land_mask_cfc[:,x_end:nlon_cfc]=1
+
+    x_middle = int(nlon_cfc / 2)
+    y_ini = -1
+    for y in range(nlat_cfc):
+        if land_mask_cfc[y,x_middle] == 1:
+            y_ini = y
+            break
+    print(f'[INFO] YIni: {y_ini}')
+    if y_ini >= 0: land_mask_cfc[0:y_ini,:] = 1
+    y_end = -1
+    for y in range(nlat_cfc - 1, 0, -1):
+        if land_mask_cfc[y,x_middle] == 1:
+            y_end = y + 1
+            break
+    print(f'[INFO] YEnd: {y_end}')
+    if y_end < nlat_cfc: land_mask_cfc[y_end:nlat_cfc,:] = 1
+
+
+    cfc_mask = land_mask.copy()
+    for y in range(nlat):
+
+        print(y,'-->',nlat)
+        for x in range(nlon):
+            row = int(y_cfc[y,x])
+            column = int(x_cfc[y,x])
+            #print(row,column)
+            if land_mask_cfc[row,column]==1:
+                cfc_mask[y,x]=1
+
+    file_out = f'{file_mask[:-3]}_CFC.nc'
+    print(f'[INFO] Creating output file: {file_out}')
+    ncout = Dataset(file_out, 'w')
+    ncout.createDimension('lat', nlat)
+    ncout.createDimension('lon', nlon)
+    ncout.createDimension('lat_cfc', nlat_cfc)
+    ncout.createDimension('lon_cfc', nlon_cfc)
+    for name, variable in input_nc.variables.items():
+        fill_value = None
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True, complevel=6)
+        # copy variable attributes all at once via dictionary
+        ncout[name].setncatts(input_nc[name].__dict__)
+        # copy data
+        ncout[name][:] = input_nc[name][:]
+    input_nc.close()
+
+    var = ncout.createVariable('CFC_Mask', 'i2', ('lat', 'lon'), zlib=True, complevel=6)
+    var[:] = cfc_mask
+    var = ncout.createVariable('CFC_Y', 'i2', ('lat', 'lon'), zlib=True, complevel=6)
+    var[:] = y_cfc
+    var = ncout.createVariable('CFC_X', 'i2', ('lat', 'lon'), zlib=True, complevel=6)
+    var[:] = x_cfc
+    var = ncout.createVariable('CFC_Index', 'i2', ('lat', 'lon'), zlib=True, complevel=6)
+    var[:] = index_cfc
+
+    var_lat = ncout.createVariable('lat_cfc', 'f4', ('lat_cfc',), zlib=True, complevel=6, fill_value=-999)
+    var_lat[:] = lat_cfc
+    var_lon = ncout.createVariable('lon_cfc', 'f4', ('lon_cfc',), zlib=True, complevel=6, fill_value=-999)
+    var_lon[:] = lon_cfc
+    var_land = ncout.createVariable('Land_Mask_CFC', 'i2', ('lat_cfc', 'lon_cfc'), zlib=True, complevel=6)
+    var_land[:] = land_mask_cfc
+
+
+    ncout.close()
+
+    print(f'[INFO] Completed')
+
+def create_mask(file_in, file_out, mask_variable, file_ref):
     from netCDF4 import Dataset
     import numpy as np
-    input_nc = Dataset(file_in,'r')
+    input_nc = Dataset(file_in, 'r')
     mask_land = input_nc.variables[mask_variable][:]
     nlat = mask_land.shape[0]
     nlon = mask_land.shape[1]
     input_nc.close()
 
-    ref_nc = Dataset(file_ref,'r')
+    ref_nc = Dataset(file_ref, 'r')
     lat = ref_nc.variables['lat'][:]
     lon = ref_nc.variables['lon'][:]
     ref_nc.close()
-    if nlat!=lat.shape[0]:
+    if nlat != lat.shape[0]:
         print('[ERROR] Dimension lat in file_ref does not coincide with the first dimension in the mask')
         return
-    if nlon!=lon.shape[0]:
+    if nlon != lon.shape[0]:
         print('[ERROR] Dimension lat in file_ref does not coincide with the first dimension in the mask')
         return
 
     lon_limit = 13.070
     x_min = -1
     for x in range(lon.shape[0]):
-        if lon[x]>=lon_limit:
+        if lon[x] >= lon_limit:
             x_min = x
             break
     print(f'[INFO] Setting min_x to: {x_min} (Longitude: {lon[x_min]})')
@@ -1045,15 +1177,13 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     #     print(len(ypoints))
     #     print(len(xpoints))
     #     dLand[ypoints,xpoints] = res_here[:]
-        # for idx in range(len(res_here)):
-        #     y = param_list[idx][2]
-        #     x = param_list[idx][3]
-        #     dLand[y,x] = res_here[idx]
+    # for idx in range(len(res_here)):
+    #     y = param_list[idx][2]
+    #     x = param_list[idx][3]
+    #     dLand[y,x] = res_here[idx]
 
     # res = poolhere.map(run_distance,param_list)
     #
-
-
 
     # for params,val in zip(param_list,poolhere.map(run_distance,param_list)):
     #     y = params[2]
@@ -1073,19 +1203,18 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     #             min_dist_yx = np.min(dist_yx)
     #             dLand[y,x] = min_dist_yx
 
-    #dLand = np.square(dLand)
-
+    # dLand = np.square(dLand)
 
     print('[INFO] Creating output file...')
-    nc_out = Dataset(file_out,'w')
-    nc_out.createDimension('lat',nlat)
-    nc_out.createDimension('lon',nlon)
+    nc_out = Dataset(file_out, 'w')
+    nc_out.createDimension('lat', nlat)
+    nc_out.createDimension('lon', nlon)
     var_lat = nc_out.createVariable('lat', 'f4', ('lat',), zlib=True, complevel=6, fill_value=-999)
     var_lat[:] = lat
     var_lon = nc_out.createVariable('lon', 'f4', ('lon',), zlib=True, complevel=6, fill_value=-999)
     var_lon[:] = lon
-    var_land = nc_out.createVariable('Land_Mask','i2',('lat','lon'),zlib=True,complevel=6)
-    mask_land[:,0:x_min]=1
+    var_land = nc_out.createVariable('Land_Mask', 'i2', ('lat', 'lon'), zlib=True, complevel=6)
+    mask_land[:, 0:x_min] = 1
     var_land[:] = mask_land
     # var_dist= nc_out.createVariable('Dist_Land', 'f4', ('lat', 'lon'), zlib=True, complevel=6)
     # var_dist[:] = dLand
@@ -1094,7 +1223,7 @@ def create_mask(file_in,file_out,mask_variable,file_ref):
     print(f'[INFO] Completed')
 
 
-def apply_mask(input_path,name_file,file_mask,mask_variable,start_date,end_date):
+def apply_mask(input_path, name_file, file_mask, mask_variable, start_date, end_date):
     from netCDF4 import Dataset
     dmask = Dataset(file_mask)
     if not mask_variable in dmask.variables:
@@ -1104,48 +1233,50 @@ def apply_mask(input_path,name_file,file_mask,mask_variable,start_date,end_date)
     mask = dmask.variables[mask_variable][:]
     dmask.close()
     work_date = start_date
-    while work_date<=end_date:
+    while work_date <= end_date:
         yyyy = work_date.strftime('%Y')
-        if name_file.find('DATEM')>0:
+        if name_file.find('DATEM') > 0:
             path_date = os.path.join(input_path, yyyy)
-            date_month_ini = dt(work_date.year, work_date.month,1)
-            date_month_end = dt(work_date.year, work_date.month, calendar.monthrange(work_date.year, work_date.month)[1])
+            date_month_ini = dt(work_date.year, work_date.month, 1)
+            date_month_end = dt(work_date.year, work_date.month,
+                                calendar.monthrange(work_date.year, work_date.month)[1])
             monthstr = f'{yyyy}{date_month_ini.strftime("%j")}{date_month_end.strftime("%j")}'
             input_file = os.path.join(path_date, name_file.replace('DATEM', f'{monthstr}'))
         else:
             jjj = work_date.strftime('%j')
-            path_date =  os.path.join(input_path,yyyy,jjj)
-            input_file = os.path.join(path_date,name_file.replace('DATE',f'{yyyy}{jjj}'))
+            path_date = os.path.join(input_path, yyyy, jjj)
+            input_file = os.path.join(path_date, name_file.replace('DATE', f'{yyyy}{jjj}'))
         if not os.path.exists(input_file):
             print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
             work_date = work_date + timedelta(hours=24)
             continue
         print(f'[INFO] -----------------------------------------------------------------------------------------------')
         print(f'[INFO] Worning with: {input_file}')
-        file_tmp = os.path.join(path_date,'Temp.nc')
-        mask_applied = apply_mask_impl(input_file,mask,file_tmp)
+        file_tmp = os.path.join(path_date, 'Temp.nc')
+        mask_applied = apply_mask_impl(input_file, mask, file_tmp)
         if mask_applied:
             print(f'[INFO] Masking completed')
-            os.rename(file_tmp,input_file)
+            os.rename(file_tmp, input_file)
         else:
             print(f'[WARNING] Masking was not applied as input file has not changed')
             os.remove(file_tmp)
         print(f'[INFO] -----------------------------------------------------------------------------------------------')
-        if name_file.find('DATEM')>0:
-            if work_date.month==12:
-                work_date = dt(work_date.year+1,1,15)
+        if name_file.find('DATEM') > 0:
+            if work_date.month == 12:
+                work_date = dt(work_date.year + 1, 1, 15)
             else:
-                work_date = dt(work_date.year,work_date.month+1,15)
+                work_date = dt(work_date.year, work_date.month + 1, 15)
         else:
-            work_date =work_date+timedelta(days=1)
+            work_date = work_date + timedelta(days=1)
 
     return
 
-def apply_mask_impl(input_file,mask,output_file):
+
+def apply_mask_impl(input_file, mask, output_file):
     mask_applied = False
     from netCDF4 import Dataset
-    nc_input = Dataset(input_file,'r')
-    nc_out = Dataset(output_file,'w')
+    nc_input = Dataset(input_file, 'r')
+    nc_out = Dataset(output_file, 'w')
 
     # copy global attributes all at once via dictionary
     nc_out.setncatts(nc_input.__dict__)
@@ -1160,29 +1291,29 @@ def apply_mask_impl(input_file,mask,output_file):
         if '_FillValue' in list(variable.ncattrs()):
             fill_value = variable._FillValue
 
-        nc_out.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True, complevel=6)
+        nc_out.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                              complevel=6)
 
         # copy variable attributes all at once via dictionary
         nc_out[name].setncatts(nc_input[name].__dict__)
 
-
-
-        if len(variable.dimensions)==3 and nc_input.variables[name].shape[1]==mask.shape[0] and nc_input.variables[name].shape[2]==mask.shape[1]:
+        if len(variable.dimensions) == 3 and nc_input.variables[name].shape[1] == mask.shape[0] and \
+                nc_input.variables[name].shape[2] == mask.shape[1]:
             print(f'[INFO] Applying mask to variable: {name}')
             array = np.squeeze(nc_input[name][:])
-            array[mask==1] = fill_value
-            nc_out[name][0,:,:] = array[:,:]
+            array[mask == 1] = fill_value
+            nc_out[name][0, :, :] = array[:, :]
             mask_applied = True
         else:
             nc_out[name][:] = nc_input[name][:]
-
 
     nc_input.close()
     nc_out.close()
 
     return mask_applied
 
-def test_impl(input_file,output_file):
+
+def test_impl(input_file, output_file):
     from netCDF4 import Dataset
     import numpy as np
     nc_input = Dataset(input_file, 'r')
@@ -1196,7 +1327,7 @@ def test_impl(input_file,output_file):
         nc_out.createDimension(
             name, (len(dimension) if not dimension.isunlimited() else None))
 
-    variables_to_flipup = ['RRS412','RRS443','RRS490','RRS510','RRS560','RRS665']
+    variables_to_flipup = ['RRS412', 'RRS443', 'RRS490', 'RRS510', 'RRS560', 'RRS665']
     for name, variable in nc_input.variables.items():
         fill_value = -999.0
         if '_FillValue' in list(variable.ncattrs()):
@@ -1217,6 +1348,7 @@ def test_impl(input_file,output_file):
 
     nc_input.close()
     nc_out.close()
+
 
 def tal():
     from netCDF4 import Dataset
@@ -1247,13 +1379,13 @@ def tal():
     #     fw.write(line)
     # fw.close()
     dir_base = '/store3/OC/CCI_v2017/V6_incoming'
-    #dir_base = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MASKS'
-    file_out = os.path.join(dir_base,'variables_by_file_2.csv')
-    fw = open(file_out,'w')
+    # dir_base = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MASKS'
+    file_out = os.path.join(dir_base, 'variables_by_file_2.csv')
+    fw = open(file_out, 'w')
     fw.write('File;NVariables;Variables;DimLat;DimLon')
     for name in os.listdir(dir_base):
         if name.endswith('data.nc'):
-            file_nc = os.path.join(dir_base,name)
+            file_nc = os.path.join(dir_base, name)
             dataset = Dataset(file_nc)
             nlat = dataset.variables['Rrs_412'].shape[1]
             nlon = dataset.variables['Rrs_412'].shape[2]
@@ -1264,22 +1396,37 @@ def tal():
             fw.write(line)
             dataset.close()
 
-
     fw.close()
 
-
     return True
+
+def cual():
+    from netCDF4 import Dataset
+    dir_base = '/store3/OC/OLCI_BAL/dailyolci_202411'
+    work_date = dt(2024,10,1)
+    end_date = dt(2024,11,10)
+    while work_date<=end_date:
+        yyyy = work_date.strftime('%Y')
+        jjj = work_date.strftime('%j')
+        file_nc = os.path.join(dir_base,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+        dataset = Dataset(file_nc)
+        varmask = dataset.variables['SENSORMASK']
+        print(varmask.dimensions)
+        dataset.close()
+        work_date =work_date+timedelta(hours=24)
 
 def main():
     # if tal():
     #     return
-    if args.mode=='TEST':
-        if tal():
+    if args.mode == 'TEST':
+        if cual():
             return
+        # if tal():
+        #     return
         # input_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data_BAL202411_prev.nc'
         # output_path = os.path.join(os.path.dirname(input_path),'Temp.nc')
         input_path = '/store3/OC/CCI_v2017/daily_v202411'
-        start_date,end_date = get_dates()
+        start_date, end_date = get_dates()
         if start_date is None or end_date is None:
             return
         name_file = 'MDATE1.0000.bal.all_products.CCI.DATE20000.v0.DATE10000.data_BAL202411.nc'
@@ -1289,14 +1436,14 @@ def main():
             jjj = work_date.strftime('%j')
             path_date = os.path.join(input_path, yyyy, jjj)
             input_file = os.path.join(path_date, name_file.replace('DATE1', f'{yyyy}{jjj}'))
-            input_file = input_file.replace('DATE2',work_date.strftime('%d%b%y'))
+            input_file = input_file.replace('DATE2', work_date.strftime('%d%b%y'))
             if not os.path.exists(input_file):
                 print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
                 work_date = work_date + timedelta(hours=24)
                 continue
-            output_path = os.path.join(path_date,'TempKK.nc')
-            test_impl(input_file,output_path)
-            os.rename(output_path,input_file)
+            output_path = os.path.join(path_date, 'TempKK.nc')
+            test_impl(input_file, output_path)
+            os.rename(output_path, input_file)
 
             work_date = work_date + timedelta(hours=24)
 
@@ -1319,13 +1466,11 @@ def main():
         # for year in range(1998,2025):
         #     resolve_CCOC_878(year)
         # resolve_CCOC_878(2024)
-        #check_CCOC_878()
+        # check_CCOC_878()
         ##move_msi_sources()
         ##kk()
 
-        #update_time(args.path,args.start_date,args.end_date)
-
-
+        # update_time(args.path,args.start_date,args.end_date)
 
         return
     # if check_download():
@@ -1340,18 +1485,18 @@ def main():
     #     return
 
     if args.mode == 'REMOVE_NR_SOURCES':
-        remove_nr_sources_impl(args.path,args.start_date, args.end_date,args.type_sources)
+        remove_nr_sources_impl(args.path, args.start_date, args.end_date, args.type_sources)
 
     if args.mode == 'UPDATE_TIME_CMEMS_DAILY':
-        update_time_daily(args.path, args.start_date, args.end_date,args.preffix,args.suffix)
+        update_time_daily(args.path, args.start_date, args.end_date, args.preffix, args.suffix)
     if args.mode == 'UPDATE_TIME_CMEMS_MONTHLY':
-        update_time_monthly(args.path,args.start_date,args.end_date,args.preffix,args.suffix)
+        update_time_monthly(args.path, args.start_date, args.end_date, args.preffix, args.suffix)
 
     if args.mode == 'CREATE_MASK':
-        create_mask(args.path,args.output_path,args.mask_variable,args.file_ref)
+        create_mask(args.path, args.output_path, args.mask_variable, args.file_ref)
 
     if args.mode == 'APPLY_MASK':
-        #args.file_ref; Mask file w
+        # args.file_ref; Mask file w
         start_date, end_date = get_dates()
         if start_date is None or end_date is None:
             return
@@ -1374,9 +1519,13 @@ def main():
         if not os.path.exists(args.file_mask):
             print(f'[ERROR] {args.file_mask} does not exist')
             return
-        apply_mask(args.path,args.input_file_name,args.file_mask,mask_variable,start_date,end_date)
+        apply_mask(args.path, args.input_file_name, args.file_mask, mask_variable, start_date, end_date)
 
-
+    if args.mode == 'CREATE_MASK_CDF':
+        mask_variable = 'Land_Mask'
+        if args.mask_variable:
+            mask_variable = args.mask_variable
+        create_mask_cfc(args.path, mask_variable, args.file_ref)
 
     if args.mode == 'COPYAQUA':
         copy_aqua()
@@ -1393,18 +1542,18 @@ def main():
 
 
 def check_zip():
-    #MED and BLK
+    # MED and BLK
     # source_dir = '/dst04-data1/OC/OLCI/sources_baseline_3.01/2023'
     # output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_blk.slurm'
     # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_blk_rr.csv'
-    #BAL
+    # BAL
     # download_dir = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/cdrftp.eumetsat.int/cdrftp/olci_l1l2_2023'
     # source_dir = '/store/COP2-OC-TAC/BAL_Evolutions/sources/2023'
     # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/new_granules_bal.csv'
     # dir_sensor = 'OL_1_EFR'
     # output_file = '/mnt/c/DATA_LUIS/TEMPORAL/zip_granules_bal.slurm'
 
-    #ARC
+    # ARC
     is_arc = True
     download_dir = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/cdrftp.eumetsat.int/cdrftp/olci_l1l2_2023'
     source_dir = '/store/COP2-OC-TAC/arc/sources'
@@ -1425,26 +1574,26 @@ def check_zip():
         ''
     ]
 
-    fout = open(output_file,'w')
+    fout = open(output_file, 'w')
     fout.write('#!/bin/bash')
     for line in sbatch_lines:
         fout.write('\n')
         fout.write(line)
 
     import pandas as pd
-    dset = pd.read_csv(file_new_granules,sep=';')
-    for index,row in dset.iterrows():
+    dset = pd.read_csv(file_new_granules, sep=';')
+    for index, row in dset.iterrows():
 
         jjj = str(row['Day'])
         granule = str(row['Granule'])
         dir_platform = granule[0:3]
-        dir_input = os.path.join(download_dir,dir_platform,dir_sensor,'2023',jjj)
-        file_input = os.path.join(dir_input,f'{granule}.zip')
+        dir_input = os.path.join(download_dir, dir_platform, dir_sensor, '2023', jjj)
+        file_input = os.path.join(dir_input, f'{granule}.zip')
         if is_arc:
-            date_here = dt.strptime(f'2023{jjj}','%Y%j')
-            dir_output = os.path.join(source_dir,date_here.strftime('%Y%m%d'))
+            date_here = dt.strptime(f'2023{jjj}', '%Y%j')
+            dir_output = os.path.join(source_dir, date_here.strftime('%Y%m%d'))
         else:
-            dir_output = os.path.join(source_dir,jjj)
+            dir_output = os.path.join(source_dir, jjj)
         file_output = os.path.join(dir_output, f'{granule}.zip')
 
         cmd = f'cd {dir_input} && zip -r {granule}.zip {granule} && mv {file_input} {file_output}'
@@ -1457,12 +1606,12 @@ def check_zip():
 
 def check_sources():
     dir_orig = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT'
-    #dir_orig = '/mnt/c/DATA_LUIS/TEMPORAL'
+    # dir_orig = '/mnt/c/DATA_LUIS/TEMPORAL'
 
     # arc
     prename = 'ToRemove_'
     dir_sources = '/store/COP2-OC-TAC/arc/sources'
-    check_sources_impl(dir_orig, dir_sources, 'arc',prename,'_OL_2_WFR_')
+    check_sources_impl(dir_orig, dir_sources, 'arc', prename, '_OL_2_WFR_')
 
     # med and blk
     # dir_sources = '/dst04-data1/OC/OLCI/sources_baseline_3.01'
@@ -1481,9 +1630,7 @@ def check_sources():
     # check_sources_impl(dir_orig, dir_sources, 'blk_rr',prename,'_OL_2_WRR_')
 
 
-
-
-def check_sources_impl(dir_orig, dir_sources, region, prename,wce):
+def check_sources_impl(dir_orig, dir_sources, region, prename, wce):
     file_orig = os.path.join(dir_orig, f'new_granules_{region}.csv')
     list_granules_dict = {}
     list_granules_date = []
@@ -1530,22 +1677,22 @@ def check_sources_impl(dir_orig, dir_sources, region, prename,wce):
     for date_ref in list_granules_dict:
         list = list_granules_dict[date_ref]['list']
         folder = list_granules_dict[date_ref]['folder']
-        list_applied = [0]*len(list)
+        list_applied = [0] * len(list)
         for name in os.listdir(folder):
             ifind = name.find(wce)
             if not name.startswith('S3'):
                 continue
-            if ifind<0:
+            if ifind < 0:
                 continue
             index_g = check_grunule_in_list(name, list)
-            if index_g>=0:
+            if index_g >= 0:
                 list_applied[index_g] = 1
                 fout = os.path.join(folder, name)
                 fw.write('\n')
                 fw.write(f'mv {fout} /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/2023')
 
         for i in range(len(list_applied)):
-            if list_applied[i]==0:
+            if list_applied[i] == 0:
                 print(f'[INFO] Not found: {date_ref} -> {list[i]}')
 
     fw.close()
@@ -1557,7 +1704,7 @@ def check_granules():
     # #check_granules_region('arc',file_new_granules)
     # check_granules_region('med',file_new_granules)
     # check_granules_region('blk', file_new_granules)
-    check_granules_region('arc',file_new_granules)
+    check_granules_region('arc', file_new_granules)
 
     ##WRR LIST
     # file_new_granules = '/mnt/c/DATA_LUIS/TEMPORAL/2023/S3_WRR_Granules.csv'
@@ -1574,16 +1721,16 @@ def check_granules_region(region, file_new_granules):
     import pandas as pd
 
     sbatch_lines = [
-    '#SBATCH --nodes=1',
-    '#SBATCH --ntasks=1',
-    '#SBATCH -p octac_rep',
-    '#SBATCH --mail-type=BEGIN,END,FAIL',
-    '#SBATCH --mail-user=luis.gonzalezvilas@artov.ismar.cnr.it',
-    '',
-    'source /home/gosuser/load_miniconda3.source',
-    'conda activate op_proc_202211v1',
-    'cd /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/eistools',
-    ''
+        '#SBATCH --nodes=1',
+        '#SBATCH --ntasks=1',
+        '#SBATCH -p octac_rep',
+        '#SBATCH --mail-type=BEGIN,END,FAIL',
+        '#SBATCH --mail-user=luis.gonzalezvilas@artov.ismar.cnr.it',
+        '',
+        'source /home/gosuser/load_miniconda3.source',
+        'conda activate op_proc_202211v1',
+        'cd /store/COP2-OC-TAC/OLCI_FTP_EUMETSAT/eistools',
+        ''
     ]
 
     output_file = f'{input_path}/new_granules_{region}.csv'
@@ -1595,14 +1742,14 @@ def check_granules_region(region, file_new_granules):
     output_ftp_folder = '/store/COP2-OC-TAC/OLCI_FTP_EUMETSAT'
     start = 'wget -m --user=cdr_ro --password=LNnh73tfAavaC3YmqXfzafVn  ftp://cdrftp.eumetsat.int'
 
-    if region=='bal':
+    if region == 'bal':
         input_ftp_folders = {
             'S3A': '/cdrftp/olci_l1l2_2023/S3A/OL_1_EFR/',
             'S3B': '/cdrftp/olci_l1l2_2023/S3B/OL_1_EFR/',
         }
         source_folder = '/store/COP2-OC-TAC/BAL_Evolutions/sources/'
-    if region=='med' or region=='blk' or region=='arc':
-        input_ftp_folders  = {
+    if region == 'med' or region == 'blk' or region == 'arc':
+        input_ftp_folders = {
             'S3A': '/cdrftp/olci_l1l2_2023/S3A/OL_2_WFR/',
             'S3B': '/cdrftp/olci_l1l2_2023/S3B/OL_2_WFR/',
         }
@@ -1610,7 +1757,7 @@ def check_granules_region(region, file_new_granules):
             source_folder = '/dst04-data1/OC/OLCI/sources_baseline_3.01/'
         if region == 'arc':
             source_folder = '/store/COP2-OC-TAC/arc/sources'
-    if region=='med_rr' or region=='blk_rr':
+    if region == 'med_rr' or region == 'blk_rr':
         input_ftp_folders = {
             'S3A': '/cdrftp/olci_l1l2_2023/S3A/OL_2_WRR/',
             'S3B': '/cdrftp/olci_l1l2_2023/S3B/OL_2_WRR/',
@@ -1626,7 +1773,6 @@ def check_granules_region(region, file_new_granules):
         fftp.write(line)
         fmv.write('\n')
         fmv.write(line)
-
 
     dset = pd.read_csv(file_new_granules, sep=';')
     date_here_prev = None
@@ -1646,7 +1792,7 @@ def check_granules_region(region, file_new_granules):
             date_here_prev = date_here_str
         if len(list_granules) > 0:
             index_g = check_grunule_in_list(granule, list_granules)
-            if index_g>=0:
+            if index_g >= 0:
                 f1.write('\n')
                 f1.write(f'{day};{granule}')
 
@@ -1661,6 +1807,7 @@ def check_granules_region(region, file_new_granules):
     f1.close()
     fftp.close()
     fmv.close()
+
 
 def check_grunule_in_list(granule, list_granules):
     format = '%Y%m%dT%H%M%S'
@@ -1793,7 +1940,7 @@ def get_dates():
     ##DATES SELECTION
     if not args.start_date and not args.end_date:
         print(f'[ERROR] Start date(-sd) is not given.')
-        return [None]*2
+        return [None] * 2
     start_date_p = args.start_date
     if args.end_date:
         end_date_p = args.end_date
@@ -1808,10 +1955,10 @@ def get_dates():
     if end_date is None:
         print(
             f'[ERROR] End date {end_date_p} is not in the correct format. It should be YYYY-mm-dd or integer (relative days')
-        return [None]*2
+        return [None] * 2
     if start_date > end_date:
         print(f'[ERROR] End date should be greater or equal than start date')
-        return [None]*2
+        return [None] * 2
     if args.verbose:
         print(f'[INFO] Start date: {start_date} End date: {end_date}')
 
@@ -1829,6 +1976,34 @@ def get_date_from_param(dateparam):
         except:
             pass
     return datefin
+
+
+def find_row_column_from_lat_lon(lat, lon, lat0, lon0):
+    # % closest squared distance
+    # % lat and lon are arrays of MxN
+    # % lat0 and lon0 is the coordinates of one point
+    if contain_location(lat, lon, lat0, lon0):
+        if lat.ndim == 1 and lon.ndim == 1:
+            r = np.argmin(np.abs(lat - lat0))
+            c = np.argmin(np.abs(lon - lon0))
+        else:
+            dist_squared = (lat - lat0) ** 2 + (lon - lon0) ** 2
+            r, c = np.unravel_index(np.argmin(dist_squared),
+                                    lon.shape)  # index to the closest in the latitude and longitude arrays
+    else:
+        # print('Warning: Location not contained in the file!!!')
+        r = np.nan
+        c = np.nan
+    return r, c
+
+
+def contain_location(lat, lon, in_situ_lat, in_situ_lon):
+    if lat.min() <= in_situ_lat <= lat.max() and lon.min() <= in_situ_lon <= lon.max():
+        contain_flag = 1
+    else:
+        contain_flag = 0
+
+    return contain_flag
 
 
 # Press the green button in the gutter to run the script.
