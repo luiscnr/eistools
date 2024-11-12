@@ -1415,11 +1415,68 @@ def cual():
         dataset.close()
         work_date =work_date+timedelta(hours=24)
 
+def add_quality_control_var(dir_base):
+    for name in os.listdir(dir_base):
+        if name.startswith('HYPERNETS_W_DAY') and name.endswith('.nc'):
+            file_in = os.path.join(dir_base,name)
+            file_out = os.path.join(dir_base,f'Temp_{name}')
+            if add_quality_control_var_impl(file_in,file_out):
+                os.rename(file_out,file_in)
+    return True
+
+def add_quality_control_var_impl(file_in,file_out):
+    from netCDF4 import Dataset
+    input_dataset = Dataset(file_in)
+    ncout = Dataset(file_out, 'w', format='NETCDF4')
+
+    # copy global attributes all at once via dictionary
+    ncout.setncatts(input_dataset.__dict__)
+
+    # copy dimensions
+    for name, dimension in input_dataset.dimensions.items():
+        ncout.createDimension(
+            name, (len(dimension) if not dimension.isunlimited() else None))
+
+    # copy variables
+    for name, variable in input_dataset.variables.items():
+        fill_value = None
+        if '_FillValue' in list(variable.ncattrs()):
+            fill_value = variable._FillValue
+
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                             shuffle=True, complevel=6)
+        # copy variable attributes all at once via dictionary
+        ncout[name].setncatts(input_dataset[name].__dict__)
+
+        ncout[name][:] = input_dataset[name][:]
+
+    quality_flag = input_dataset.variables['l2_quality_flag'][:]
+    epsilon = input_dataset.variables['l2_epsilon'][:]
+    nseries = len(quality_flag)
+    quality_control_array = np.zeros((nseries,))
+    for idx in range(nseries):
+        if quality_flag[idx]==0 and (-0.05)<=epsilon[idx]<=0.05:
+            quality_control_array[idx] = 1
+    nvalid = np.sum(quality_control_array)
+    ninvalid = nseries-nvalid
+    print(f'[INFO] {os.path.basename(file_in)} -> NTotal:{len(quality_control_array)} NValid: {nvalid} NInvalid: {ninvalid}')
+
+    var = ncout.createVariable('quality_control','i2',('series',),complevel=6,zlib=True)
+    var[:] = quality_control_array
+    var.description = 'Valid sequence after passing quality control protocols: l2_quality_flag=0, (-0.05)<=l2_epsilon<=0.05'
+
+    ncout.close()
+    input_dataset.close()
+
+    return True
+
+
+
 def main():
     # if tal():
     #     return
     if args.mode == 'TEST':
-        if cual():
+        if add_quality_control_var('/store3/HYPERNETS/INSITU_HYPSTARv2.1.0_DEV_QC/TOSHARE/NC'):
             return
         # if tal():
         #     return
