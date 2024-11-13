@@ -1471,13 +1471,43 @@ def add_quality_control_var_impl(file_in,file_out):
     return True
 
 
+def check_lat_lon_certo():
+    from netCDF4 import Dataset
+    dir_base = '/store3/DOORS/CERTO_SOURCES'
+    work_date = dt(2024,6,1)
+    end_date = dt(2024,6,19)
+    while work_date<=end_date:
+        yyyy = work_date.strftime('%Y')
+        jjj = work_date.strftime('%j')
+        dir_date = os.path.join(dir_base,yyyy,jjj)
+        if not os.path.isdir(dir_date):
+            continue
+        for name in os.listdir(dir_date):
+            if name.find('MSI')>0:
+                file_nc = os.path.join(dir_date,name)
+                dataset = Dataset(file_nc)
+                lat_array = dataset.variables['lat'][:]
+                lon_array = dataset.variables['lon'][:]
+                min_lat = np.min(lat_array)
+                max_lat = np.max(lat_array)
+                min_lon = np.min(lon_array)
+                max_lon = np.max(lon_array)
+                line = f'{work_date.strftime("%Y-%m-%d")};{min_lat};{max_lat};{min_lon};{max_lon}'
+                print(line)
+                dataset.close()
+
+        work_date = work_date + timedelta(hours=24)
+
+    return True
 
 def main():
     # if tal():
     #     return
     if args.mode == 'TEST':
-        if add_quality_control_var('/store3/HYPERNETS/INSITU_HYPSTARv2.1.0_DEV_QC/TOSHARE/NC'):
+        if check_lat_lon_certo():
             return
+        # if add_quality_control_var('/store3/HYPERNETS/INSITU_HYPSTARv2.1.0_DEV_QC/TOSHARE/NC'):
+        #     return
         # if tal():
         #     return
         # input_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data_BAL202411_prev.nc'
