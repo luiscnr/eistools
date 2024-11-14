@@ -19,7 +19,7 @@ parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
                              'LOG_HYPSTAR',
                              'TEST', 'UPDATE_TIME_CMEMS_DAILY', 'UPDATE_TIME_CMEMS_MONTHLY', 'REMOVE_NR_SOURCES',
                              'CREATE_MASK',
-                             'APPLY_MASK', 'CREATE_MASK_CDF'])
+                             'APPLY_MASK', 'CREATE_MASK_CDF','UPDATE_TIME_EXTRACTS'])
 parser.add_argument("-p", "--path", help="Input path")
 parser.add_argument("-o", "--output_path", help="Output path")
 parser.add_argument("-mvar", "--mask_variable", help="Mask variable")
@@ -1500,6 +1500,84 @@ def check_lat_lon_certo():
 
     return True
 
+def update_time_extracts():
+    from netCDF4 import Dataset
+    print(f'[INFO] Update time of CMEMS time extracts using time stamps from CERTO extracts')
+    dir_extracts_certo = '/store3/DOORS/extracts/certo_olci'
+    dir_extracts_cmems = '/store3/DOORS/extracts/cmems_olci'
+    # dir_extracts_certo = '/mnt/c/DATA_LUIS/DOORS_WORK/extracts/certo_olci'
+    # dir_extracts_cmems = '/mnt/c/DATA_LUIS/DOORS_WORK/extracts/cmems_olci'
+    start_date = dt(2024,6,1)
+    end_date = dt(2026,6,19)
+    olci_date_timestamps = {}
+    for name in os.listdir(dir_extracts_certo):
+        file_extract = os.path.join(dir_extracts_certo,name)
+        dataset = Dataset(file_extract)
+
+        ts = np.float64(dataset.variables['satellite_time'][:])
+        dataset.close()
+        date_here = dt.utcfromtimestamp(ts)
+        if start_date <= date_here <= end_date:
+            date_str =date_here.strftime('%Y%m%d')
+            olci_date_timestamps[date_str] = ts
+            print(f'[INFO] Time stamp for {date_str} is {date_here.strftime("%Y-%m-%d %H:%M:%S")}')
+
+
+    for name in os.listdir(dir_extracts_cmems):
+        file_extract = os.path.join(dir_extracts_cmems, name)
+        dataset = Dataset(file_extract)
+        ts = np.float64(dataset.variables['satellite_time'][:])
+        dataset.close()
+        date_here = dt.utcfromtimestamp(ts)
+        if start_date <= date_here <= end_date:
+            date_str = date_here.strftime('%Y%m%d')
+            if date_str in olci_date_timestamps.keys():
+
+                file_out = os.path.join(dir_extracts_cmems,f'Temp_{date_str}.nc')
+                ts_new = olci_date_timestamps[date_str]
+                print(f'[INFO] Updating time in extract file {file_extract} from {date_here.strftime("%Y-%m-%d %H:%M:%S")} to {dt.utcfromtimestamp(ts_new).strftime("%Y-%m-%d %H:%M:%S")}')
+                array_new = np.array([ts_new], dtype=np.float64)
+                creating_copy_correcting_band_bis(file_extract, file_out, 'satellite_time', array_new)
+                os.rename(file_out,file_extract)
+
+def creating_copy_correcting_band_bis(file_in, file_out, band_to_correct, new_array):
+    # reader = MDB_READER('', True)
+    from netCDF4 import Dataset
+    import numpy as np
+    ncin = Dataset(file_in)
+    ncout = Dataset(file_out, 'w', format='NETCDF4')
+
+    # copy global attributes all at once via dictionary
+    ncout.setncatts(ncin.__dict__)
+
+    # copy dimensions
+    for name, dimension in ncin.dimensions.items():
+        ncout.createDimension(name, (len(dimension) if not dimension.isunlimited() else None))
+
+    # copy variables
+    for name, variable in ncin.variables.items():
+        fill_value = None
+        if '_FillValue' in list(ncin.ncattrs()):
+            fill_value = variable._FillValue
+
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value,zlib=True,shuffle=True, complevel=6)
+
+        # copy variable attributes all at once via dictionary
+        ncout[name].setncatts(ncin[name].__dict__)
+
+        # copy variable data
+        ncout[name][:] = ncin[name][:]
+        if name == 'satellite_Rrs' and band_to_correct is None and new_array is None:
+            ncout[name][:, 1, :, :] = ncin[name][:, 1, :, :] * np.pi
+        if band_to_correct is not None and name == band_to_correct:
+            ncout[name][:] = new_array[:]
+
+    ncout.close()
+    ncin.close()
+    return True
+
+
+
 def main():
     # if tal():
     #     return
@@ -1570,6 +1648,10 @@ def main():
     #     return
     # if do_check():
     #     return
+
+    if args.mode == 'UPDATE_TIME_EXTRACTS':
+        update_time_extracts()
+        return
 
     if args.mode == 'REMOVE_NR_SOURCES':
         remove_nr_sources_impl(args.path, args.start_date, args.end_date, args.type_sources)
