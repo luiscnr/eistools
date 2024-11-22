@@ -24,7 +24,7 @@ parser.add_argument('-check', "--check_param", help="Check params mode.", action
 parser.add_argument("-r", "--region", help="Region.", type=str, choices=['BAL', 'MED', 'BLK', 'BS'])
 parser.add_argument("-l", "--level", help="Level.", type=str, choices=['l3', 'l4'])
 parser.add_argument("-d", "--dataset_type", help="Dataset.", type=str,
-                    choices=['reflectance', 'plankton', 'optics', 'transp'])
+                    choices=['reflectance', 'plankton', 'optics', 'transp', 'pp'])
 parser.add_argument("-s", "--sensor", help="Sensor.", type=str,
                     choices=['multi', 'olci', 'gapfree_multi', 'multi_climatology'])
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")

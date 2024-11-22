@@ -1503,10 +1503,10 @@ def check_lat_lon_certo():
 def update_time_extracts():
     from netCDF4 import Dataset
     print(f'[INFO] Update time of CMEMS time extracts using time stamps from CERTO extracts')
-    dir_extracts_certo = '/store3/DOORS/extracts/certo_olci'
-    dir_extracts_cmems = '/store3/DOORS/extracts/cmems_olci'
-    # dir_extracts_certo = '/mnt/c/DATA_LUIS/DOORS_WORK/extracts/certo_olci'
-    # dir_extracts_cmems = '/mnt/c/DATA_LUIS/DOORS_WORK/extracts/cmems_olci'
+    #dir_extracts_certo = '/store3/DOORS/extracts/certo_olci'
+    #dir_extracts_cmems = '/store3/DOORS/extracts/cmems_olci'
+    dir_extracts_certo = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_certo_msi'
+    dir_extracts_cmems = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_cmems_olci'
     start_date = dt(2024,6,1)
     end_date = dt(2026,6,19)
     olci_date_timestamps = {}
@@ -1520,25 +1520,26 @@ def update_time_extracts():
         if start_date <= date_here <= end_date:
             date_str =date_here.strftime('%Y%m%d')
             olci_date_timestamps[date_str] = ts
-            print(f'[INFO] Time stamp for {date_str} is {date_here.strftime("%Y-%m-%d %H:%M:%S")}')
+            #print(f'[INFO] Time stamp for {date_str} is {date_here.strftime("%Y-%m-%d %H:%M:%S")}')
+            print(f'{date_here.strftime("%Y-%m-%d %H:%M:%S")}')
 
 
-    for name in os.listdir(dir_extracts_cmems):
-        file_extract = os.path.join(dir_extracts_cmems, name)
-        dataset = Dataset(file_extract)
-        ts = np.float64(dataset.variables['satellite_time'][:])
-        dataset.close()
-        date_here = dt.utcfromtimestamp(ts)
-        if start_date <= date_here <= end_date:
-            date_str = date_here.strftime('%Y%m%d')
-            if date_str in olci_date_timestamps.keys():
-
-                file_out = os.path.join(dir_extracts_cmems,f'Temp_{date_str}.nc')
-                ts_new = olci_date_timestamps[date_str]
-                print(f'[INFO] Updating time in extract file {file_extract} from {date_here.strftime("%Y-%m-%d %H:%M:%S")} to {dt.utcfromtimestamp(ts_new).strftime("%Y-%m-%d %H:%M:%S")}')
-                array_new = np.array([ts_new], dtype=np.float64)
-                creating_copy_correcting_band_bis(file_extract, file_out, 'satellite_time', array_new)
-                os.rename(file_out,file_extract)
+    # for name in os.listdir(dir_extracts_cmems):
+    #     file_extract = os.path.join(dir_extracts_cmems, name)
+    #     dataset = Dataset(file_extract)
+    #     ts = np.float64(dataset.variables['satellite_time'][:])
+    #     dataset.close()
+    #     date_here = dt.utcfromtimestamp(ts)
+    #     if start_date <= date_here <= end_date:
+    #         date_str = date_here.strftime('%Y%m%d')
+    #         if date_str in olci_date_timestamps.keys():
+    #
+    #             file_out = os.path.join(dir_extracts_cmems,f'Temp_{date_str}.nc')
+    #             ts_new = olci_date_timestamps[date_str]
+    #             print(f'[INFO] Updating time in extract file {file_extract} from {date_here.strftime("%Y-%m-%d %H:%M:%S")} to {dt.utcfromtimestamp(ts_new).strftime("%Y-%m-%d %H:%M:%S")}')
+    #             array_new = np.array([ts_new], dtype=np.float64)
+    #             creating_copy_correcting_band_bis(file_extract, file_out, 'satellite_time', array_new)
+    #             os.rename(file_out,file_extract)
 
 def creating_copy_correcting_band_bis(file_in, file_out, band_to_correct, new_array):
     # reader = MDB_READER('', True)
