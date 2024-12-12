@@ -383,18 +383,23 @@ class GUI():
     def get_list_datasets(self,key):
         ldatasets = []
         for dataset in self.dproducts:
-            if key=='NRTd' and (dataset.find('nrt_l3')>0 or dataset.find('nrt_l4-gapfree')>0):
+            if key=='NRTd' and (dataset.find('nrt_l3')>0 or dataset.find('nrt_l4-gapfree')>0 or dataset.find('pp_nrt_l4-multi-4km_P1D')>0):
                 ldatasets.append(dataset)
             if key=='DTd8' and (dataset.find('my_l3')>0):
                 if dataset.find('bal')>0 and dataset.find('multi')>0:
                     pass
+                elif dataset.find('arc')>0 and dataset.find('multi')>0:
+                    pass
                 else:
                     ldatasets.append(dataset)
-            if key=='DTd12' and (dataset.find('my_l4-gapfree')>0):
+            if key=='DTd12' and (dataset.find('my_l4-gapfree')>0 or dataset.find('pp_my_l4-multi-4km_P1D')>0):
+                if dataset.find('bal')>0:
+                    pass
+                else:
+                    ldatasets.append(dataset)
+            if key=='NRTm' and dataset.find('nrt_l4')>0 and dataset.find('nrt_l4-gapfree')<0 and dataset.endswith('M'):
                 ldatasets.append(dataset)
-            if key=='NRTm' and dataset.find('nrt_l4')>0 and dataset.find('nrt_l4-gapfree')<0:
-                ldatasets.append(dataset)
-            if key == 'DTm' and dataset.find('my_l4') > 0 and dataset.find('my_l4-gapfree') < 0 and dataset.find('climatology')<0:
+            if key == 'DTm' and dataset.find('my_l4') > 0 and dataset.find('my_l4-gapfree') < 0 and dataset.find('climatology')<0 and dataset.endswith('M'):
                 if dataset.find('bal')>0 and dataset.find('multi')>0:
                     pass
                 else:

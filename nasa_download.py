@@ -68,8 +68,29 @@ class NASA_DOWNLOAD:
             }
         }
 
+    def getscenes_by_region_EarthData_API(self,sen, date_here,geo_limits,is_dt):
+        short_name = self.sensors[sen]['short_name']
+        if is_dt: short_name = short_name.replace('_NRT','')
+        bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
+        date_next = date_here + timedelta(hours=24)
+        temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
+        url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
+        http = urllib3.PoolManager()
+        resp = http.request("GET", url_complete)
+        data = json.loads(resp.data)
+        ngranules = data['hits']
+        granules = []
+        if ngranules > 0:
+            for item in data['items']:
+                name = item['umm']['DataGranule']['ArchiveAndDistributionInformation'][0]['Name']
+                date_name = dt.strptime(name.split('.')[1], '%Y%m%dT%H%M%S')
+                if self.time_min <= date_name.hour <= self.time_max:
+                    granules.append(item['umm']['DataGranule']['ArchiveAndDistributionInformation'][0]['Name'])
+        return granules
+
     def getscenes_by_point_EarthData_API(self, sen, date_here, insitu_lat,insitu_lon):
         short_name = self.sensors[sen]['short_name']
+
         lon_min = insitu_lon - 0.5
         lon_max = insitu_lon + 0.5
         lat_min = insitu_lat - 0.5

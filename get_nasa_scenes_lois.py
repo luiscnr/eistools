@@ -77,7 +77,7 @@ if __name__ == '__main__':
     import os
 
     parser = argparse.ArgumentParser(description='NASA Get Scenes. Patch to retrieve DT scenes')
-    parser.add_argument("-m", "--mode", help="Mode", choices=["LIST", "DOWNLOAD", "NRT_TO_DT"])
+    parser.add_argument("-m", "--mode", help="Mode", choices=["LIST", "DOWNLOAD", "NRT_TO_DT","TEST"])
     parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
     parser.add_argument("-sen", "--sensor", help="Specify sensor: VIIRS, VIIRSJ, AQUA, PACE_AOP", required=True)
     parser.add_argument("-d", "--date",
@@ -116,6 +116,8 @@ if __name__ == '__main__':
                 region = 'BS'
             elif args.Region == 'Mediterranean':
                 region = 'MED'
+            elif args.Region == 'BalticSea':
+                region = 'BAL'
         if args.lat_point:
             lat_point = float(args.lat_point)
         if args.lon_point:
@@ -129,12 +131,38 @@ if __name__ == '__main__':
         print('[ERROR] Error parsing arguments')
         exit(1)
 
+
+    if args.mode == 'TEST':
+        from datetime import datetime as dt
+        from datetime import timedelta
+        fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/AQUA_2019.csv'
+        fw = open(fout,'w')
+        work_date = dt(2019,6,1)
+        end_date = dt(2019,9,30)
+        geo_limits = [53, 65, 12, 31]
+        ndownload = NASA_DOWNLOAD()
+        fw.write('Date;NImages')
+        while work_date<=end_date:
+            print('DATE: ',work_date)
+            #work_date_str = work_date.strftime('%Y%m%d')
+            list = ndownload.getscenes_by_region_EarthData_API('AQUA', work_date, geo_limits, True)
+            fw.write('\n')
+            fw.write(f'{work_date.strftime("%Y-%m-%d")};{len(list)}')
+            work_date = work_date + timedelta(hours=24)
+
+        fw.close()
+
     if args.mode == 'LIST':
         ndownload = NASA_DOWNLOAD()
         if region is not None:
-            list = ndownload.get_list_files(date_here, sensor, region, 'DT')
+            if region=='BAL':
+                geo_limits = [53,65,12,31]
+                list = ndownload.getscenes_by_region_EarthData_API(sensor,date_here,geo_limits,True)
+            else:
+                list = ndownload.get_list_files(date_here, sensor, region, 'DT')
         elif lat_point is not None and lon_point is not None:
             list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point)
+
 
     if args.mode == 'DOWNLOAD':
         ndownload = NASA_DOWNLOAD()
