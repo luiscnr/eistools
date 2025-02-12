@@ -68,6 +68,42 @@ class NASA_DOWNLOAD:
             }
         }
 
+    def check_scenes_med_bs_API(self,sen,date_here):
+        ##check first dt
+        short_name = self.sensors[sen]['short_name']
+        short_name_dt = short_name.replace('_NRT', '')
+        geo_limits = [30.0,48.0,-6.0,42.0]
+        bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
+        date_next = date_here + timedelta(hours=24)
+        temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
+        url_complete = f'{self.api_download}&short_name={short_name_dt}&bounding_box={bounding_box}&temporal={temporal}'
+        retries = urllib3.util.Retry(connect=5, read=1, redirect=1)
+        http = urllib3.PoolManager(timeout=3,retries=retries)
+        try:
+            resp = http.request("GET", url_complete)
+        except:
+            print(f'[ERROR] API fails in getting a response. Please review your network connection.' )
+            return -2
+        data = json.loads(resp.data)
+        ngranules = data['hits']
+        if ngranules>0:
+            return 1
+        ##check nrt if dt is falso
+        url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
+        #http = urllib3.PoolManager()
+        try:
+            resp = http.request("GET", url_complete)
+        except:
+            print(f'[ERROR] API fails in getting a response. Please review your network connection.' )
+            return -2
+        data = json.loads(resp.data)
+        ngranules = data['hits']
+        if ngranules>0:
+            return 0
+        else:
+            return -1
+
+
     def getscenes_by_region_EarthData_API(self,sen, date_here,geo_limits,is_dt):
         short_name = self.sensors[sen]['short_name']
         if is_dt: short_name = short_name.replace('_NRT','')
@@ -209,11 +245,14 @@ class NASA_DOWNLOAD:
         this_try = 1
         while this_try<=5:
             try:
+                print(f'try: {this_try}')
+                print(url_date)
                 r = requests.get(url_date,timeout=10)
             except:
                 this_try = this_try + 1
-                time.sleep(10)
+                time.sleep(5)
                 continue
+            print(r.status_code)
             if r.status_code==200:
                 list = re.findall(wce,r.text)
                 r.close()

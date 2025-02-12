@@ -4,13 +4,14 @@ from datetime import datetime as dt
 from datetime import timedelta
 
 import numpy as np
+import pandas as pd
 
 from source_info import SourceInfo
 import calendar
 import os
 
 ##ATTENTION: SOME OPTIONS WERE MOVE TO OTHER PROJECTS:
-#to map_toools in aceasy: CREATE_MASK, APPLY_MASK, CREATE_MASK_CDF
+# to map_toools in aceasy: CREATE_MASK, APPLY_MASK, CREATE_MASK_CDF
 
 parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -19,7 +20,7 @@ parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
                              'LOG_HYPSTAR',
                              'TEST', 'UPDATE_TIME_CMEMS_DAILY', 'UPDATE_TIME_CMEMS_MONTHLY', 'REMOVE_NR_SOURCES',
                              'CREATE_MASK',
-                             'APPLY_MASK', 'CREATE_MASK_CDF','UPDATE_TIME_EXTRACTS'])
+                             'APPLY_MASK', 'CREATE_MASK_CDF', 'UPDATE_TIME_EXTRACTS'])
 parser.add_argument("-p", "--path", help="Input path")
 parser.add_argument("-o", "--output_path", help="Output path")
 parser.add_argument("-mvar", "--mask_variable", help="Mask variable")
@@ -45,43 +46,43 @@ def do_check():
     #
     #
     # f.close()
-    from netCDF4 import Dataset
-    import numpy as np
-    from datetime import datetime as dt
-    path_hypernets = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/VEIT/2023/09/11'
-    file_out = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/data_hypstar_20230911.csv'
-    f1 = open(file_out, 'w')
-    first_line = 'File;Date;Time;solar_azimuth_angle;solar_zenith_angle;viewing_azimuth_angle;viewing_zenith_angle;quality_flag'
-    wavelenght = None
-    for name in os.listdir(path_hypernets):
-        print(name)
-        file_hypernets = os.path.join(path_hypernets, name)
-        dataset = Dataset(file_hypernets, 'r')
-        if wavelenght is None:
-            wavelenght = np.array(dataset.variables['wavelength'])
-            for val in wavelenght:
-                val_rrs = f'rrs_{val}'
-                first_line = f'{first_line};{val_rrs}'
-            f1.write(first_line)
-
-        datetime_here = dt.utcfromtimestamp(float(dataset.variables['acquisition_time'][0]))
-        date_str = datetime_here.strftime('%Y-%m-%d')
-        time_str = datetime_here.strftime('%H:%M')
-        saa = dataset.variables['solar_azimuth_angle'][0]
-        sza = dataset.variables['solar_zenith_angle'][0]
-        vaa = dataset.variables['viewing_azimuth_angle'][0]
-        vza = dataset.variables['viewing_zenith_angle'][0]
-        qf = dataset.variables['quality_flag'][0]
-        line = f'{name};{date_str};{time_str};{saa};{sza};{vaa};{vza};{qf}'
-        rrs = np.array(dataset.variables['reflectance'][:]) / np.pi
-
-        for r in rrs:
-            line = f'{line};{r[0]}'
-        f1.write('\n')
-        f1.write(line)
-
-        dataset.close()
-    f1.close()
+    # from netCDF4 import Dataset
+    # import numpy as np
+    # from datetime import datetime as dt
+    # path_hypernets = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/VEIT/2023/09/11'
+    # file_out = '/mnt/c/DATA_LUIS/INSITU_HYPSTAR/data_hypstar_20230911.csv'
+    # f1 = open(file_out, 'w')
+    # first_line = 'File;Date;Time;solar_azimuth_angle;solar_zenith_angle;viewing_azimuth_angle;viewing_zenith_angle;quality_flag'
+    # wavelenght = None
+    # for name in os.listdir(path_hypernets):
+    #     print(name)
+    #     file_hypernets = os.path.join(path_hypernets, name)
+    #     dataset = Dataset(file_hypernets, 'r')
+    #     if wavelenght is None:
+    #         wavelenght = np.array(dataset.variables['wavelength'])
+    #         for val in wavelenght:
+    #             val_rrs = f'rrs_{val}'
+    #             first_line = f'{first_line};{val_rrs}'
+    #         f1.write(first_line)
+    #
+    #     datetime_here = dt.utcfromtimestamp(float(dataset.variables['acquisition_time'][0]))
+    #     date_str = datetime_here.strftime('%Y-%m-%d')
+    #     time_str = datetime_here.strftime('%H:%M')
+    #     saa = dataset.variables['solar_azimuth_angle'][0]
+    #     sza = dataset.variables['solar_zenith_angle'][0]
+    #     vaa = dataset.variables['viewing_azimuth_angle'][0]
+    #     vza = dataset.variables['viewing_zenith_angle'][0]
+    #     qf = dataset.variables['quality_flag'][0]
+    #     line = f'{name};{date_str};{time_str};{saa};{sza};{vaa};{vza};{qf}'
+    #     rrs = np.array(dataset.variables['reflectance'][:]) / np.pi
+    #
+    #     for r in rrs:
+    #         line = f'{line};{r[0]}'
+    #     f1.write('\n')
+    #     f1.write(line)
+    #
+    #     dataset.close()
+    # f1.close()
     # from netCDF4 import Dataset
     # import numpy as np
     # file_1 = '/mnt/c/DATA_LUIS/OCTAC_WORK/ARC_TEST/MULTI/C2021196_kd490-arc-4km_prev.nc'
@@ -882,7 +883,7 @@ def update_time_daily(path, start_date_str, end_date_str, preffix, suffix):
             date_here = date_here + timedelta(hours=24)
             continue
         for name in os.listdir(path_date):
-            print(name,preffix,suffix)
+            print(name, preffix, suffix)
             if not name.startswith(preffix): continue
             if not name.endswith(suffix): continue
             print('-----')
@@ -1005,7 +1006,7 @@ def create_mask_cfc(file_mask, mask_variable, file_cfc):
     land_mask = input_nc.variables[mask_variable][:]
     lat_array = input_nc.variables['lat'][:]
     lon_array = input_nc.variables['lon'][:]
-    #input_nc.close()
+    # input_nc.close()
 
     input_cfc = Dataset(file_cfc, 'r')
     lat_cfc = input_cfc.variables['lat'][:]
@@ -1025,60 +1026,59 @@ def create_mask_cfc(file_mask, mask_variable, file_cfc):
     land_mask_cfc = np.zeros((nlat_cfc, nlon_cfc))
 
     for y in range(nlat):
-        print(y,'/',nlat)
+        print(y, '/', nlat)
         for x in range(nlon):
-            row,column = find_row_column_from_lat_lon(lat_cfc,lon_cfc,lat_array[y],lon_array[x])
-            index = (row*nlon_cfc)+column
-            y_cfc[y,x] = row
-            x_cfc[y,x] = column
-            index_cfc[y,x] = index
-            if land_mask[y,x]==1:
-                land_mask_cfc[row,column]=1
+            row, column = find_row_column_from_lat_lon(lat_cfc, lon_cfc, lat_array[y], lon_array[x])
+            index = (row * nlon_cfc) + column
+            y_cfc[y, x] = row
+            x_cfc[y, x] = column
+            index_cfc[y, x] = index
+            if land_mask[y, x] == 1:
+                land_mask_cfc[row, column] = 1
 
-    y_middle = int(nlat_cfc/2)
+    y_middle = int(nlat_cfc / 2)
     x_ini = -1
     for x in range(nlon_cfc):
-        if land_mask_cfc[y_middle,x]==1:
+        if land_mask_cfc[y_middle, x] == 1:
             x_ini = x
             break
     print(f'[INFO] XIni: {x_ini}')
-    if x_ini>=0: land_mask_cfc[:,0:x_ini]=1
+    if x_ini >= 0: land_mask_cfc[:, 0:x_ini] = 1
 
     x_end = -1
-    for x in range(nlon_cfc-1,0,-1):
-        if land_mask_cfc[y_middle,x]==1:
-            x_end = x+1
+    for x in range(nlon_cfc - 1, 0, -1):
+        if land_mask_cfc[y_middle, x] == 1:
+            x_end = x + 1
             break
     print(f'[INFO] XEnd: {x_end}')
-    if x_end<nlon_cfc: land_mask_cfc[:,x_end:nlon_cfc]=1
+    if x_end < nlon_cfc: land_mask_cfc[:, x_end:nlon_cfc] = 1
 
     x_middle = int(nlon_cfc / 2)
     y_ini = -1
     for y in range(nlat_cfc):
-        if land_mask_cfc[y,x_middle] == 1:
+        if land_mask_cfc[y, x_middle] == 1:
             y_ini = y
             break
     print(f'[INFO] YIni: {y_ini}')
-    if y_ini >= 0: land_mask_cfc[0:y_ini,:] = 1
+    if y_ini >= 0: land_mask_cfc[0:y_ini, :] = 1
     y_end = -1
     for y in range(nlat_cfc - 1, 0, -1):
-        if land_mask_cfc[y,x_middle] == 1:
+        if land_mask_cfc[y, x_middle] == 1:
             y_end = y + 1
             break
     print(f'[INFO] YEnd: {y_end}')
-    if y_end < nlat_cfc: land_mask_cfc[y_end:nlat_cfc,:] = 1
-
+    if y_end < nlat_cfc: land_mask_cfc[y_end:nlat_cfc, :] = 1
 
     cfc_mask = land_mask.copy()
     for y in range(nlat):
 
-        print(y,'-->',nlat)
+        print(y, '-->', nlat)
         for x in range(nlon):
-            row = int(y_cfc[y,x])
-            column = int(x_cfc[y,x])
-            #print(row,column)
-            if land_mask_cfc[row,column]==1:
-                cfc_mask[y,x]=1
+            row = int(y_cfc[y, x])
+            column = int(x_cfc[y, x])
+            # print(row,column)
+            if land_mask_cfc[row, column] == 1:
+                cfc_mask[y, x] = 1
 
     file_out = f'{file_mask[:-3]}_CFC.nc'
     print(f'[INFO] Creating output file: {file_out}')
@@ -1091,7 +1091,8 @@ def create_mask_cfc(file_mask, mask_variable, file_cfc):
         fill_value = None
         if '_FillValue' in list(variable.ncattrs()):
             fill_value = variable._FillValue
-        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True, complevel=6)
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                             complevel=6)
         # copy variable attributes all at once via dictionary
         ncout[name].setncatts(input_nc[name].__dict__)
         # copy data
@@ -1114,10 +1115,10 @@ def create_mask_cfc(file_mask, mask_variable, file_cfc):
     var_land = ncout.createVariable('Land_Mask_CFC', 'i2', ('lat_cfc', 'lon_cfc'), zlib=True, complevel=6)
     var_land[:] = land_mask_cfc
 
-
     ncout.close()
 
     print(f'[INFO] Completed')
+
 
 def create_mask(file_in, file_out, mask_variable, file_ref):
     from netCDF4 import Dataset
@@ -1400,31 +1401,34 @@ def tal():
 
     return True
 
+
 def cual():
     from netCDF4 import Dataset
     dir_base = '/store3/OC/OLCI_BAL/dailyolci_202411'
-    work_date = dt(2024,10,1)
-    end_date = dt(2024,11,10)
-    while work_date<=end_date:
+    work_date = dt(2024, 10, 1)
+    end_date = dt(2024, 11, 10)
+    while work_date <= end_date:
         yyyy = work_date.strftime('%Y')
         jjj = work_date.strftime('%j')
-        file_nc = os.path.join(dir_base,yyyy,jjj,f'O{yyyy}{jjj}-chl-bal-fr.nc')
+        file_nc = os.path.join(dir_base, yyyy, jjj, f'O{yyyy}{jjj}-chl-bal-fr.nc')
         dataset = Dataset(file_nc)
         varmask = dataset.variables['SENSORMASK']
-        print(work_date.strftime('%Y-%m-%d'),varmask.dimensions)
+        print(work_date.strftime('%Y-%m-%d'), varmask.dimensions)
         dataset.close()
-        work_date =work_date+timedelta(hours=24)
+        work_date = work_date + timedelta(hours=24)
+
 
 def add_quality_control_var(dir_base):
     for name in os.listdir(dir_base):
         if name.startswith('HYPERNETS_W_DAY') and name.endswith('.nc'):
-            file_in = os.path.join(dir_base,name)
-            file_out = os.path.join(dir_base,f'Temp_{name}')
-            if add_quality_control_var_impl(file_in,file_out):
-                os.rename(file_out,file_in)
+            file_in = os.path.join(dir_base, name)
+            file_out = os.path.join(dir_base, f'Temp_{name}')
+            if add_quality_control_var_impl(file_in, file_out):
+                os.rename(file_out, file_in)
     return True
 
-def add_quality_control_var_impl(file_in,file_out):
+
+def add_quality_control_var_impl(file_in, file_out):
     from netCDF4 import Dataset
     input_dataset = Dataset(file_in)
     ncout = Dataset(file_out, 'w', format='NETCDF4')
@@ -1455,13 +1459,14 @@ def add_quality_control_var_impl(file_in,file_out):
     nseries = len(quality_flag)
     quality_control_array = np.zeros((nseries,))
     for idx in range(nseries):
-        if quality_flag[idx]==0 and (-0.05)<=epsilon[idx]<=0.05:
+        if quality_flag[idx] == 0 and (-0.05) <= epsilon[idx] <= 0.05:
             quality_control_array[idx] = 1
     nvalid = np.sum(quality_control_array)
-    ninvalid = nseries-nvalid
-    print(f'[INFO] {os.path.basename(file_in)} -> NTotal:{len(quality_control_array)} NValid: {nvalid} NInvalid: {ninvalid}')
+    ninvalid = nseries - nvalid
+    print(
+        f'[INFO] {os.path.basename(file_in)} -> NTotal:{len(quality_control_array)} NValid: {nvalid} NInvalid: {ninvalid}')
 
-    var = ncout.createVariable('quality_control','i2',('series',),complevel=6,zlib=True)
+    var = ncout.createVariable('quality_control', 'i2', ('series',), complevel=6, zlib=True)
     var[:] = quality_control_array
     var.description = 'Valid sequence after passing quality control protocols: l2_quality_flag=0, (-0.05)<=l2_epsilon<=0.05'
 
@@ -1474,17 +1479,17 @@ def add_quality_control_var_impl(file_in,file_out):
 def check_lat_lon_certo():
     from netCDF4 import Dataset
     dir_base = '/store3/DOORS/CERTO_SOURCES'
-    work_date = dt(2024,6,1)
-    end_date = dt(2024,6,19)
-    while work_date<=end_date:
+    work_date = dt(2024, 6, 1)
+    end_date = dt(2024, 6, 19)
+    while work_date <= end_date:
         yyyy = work_date.strftime('%Y')
         jjj = work_date.strftime('%j')
-        dir_date = os.path.join(dir_base,yyyy,jjj)
+        dir_date = os.path.join(dir_base, yyyy, jjj)
         if not os.path.isdir(dir_date):
             continue
         for name in os.listdir(dir_date):
-            if name.find('MSI')>0:
-                file_nc = os.path.join(dir_date,name)
+            if name.find('MSI') > 0:
+                file_nc = os.path.join(dir_date, name)
                 dataset = Dataset(file_nc)
                 lat_array = dataset.variables['lat'][:]
                 lon_array = dataset.variables['lon'][:]
@@ -1500,46 +1505,58 @@ def check_lat_lon_certo():
 
     return True
 
-def update_time_extracts():
+
+def update_time_extracts(dir_extracts_certo, dir_extracts_cmems):
     from netCDF4 import Dataset
     print(f'[INFO] Update time of CMEMS time extracts using time stamps from CERTO extracts')
-    #dir_extracts_certo = '/store3/DOORS/extracts/certo_olci'
-    #dir_extracts_cmems = '/store3/DOORS/extracts/cmems_olci'
-    dir_extracts_certo = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_certo_msi'
-    dir_extracts_cmems = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_cmems_olci'
-    start_date = dt(2024,6,1)
-    end_date = dt(2026,6,19)
+    # dir_extracts_certo = '/store3/DOORS/extracts/certo_olci'
+    # dir_extracts_cmems = '/store3/DOORS/extracts/cmems_olci'
+    # dir_extracts_certo = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_certo_olci'
+    # dir_extracts_cmems = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_cmems_olci'
+    start_date = dt(2016, 4, 1)
+    end_date = dt(2024, 11, 30)
     olci_date_timestamps = {}
+    file_temp = '/mnt/c/DATA_LUIS/DOORS_WORK/INSITU/in_situ_orig/DOOR_insitu_BlackSea_AeronetOC_Section-7_msi_2023.csv'
+    # fw = open(file_temp,'w')
+    # fw.write('System;Station;Date;Time;Lat;Long;Source')
+    # preline = 'Danube Delta;Section-7_Platform;'
+    # postline = ';12:00;44.5458;29.4466;AERONET-OC'
     for name in os.listdir(dir_extracts_certo):
-        file_extract = os.path.join(dir_extracts_certo,name)
+        file_extract = os.path.join(dir_extracts_certo, name)
         dataset = Dataset(file_extract)
 
+        ts = np.float64(dataset.variables['satellite_time'][:])
+        lat_array = dataset.variables['satellite_latitude'][:]
+        dataset.close()
+        date_here = dt.utcfromtimestamp(ts)
+        if start_date <= date_here <= end_date:
+            date_str = date_here.strftime('%Y%m%d')
+            olci_date_timestamps[date_str] = ts
+            print(f'[INFO] Time stamp for {date_str} is {date_here.strftime("%Y-%m-%d %H:%M:%S")} {lat_array[0,12,12]}')
+            # line = f'{preline}{date_here.strftime("%Y-%m-%d")}{postline}'
+            # fw.write('\n')
+            # fw.write(line)
+            # print(f'{date_here.strftime("%Y-%m-%d %H:%M:%S")}')
+    #fw.close()
+    if dir_extracts_cmems is None:
+        return
+    for name in os.listdir(dir_extracts_cmems):
+        file_extract = os.path.join(dir_extracts_cmems, name)
+        dataset = Dataset(file_extract)
         ts = np.float64(dataset.variables['satellite_time'][:])
         dataset.close()
         date_here = dt.utcfromtimestamp(ts)
         if start_date <= date_here <= end_date:
-            date_str =date_here.strftime('%Y%m%d')
-            olci_date_timestamps[date_str] = ts
-            #print(f'[INFO] Time stamp for {date_str} is {date_here.strftime("%Y-%m-%d %H:%M:%S")}')
-            print(f'{date_here.strftime("%Y-%m-%d %H:%M:%S")}')
+            date_str = date_here.strftime('%Y%m%d')
+            if date_str in olci_date_timestamps.keys():
+                file_out = os.path.join(dir_extracts_cmems, f'Temp_{date_str}.nc')
+                ts_new = olci_date_timestamps[date_str]
+                print(
+                    f'[INFO] Updating time in extract file {file_extract} from {date_here.strftime("%Y-%m-%d %H:%M:%S")} to {dt.utcfromtimestamp(ts_new).strftime("%Y-%m-%d %H:%M:%S")}')
+                array_new = np.array([ts_new], dtype=np.float64)
+                creating_copy_correcting_band_bis(file_extract, file_out, 'satellite_time', array_new)
+                os.rename(file_out, file_extract)
 
-
-    # for name in os.listdir(dir_extracts_cmems):
-    #     file_extract = os.path.join(dir_extracts_cmems, name)
-    #     dataset = Dataset(file_extract)
-    #     ts = np.float64(dataset.variables['satellite_time'][:])
-    #     dataset.close()
-    #     date_here = dt.utcfromtimestamp(ts)
-    #     if start_date <= date_here <= end_date:
-    #         date_str = date_here.strftime('%Y%m%d')
-    #         if date_str in olci_date_timestamps.keys():
-    #
-    #             file_out = os.path.join(dir_extracts_cmems,f'Temp_{date_str}.nc')
-    #             ts_new = olci_date_timestamps[date_str]
-    #             print(f'[INFO] Updating time in extract file {file_extract} from {date_here.strftime("%Y-%m-%d %H:%M:%S")} to {dt.utcfromtimestamp(ts_new).strftime("%Y-%m-%d %H:%M:%S")}')
-    #             array_new = np.array([ts_new], dtype=np.float64)
-    #             creating_copy_correcting_band_bis(file_extract, file_out, 'satellite_time', array_new)
-    #             os.rename(file_out,file_extract)
 
 def creating_copy_correcting_band_bis(file_in, file_out, band_to_correct, new_array):
     # reader = MDB_READER('', True)
@@ -1561,7 +1578,8 @@ def creating_copy_correcting_band_bis(file_in, file_out, band_to_correct, new_ar
         if '_FillValue' in list(ncin.ncattrs()):
             fill_value = variable._FillValue
 
-        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value,zlib=True,shuffle=True, complevel=6)
+        ncout.createVariable(name, variable.datatype, variable.dimensions, fill_value=fill_value, zlib=True,
+                             shuffle=True, complevel=6)
 
         # copy variable attributes all at once via dictionary
         ncout[name].setncatts(ncin[name].__dict__)
@@ -1577,41 +1595,105 @@ def creating_copy_correcting_band_bis(file_in, file_out, band_to_correct, new_ar
     ncin.close()
     return True
 
+def correct_time():
+    from netCDF4 import Dataset
+    import pytz
+    dir_base = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/extracts_certo_msi'
+    all_dates = {}
+    dir_refs = ['certo_msi_gloria','certo_msi_section-7']
+    dir_mod = os.path.join(dir_base,'certo_msi_galata')
+    file_mod_times = os.path.join(dir_base,'galata_old_new.csv')
+    # fw = open(file_mod_times,'w')
+    # fw.write('File;OldTime;NewTime')
+    # for ref in dir_refs:
+    #     dir_ref = os.path.join(dir_base,ref)
+    #     for name in os.listdir(dir_ref):
+    #
+    #         file = os.path.join(dir_ref,name)
+    #         dataset = Dataset(file,'r')
+    #         ts = np.float64(dataset.variables['satellite_time'][:])
+    #         time_here = dt.utcfromtimestamp(ts)
+    #         ref_time = time_here.strftime('%Y%m%d')
+    #
+    #         all_dates[ref_time] = time_here.strftime('%Y-%m-%d %H:%M:%S')
+    #         ts_new = dt.strptime(all_dates[ref_time],'%Y-%m-%d %H:%M:%S').replace(tzinfo=pytz.utc).timestamp()
+    #         print('-->', name, '??', all_dates[ref_time],'->',ts,' ',ts_new)
+    #         dataset.close()
+    # for name in os.listdir(dir_mod):
+    #     file_mod = os.path.join(dir_mod,name)
+    #     dataset = Dataset(file_mod, 'r')
+    #     ts = np.float64(dataset.variables['satellite_time'][:])
+    #     time_here = dt.utcfromtimestamp(ts)
+    #     ref_time = time_here.strftime('%Y%m%d')
+    #     old_time = time_here.strftime('%Y-%m-%d %H:%M:%S')
+    #     dataset.close()
+    #     new_time = 'NaN'
+    #     if ref_time in all_dates:
+    #         new_time = all_dates[ref_time]
+    #     print(f'{name}-->{old_time},-->{new_time}')
+    #     line = f'{name};{old_time};{new_time}'
+    #     fw.write('\n')
+    #     fw.write(line)
+    #
+    # fw.close()
+
+    df = pd.read_csv(file_mod_times,sep=';')
+    for index,row in df.iterrows():
+        file = os.path.join(dir_mod,row['File'])
+        error = int(row['with_error'])
+        if error==1:
+            new_time_str = row['NewTime']
+            time_new =   dt.strptime(new_time_str,'%Y-%m-%d %H:%M').replace(tzinfo=pytz.utc)
+
+            print(file,'->',os.path.exists(file),'::',time_new)
+            date_str = time_new.strftime('%Y%m%d')
+            file_out = os.path.join(dir_mod, f'Temp_{date_str}.nc')
+            ts_new = time_new.timestamp()
+            array_new = np.array([ts_new], dtype=np.float64)
+            creating_copy_correcting_band_bis(file, file_out, 'satellite_time', array_new)
+            os.rename(file_out, file)
 
 
 def main():
     # if tal():
     #     return
     if args.mode == 'TEST':
-        if check_lat_lon_certo():
-            return
+        # from netCDF4 import Dataset
+        # file_nc = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/AERONET_OC/MDB_CERTO_OLCI_300M_CERTO-OLCI-L3_20190827T000000_20240818T000000_AERONET_Section-7_Platform.nc'
+        # dataset = Dataset(file_nc,'r')
+        # time = dataset.variables['satellite_time'][:]
+        # for t in time:
+        #     print(dt.utcfromtimestamp(t))
+        # dataset.close()
+        # if check_lat_lon_certo():
+        #     return
         # if add_quality_control_var('/store3/HYPERNETS/INSITU_HYPSTARv2.1.0_DEV_QC/TOSHARE/NC'):
         #     return
         # if tal():
         #     return
         # input_path = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/extracts_complete/M1997267.0000.bal.all_products.CCI.24Sep970000.v0.19972670000.data_BAL202411_prev.nc'
         # output_path = os.path.join(os.path.dirname(input_path),'Temp.nc')
-        input_path = '/store3/OC/CCI_v2017/daily_v202411'
-        start_date, end_date = get_dates()
-        if start_date is None or end_date is None:
-            return
-        name_file = 'MDATE1.0000.bal.all_products.CCI.DATE20000.v0.DATE10000.data_BAL202411.nc'
-        work_date = start_date
-        while work_date <= end_date:
-            yyyy = work_date.strftime('%Y')
-            jjj = work_date.strftime('%j')
-            path_date = os.path.join(input_path, yyyy, jjj)
-            input_file = os.path.join(path_date, name_file.replace('DATE1', f'{yyyy}{jjj}'))
-            input_file = input_file.replace('DATE2', work_date.strftime('%d%b%y'))
-            if not os.path.exists(input_file):
-                print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
-                work_date = work_date + timedelta(hours=24)
-                continue
-            output_path = os.path.join(path_date, 'TempKK.nc')
-            test_impl(input_file, output_path)
-            os.rename(output_path, input_file)
-
-            work_date = work_date + timedelta(hours=24)
+        # input_path = '/store3/OC/CCI_v2017/daily_v202411'
+        # start_date, end_date = get_dates()
+        # if start_date is None or end_date is None:
+        #     return
+        # name_file = 'MDATE1.0000.bal.all_products.CCI.DATE20000.v0.DATE10000.data_BAL202411.nc'
+        # work_date = start_date
+        # while work_date <= end_date:
+        #     yyyy = work_date.strftime('%Y')
+        #     jjj = work_date.strftime('%j')
+        #     path_date = os.path.join(input_path, yyyy, jjj)
+        #     input_file = os.path.join(path_date, name_file.replace('DATE1', f'{yyyy}{jjj}'))
+        #     input_file = input_file.replace('DATE2', work_date.strftime('%d%b%y'))
+        #     if not os.path.exists(input_file):
+        #         print(f'[WARNING] Input file {input_file} does not exist. Skipping...')
+        #         work_date = work_date + timedelta(hours=24)
+        #         continue
+        #     output_path = os.path.join(path_date, 'TempKK.nc')
+        #     test_impl(input_file, output_path)
+        #     os.rename(output_path, input_file)
+        #
+        #     work_date = work_date + timedelta(hours=24)
 
         # from eumdac_lois import EUMDAC_LOIS
         # edac = EUMDAC_LOIS(True, None)
@@ -1637,7 +1719,7 @@ def main():
         ##kk()
 
         # update_time(args.path,args.start_date,args.end_date)
-
+        correct_time()
         return
     # if check_download():
     #     return
@@ -1651,7 +1733,14 @@ def main():
     #     return
 
     if args.mode == 'UPDATE_TIME_EXTRACTS':
-        update_time_extracts()
+        dir_extracts_certo = None
+        dir_extracts_cmems = None
+        if args.path:
+            dir_extracts_certo = args.path
+        if args.output_path:
+            dir_extracts_cmems = args.output_path
+        if dir_extracts_certo is not None:
+            update_time_extracts(dir_extracts_certo,dir_extracts_cmems)
         return
 
     if args.mode == 'REMOVE_NR_SOURCES':
