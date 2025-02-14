@@ -83,11 +83,11 @@ class NASA_DOWNLOAD:
             resp = http.request("GET", url_complete)
         except:
             print(f'[ERROR] API fails in getting a response. Please review your network connection.' )
-            return -2
+            return 'NO_RESPONSE'
         data = json.loads(resp.data)
         ngranules = data['hits']
         if ngranules>0:
-            return 1
+            return 'DT'
         ##check nrt if dt is falso
         url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
         #http = urllib3.PoolManager()
@@ -95,13 +95,13 @@ class NASA_DOWNLOAD:
             resp = http.request("GET", url_complete)
         except:
             print(f'[ERROR] API fails in getting a response. Please review your network connection.' )
-            return -2
+            return 'NO_RESPONSE'
         data = json.loads(resp.data)
         ngranules = data['hits']
         if ngranules>0:
-            return 0
+            return 'NRT'
         else:
-            return -1
+            return 'N/A'
 
 
     def getscenes_by_region_EarthData_API(self,sen, date_here,geo_limits,is_dt):

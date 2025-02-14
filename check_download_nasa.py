@@ -42,25 +42,50 @@ def main():
     nasad = NASA_DOWNLOAD()
 
     results = {}
+    no_response_dates = {}
+    nan_dates = {}
+    multi_start_date  = None
+    multi_end_date = None
     work_date = start_date
     while work_date<=end_date:
         ref = work_date.strftime('%Y%m%d')
         results[ref] = {x:-2 for x in sensors}
-        make_multi = 1
+        make_multi = 'YES'
         line = f'[INFO] Date: {ref}'
         for isensor,sensor in enumerate(sensors):
             results[ref][sensor] = nasad.check_scenes_med_bs_API(sensor,work_date)
             line = f'{line} {sensor}:{results[ref][sensor]}'
-            if results[ref][sensor]==0 or results[ref][sensor]==-2:
-                make_multi = 0
-            if results[ref][sensor] == 1:
+            if results[ref][sensor]=='NRT':
+                make_multi = 'NO'
+
+            if results[ref][sensor]=='NO_RESPONSE':
+                if ref not in nan_dates:
+                    no_response_dates[ref] = sensor
+                else:
+                    no_response_dates[ref] = f'{nan_dates[ref]}, {sensor}'
+
+            if results[ref][sensor]=='N/A':
+                if ref not in nan_dates:
+                    nan_dates[ref] = sensor
+                else:
+                    nan_dates[ref] = f'{nan_dates[ref]}, {sensor}'
+
+
+            if results[ref][sensor] == 'DT':
                 nsensors[isensor] = nsensors[isensor]+1
         line = f'{line} MULTI: {make_multi}'
         if args.verbose:
             print(line)
         results[ref]['MULTI'] = make_multi
-        if make_multi:
+        if make_multi=='YES':
+            if multi_start_date is None:
+                multi_start_date = work_date
+                multi_end_date = work_date
+            else:
+                multi_end_date = work_date
             nsensors[-1] = nsensors[-1]+1
+
+
         work_date = work_date + timedelta(hours=24)
 
     if args.csv_output or args.json_output or args.mail_output:
@@ -76,7 +101,7 @@ def main():
             except:
                 print(f'[ERROR] Error creating JSON file {file_out}')
 
-        if args.json_output:
+        if args.csv_output:
             file_out = os.path.join(args.output_path, f'{name_out}.csv')
             if os.path.isfile(file_out):
                 print(f'[WARNING] File {file_out} already exists. It will be overwritten.')
@@ -105,12 +130,28 @@ def main():
             add_new_line(fw,f'Checking end date: {end_date.strftime("%Y-%m-%d")}')
             add_new_line(fw,f'Number of days: {(end_date-start_date).days+1}')
             add_new_line(fw,'')
-            add_new_line(fw,f'Number of available files: ')
+            add_new_line(fw,f'Number of available consolidated files: ')
             for isensor in range(len(sensors)):
                 add_new_line(fw,f'->{sensors[isensor]}: {nsensors[isensor]}')
             add_new_line(fw,'')
             add_new_line(fw,f'Number of dates available for MULTI processing: {nsensors[-1]}')
+            if nsensors[-1]>0:
+                add_new_line(fw,f'Start date for MULTI processing: {multi_start_date.strftime("%Y-%m-%d")}')
+                add_new_line(fw,f'End date for MULTI processing: {multi_end_date.strftime("%Y-%m-%d")}')
             add_new_line(fw,f'')
+            if len(nan_dates)>0:
+                add_new_line(fw,'The following dates/sensors were skipped as they were not available as NRT.')
+                add_new_line(fw,'Please check in https://oceandata.sci.gsfc.nasa.gov/directdataaccess/Level-2/.')
+                for nan_date in nan_dates:
+                    add_new_line(fw,f'{nan_date}: {nan_dates[nan_date]}')
+                add_new_line(fw,'')
+            if len(no_response_dates)>0:
+                add_new_line(fw, 'The following dates/sensors were skipped because API response was not obtained.')
+                add_new_line(fw, 'You could launch again the script to correct the problem.')
+                for nor_date in no_response_dates:
+                    add_new_line(fw, f'{nor_date}: {no_response_dates[nor_date]}')
+                add_new_line(fw, '')
+
             add_new_line(fw,f'Please use the following script to proccess the data: ')
             add_new_line(fw,'')
             add_new_line(fw,'xxx')
