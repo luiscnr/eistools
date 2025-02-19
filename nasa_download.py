@@ -124,8 +124,12 @@ class NASA_DOWNLOAD:
                     granules.append(item['umm']['DataGranule']['ArchiveAndDistributionInformation'][0]['Name'])
         return granules
 
-    def getscenes_by_point_EarthData_API(self, sen, date_here, insitu_lat,insitu_lon):
+    def getscenes_by_point_EarthData_API(self, sen, date_here, insitu_lat,insitu_lon,is_dt):
+
         short_name = self.sensors[sen]['short_name']
+        if is_dt: short_name = short_name.replace('_NRT', '')
+
+
 
         lon_min = insitu_lon - 0.5
         lon_max = insitu_lon + 0.5

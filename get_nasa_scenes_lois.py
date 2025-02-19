@@ -50,11 +50,11 @@ def get_lat_lon_from_site_name(site):
 
 def download_date(ndownload, sensor, region, lat_point, lon_point, date_here):
     path_out = ndownload.get_path_orig(sensor, date_here)
-
+    is_dt = True if not args.use_nrt else False
     if region is not None:
         list = ndownload.get_list_files(date_here, sensor, region, 'DT')
     elif lat_point is not None and lon_point is not None:
-        list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point)
+        list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point,is_dt)
 
     if len(list) > 0:
         print(f'[INFO] {len(list)} granules identified for date {date_here}')
@@ -93,6 +93,7 @@ if __name__ == '__main__':
     parser.add_argument("-list_dates", "--use_list_dates",
                         help="If this option is given, -d shoud be a text file containing a data list in format yyyy-mm-dd",
                         action="store_true")
+    parser.add_argument("-nrt","--use_nrt",help="Download/list NRT files",action="store_true")
     parser.add_argument("-o", "--path_out", help="Path out")
     parser.add_argument("-ow", "--overwrite", help="Overwrite download files")
     args = parser.parse_args()
@@ -105,6 +106,7 @@ if __name__ == '__main__':
             file_list_dates = args.date
             if not os.path.exists(file_list_dates):
                 print(f'[ERROR] File {file_list_dates} is not available')
+                exit(0)
         else:
             date_here = dt.strptime(args.date, '%Y%m%d')
         sensor = args.sensor
@@ -154,6 +156,7 @@ if __name__ == '__main__':
 
     if args.mode == 'LIST':
         ndownload = NASA_DOWNLOAD()
+        list = None
         if region is not None:
             if region=='BAL':
                 geo_limits = [53,65,12,31]
@@ -161,7 +164,13 @@ if __name__ == '__main__':
             else:
                 list = ndownload.get_list_files(date_here, sensor, region, 'DT')
         elif lat_point is not None and lon_point is not None:
-            list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point)
+            is_dt = True if not args.use_nrt else False
+            list = ndownload.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point,is_dt)
+
+        if list is not None:
+            for granule in list:
+                print(granule)
+
 
 
     if args.mode == 'DOWNLOAD':
