@@ -489,16 +489,21 @@ def check_med():
 
 def check_download():
     from product_info import ProductInfo
-    from s3buckect import S3Bucket
-    pinfo = ProductInfo()
-    pinfo.set_dataset_info('OCEANCOLOUR_MED_BGC_L3_NRT_009_141', 'cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D')
-    date_here = dt(2024, 5, 14)
-    sb = S3Bucket()
-    sb.update_params_from_pinfo(pinfo)
-    conn = sb.star_client()
-    s3bname, key, isuploaded = sb.check_daily_file('NRT', pinfo, date_here, False)
-    path_out = '/mnt/c/DATA_LUIS/OCTACWORK'
-    sb.download_daily_file('NRT', pinfo, date_here, path_out, True, True)
+    # from s3buckect import S3Bucket
+    # pinfo = ProductInfo()
+    # pinfo.set_dataset_info('OCEANCOLOUR_MED_BGC_L3_NRT_009_141', 'cmems_obs-oc_med_bgc-plankton_nrt_l3-multi-1km_P1D')
+    # date_here = dt(2024, 5, 14)
+    # sb = S3Bucket()
+    # sb.update_params_from_pinfo(pinfo)
+    # conn = sb.star_client()
+    # s3bname, key, isuploaded = sb.check_daily_file('NRT', pinfo, date_here, False)
+    # path_out = '/mnt/c/DATA_LUIS/OCTACWORK'
+    # sb.download_daily_file('NRT', pinfo, date_here, path_out, True, True)
+    from nasa_download import  NASA_DOWNLOAD
+    ndownload  = NASA_DOWNLOAD()
+    import obdaac_download as od
+    url = ndownload.get_url_download('PACE_OCI_20241108T122004_L2_OC_AOP_V2_0_NRT.nc')
+    od.do_download(url, '/mnt/c/DATA', ndownload.apikey)
     return True
 
 
@@ -1657,6 +1662,8 @@ def correct_time():
 def main():
     # if tal():
     #     return
+    if check_download():
+        return
     if args.mode == 'TEST':
         # from netCDF4 import Dataset
         # file_nc = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/AERONET_OC/MDB_CERTO_OLCI_300M_CERTO-OLCI-L3_20190827T000000_20240818T000000_AERONET_Section-7_Platform.nc'
@@ -1719,10 +1726,9 @@ def main():
         ##kk()
 
         # update_time(args.path,args.start_date,args.end_date)
-        correct_time()
+        #correct_time()
         return
-    # if check_download():
-    #     return
+
     # if check_med():
     #     return
     # if resolve_CCOC_778():

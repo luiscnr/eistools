@@ -651,7 +651,9 @@ def getting_s3_buckets_copernicus_marine_pd(product_name,dataset_name):
     import copernicusmarine
     print('[INFO] -----------------------------------------')
     print('[INFO] Product: ', product_name)
-    res = copernicusmarine.describe(include_datasets=True, contains=[dataset_name])
+    #res = copernicusmarine.describe(include_datasets=True, contains=[dataset_name])
+    res = copernicusmarine.describe(contains=[dataset_name])
+    print(res)
     product = res['products'][0]
     for dataset_dict in product['datasets']:
         if dataset_dict['dataset_id'] == dataset_name:

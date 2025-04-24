@@ -76,7 +76,7 @@ class NASA_DOWNLOAD:
             'PACE_AOP':{
                 'direct_access_folder': 'PACE-OCI',
                 'nrt_wce': "PACE_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.NRT\.nc",
-                'dt_wce': "PACO_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.nc",
+                'dt_wce': "PACE_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.nc",
                 "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/PACESOURCES",
                 "nrt_cnr_server_wce": "DATE_PACE_NRT_REGION_oc_proc_L2_",
                 "prefix": "PACE_OCI.DATE",

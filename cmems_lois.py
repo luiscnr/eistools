@@ -46,16 +46,23 @@ class CMEMS_LOIS:
                 work_date = work_date + timedelta(hours=24)
 
         for work_date in date_list:
-            bucket, key, available, usemyint = sb.check_daily_file_params(work_date)
+
+            if 'remote_name' in list(cmems_options.keys()):
+                bucket, key, available = sb.check_daily_file_name(work_date,cmems_options['remote_name'])
+            else:
+                bucket, key, available, usemyint = sb.check_daily_file_params(work_date)
             if self.verbose or not make_download:
                 print(f'[INFO]{work_date.strftime("%Y-%m-%d")}:{bucket}/{key}->{available}')
             if make_download and available:
                 folder_out = self.get_folder_out(work_date, output_directory, ods)
                 if folder_out is not None:
-                    if usemyint:
-                        file_out, isdownloaded = sb.download_daily_file_params_myint(work_date, folder_out, False, overwrite)
+                    if 'remote_name' in list(cmems_options.keys()):
+                        file_out, isdownloaded = sb.download_daily_file_name(work_date,cmems_options['remote_name'],folder_out,False,overwrite)
                     else:
-                        file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, overwrite)
+                        if usemyint:
+                            file_out, isdownloaded = sb.download_daily_file_params_myint(work_date, folder_out, False, overwrite)
+                        else:
+                            file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, overwrite)
                     if self.verbose:
                         print(f'--> Output file: {file_out} Download status: {os.path.exists(file_out)}')
         sb.close_client()

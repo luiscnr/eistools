@@ -1,8 +1,17 @@
-import os
+import os,argparse
 
 from ftplib import FTP
 from netCDF4 import Dataset
 from datetime import datetime
+from datetime import timedelta
+from calendar import monthrange
+
+
+parser = argparse.ArgumentParser(description='Check upload')
+parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['CHECK_CNR_FILES'])
+parser.add_argument("-c", "--config_file", help="Configuration file")
+args = parser.parse_args()
 
 
 def main_test():
@@ -1011,8 +1020,177 @@ def retrieve_info_dataset_monthly(mode, product, dataset, sensor, year_ini, year
         svalue = f'{svalue},{tm}'
     return svalue
 
+def run_check_cnr_file(options):
+    print('[INFO] Check CNR files')
+    section = 'CHECK_CNR_FILES'
+    if not options.has_section(section):
+        print(f'[ERROR] Section {section} is not available in the configuration file')
+        return
+    required_options = ['input_path','input_path_organization','name_file_format','name_file_date_format','start_date','end_date']
+    make_check = True
+    options_dict = {}
+    for op in required_options:
+        if options.has_option(section,op):
+            options_dict[op] = options[section][op].strip()
+        else:
+            print(f'[ERROR] Option {op} is required for mode {section}.')
+            make_check = False
+    if not make_check:
+        return
+
+    if not os.path.isdir(options_dict['input_path']):
+        print(f'[ERROR] Input path {options_dict["input_path"]} does not exist or not is a valid directory')
+        return
+
+
+    try:
+        start_date = datetime.strptime(options_dict['start_date'],'%Y-%m-%d')
+    except:
+        print(f'[ERROR] Start date {options_dict["start_date"]} should be in format YYYY-mm-dd')
+        return
+
+    try:
+        end_date = datetime.strptime(options_dict['end_date'],'%Y-%m-%d')
+    except:
+        print(f'[ERROR] End date {options_dict["end_date"]} should be in format YYYY-mm-dd')
+        return
+
+
+
+
+    name_file_format = options_dict['name_file_format']
+    name_file_date_format = options_dict['name_file_date_format']
+    if name_file_date_format == '%Y%j%j':
+        start_date = start_date.replace(day=15)
+        end_date  = end_date.replace(day=15)
+    missing_files = []
+    error_files = []
+    notime_files = []
+    invalid_time_files = []
+    valid_files = []
+    ntot = 0
+    date_run = start_date
+
+    while date_run <= end_date:
+        ntot = ntot+1
+        input_path = get_folder_date(options_dict['input_path'], options_dict['input_path_organization'], date_run)
+        if name_file_date_format == '%Y%j%j':  ##format used for months
+            nfiles_month = monthrange(date_run.year, date_run.month)[1]
+            sdate = date_run.replace(day=1).strftime('%Y%j')
+            edate = date_run.replace(day=nfiles_month).strftime('%j')
+            date_file_str = f'{sdate}{edate}'
+        else:
+            date_file_str = date_run.strftime(name_file_date_format)
+        name_file = name_file_format.replace('$DATE$', date_file_str)
+        input_file = os.path.join(input_path, name_file)
+        if not os.path.exists(input_file):
+            #print(f'[WARNING] Input file {input_file} for date {date_run} is not available. Skiping...')
+            missing_files.append((date_run,input_file))
+        else:
+            try:
+                dataset = Dataset(input_file)
+                if 'time' in dataset.variables:
+                    time_file = datetime(1981,1,1,0,0,0,0)+timedelta(seconds=int(dataset.variables['time'][0]))
+                    if name_file_date_format == '%Y%j%j':
+                        time_file = time_file.replace(day=15)
+                    if time_file.strftime('%Y%m%d')==date_run.strftime('%Y%m%d'):
+                        valid_files.append((date_run,input_file))
+                    else:
+                        invalid_time_files.append((date_run,input_file))
+                else:
+                    notime_files.append((date_run,input_file))
+                dataset.close()
+            except:
+
+                error_files.append((date_run,input_file))
+
+        if name_file_date_format == '%Y%j%j':
+            month_new = 1 if date_run.month == 12 else date_run.month + 1
+            year_new = date_run.year + 1 if date_run.month == 12 else date_run.year
+            date_run = date_run.replace(month=month_new, year=year_new)
+        else:
+            date_run = date_run + timedelta(hours=24)
+
+    print(f'Number of expected files: {ntot}')
+    print(f'Number of valid files: {len(valid_files)}')
+    if len(valid_files)<ntot:
+        if len(missing_files)>0:
+            print(f'-> Missing files: {len(missing_files)}')
+        if len(error_files)>0:
+            print(f'-> Corrupt files: {len(error_files)}')
+        if len(notime_files)>0:
+            print(f'-> Files without time variable: {len(notime_files)}')
+        if len(invalid_time_files)>0:
+            print(f'-> Files without invalid date: {len(invalid_time_files)}')
+
+        print('---------------------------------------------------------------')
+        if len(missing_files) > 0:
+            print('Missing files:')
+            for tfile in missing_files:
+                print(f'{tfile[0].strftime("%Y-%m-%d")} -> {tfile[1]}')
+
+        print('---------------------------------------------------------------')
+        if len(error_files) > 0:
+            print('Corrupt files:')
+            for tfile in error_files:
+                print(f'{tfile[0].strftime("%Y-%m-%d")} -> {tfile[1]}')
+
+        print('---------------------------------------------------------------')
+        if len(notime_files) > 0:
+            print('No time files:')
+            for tfile in notime_files:
+                print(f'{tfile[0].strftime("%Y-%m-%d")} -> {tfile[1]}')
+
+        print('---------------------------------------------------------------')
+        if len(invalid_time_files) > 0:
+            print('Invalid time files:')
+            for tfile in invalid_time_files:
+                print(f'{tfile[0].strftime("%Y-%m-%d")} -> {tfile[1]}')
+
+
+
 def main():
-    check_var_Nov2023()
+    if not args.config_file:
+        print(f'[ERROR] Config file or input product should be defined for {args.mode} option. Exiting...')
+        return
+    if not os.path.exists(args.config_file):
+        print(f'[ERROR] Config file {args.config_file} does not exist. Exiting...')
+        return
+    try:
+        import configparser
+        options = configparser.ConfigParser()
+        options.read(args.config_file)
+    except:
+        print(f'[ERROR] Config file {args.config_file} could not be read. Exiting...')
+        return
+
+    if args.mode=='CHECK_CNR_FILES':
+        run_check_cnr_file(options)
+
+def get_folder_date(path_base, org, date_here):
+    if org is None:
+        return path_base
+    if org == 'YYYYmmdd':
+        date_here_str = date_here.strftime('%Y%m%d')
+        path_date = os.path.join(path_base, date_here_str)
+    if org == 'YYYY/mm/dd':
+        year_str = date_here.strftime('%Y')
+        month_str = date_here.strftime('%m')
+        day_str = date_here.strftime('%d')
+        path_date = os.path.join(path_base, year_str,month_str,day_str)
+    if org == 'YYYY/mm':
+        year_str = date_here.strftime('%Y')
+        month_str = date_here.strftime('%m')
+        path_date = os.path.join(path_base, year_str, month_str)
+    if org == 'YYYY/jjj':
+        year_str = date_here.strftime('%Y')
+        jjj_str = date_here.strftime('%j')
+        path_date = os.path.join(path_base,year_str, jjj_str)
+    if org == 'YYYY':
+        year_str = date_here.strftime('%Y')
+        path_date = os.path.join(path_base, year_str)
+
+    return path_date
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
