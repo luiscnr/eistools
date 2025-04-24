@@ -11,6 +11,7 @@ parser = argparse.ArgumentParser(description='Check upload')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['CHECK_CNR_FILES'])
 parser.add_argument("-c", "--config_file", help="Configuration file")
+parser.add_argument("-s", "--section", help="Reference section in the configuration file")
 args = parser.parse_args()
 
 
@@ -1020,9 +1021,9 @@ def retrieve_info_dataset_monthly(mode, product, dataset, sensor, year_ini, year
         svalue = f'{svalue},{tm}'
     return svalue
 
-def run_check_cnr_file(options):
+def run_check_cnr_file(options,section):
     print('[INFO] Check CNR files')
-    section = 'CHECK_CNR_FILES'
+    #section = 'CHECK_CNR_FILES'
     if not options.has_section(section):
         print(f'[ERROR] Section {section} is not available in the configuration file')
         return
@@ -1164,8 +1165,11 @@ def main():
         print(f'[ERROR] Config file {args.config_file} could not be read. Exiting...')
         return
 
+
+
     if args.mode=='CHECK_CNR_FILES':
-        run_check_cnr_file(options)
+        section = args.section if args.section else args.mode
+        run_check_cnr_file(options,section)
 
 def get_folder_date(path_base, org, date_here):
     if org is None:
