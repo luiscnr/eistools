@@ -6,6 +6,7 @@ from datetime import timedelta
 from product_info import ProductInfo
 #import reformattoCMEMS_202207 as reformat
 from reformatCMEMS import ReformatCMEMS
+from reformat_uploadtoDBS_202207 import make_upload_daily
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the MDS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -308,6 +309,11 @@ def main():
                 make_reformat_daily(pinfo, pinfomy, start_date, end_date)
             elif args.make_only_reformat and not args.make_only_upload:
                 make_reformat_daily(pinfo, pinfomy, start_date, end_date)
+            elif not args.make_only_reformat and args.make_only_upload:
+                make_upload_daily(pinfo,pinfomy,start_date,end_date)
+            elif not args.make_only_reformat and not args.make_only_upload():
+                make_reformat_daily(pinfo, pinfomy, start_date, end_date)
+                make_upload_daily(pinfo, pinfomy, start_date, end_date)
             #if not args.no_upload:
             #    make_upload_daily(pinfo, pinfomy, start_date, end_date)
 
