@@ -1438,7 +1438,7 @@ class ProductInfo:
             structure['dims_attrs'] = new_dims_attrs
 
         ##global attributes form
-        gattributes_to_delete = self.get_gattributes_to_delete()
+        #gattributes_to_delete = self.get_gattributes_to_delete()
 
         attributes_to_rename,structure = self.get_rename_attributes(structure)
         if attributes_to_rename is None:
