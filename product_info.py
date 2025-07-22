@@ -1,6 +1,9 @@
 import calendar,os,json,__init__
 from datetime import datetime as dt
 from datetime import timedelta
+
+from pandas.core.interchange.from_dataframe import string_column_to_ndarray
+
 from source_info import SourceInfo
 import pandas as pd
 from netCDF4 import Dataset
@@ -235,7 +238,7 @@ class ProductInfo:
         return valid
 
     def check_true_false_params(self):
-        keys = {'add_default_global_attrs': True}
+        keys = {'add_default_global_attrs': True,'add_noqi_attr':True}
         for key in keys:
             default_val = keys[key]
             if not key in self.dinfo and default_val is not None:
@@ -1424,7 +1427,6 @@ class ProductInfo:
 
 
 
-
         dims_to_rename,new_dimensions = self.get_rename_dimensions(structure['dimensions'])
         if dims_to_rename is None:
             return
@@ -1446,8 +1448,6 @@ class ProductInfo:
 
 
 
-        print('¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡')
-        print(structure.keys())
         # print(structure['all_attrs'])
         # print(structure['all_variables_attrs'])
         # print(structure['global_attrs'])
@@ -1498,14 +1498,14 @@ class ProductInfo:
 
         #getting variables first file
         dataset_check = Dataset(first_file)
-        all_variables = list(dataset_check.variables)
+        all_variables_first = list(dataset_check.variables)
         dataset_check.close()
 
         #rename variables included in the first file (rename is done direcly in file_out
         if name_first in variables_to_rename:
 
             for vname_in in variables_to_rename[name_first]:
-                if vname_in not in all_variables or vname_in in var_to_delete:
+                if vname_in not in all_variables_first or vname_in in var_to_delete:
                     print(f'[WARNING] Variable {vname_in} is not  in {name_first}. Variable can not be renamed')
                     continue
                 else:
@@ -1544,6 +1544,9 @@ class ProductInfo:
                         continue
                     else:
                         vname_out = variables_to_rename[name_in][vname_in]
+                        if vname_in in all_variables:
+                            all_variables[all_variables.index(vname_in)] = vname_out
+
                         self.add_new_line(fw, f'##Renaming variable {vname_in} to {vname_out}')
                         self.add_new_line(fw, f'ncrename  -h -O -v {vname_in},{vname_out}  {file_in_c}')
                         if vname_in in var_to_include:
@@ -1556,7 +1559,7 @@ class ProductInfo:
             self.add_new_line(fw, f'## Addding variables from file {file_in}:')
 
             for var in var_to_include:
-                all_variables.append(var)
+                #all_variables.append(var)
                 self.add_new_line(fw, f'ncks -h  -A -v {var} {file_in_c} {file_out}')
 
             self.add_new_line(fw,'')
@@ -1568,6 +1571,19 @@ class ProductInfo:
                 vname_out = variables_to_rename['*'][vname_in]
                 self.add_new_line(fw, f'ncrename  -h -O -v {vname_in},{vname_out}  {file_out}')
         self.add_new_line(fw,'')
+
+
+        if self.dinfo['add_noqi_attr']:
+            noqi = None
+            for var in all_variables:
+                if var.startswith('QI'):
+                    continue
+                qi_var = f'QI_{var}'
+                if not qi_var in all_variables:
+                    noqi = f'{var}' if noqi is None else f'{noqi},{var}'
+            if noqi is not None:
+                self.add_new_line(fw, f'ncatted -h -a noQI,global,o,c,\"{noqi}\" {file_out}')
+
 
         ##renaming dimensions
         if len(dims_to_rename)>0:
@@ -1585,9 +1601,10 @@ class ProductInfo:
 
         ##atribute editions
         attrs_actions = self.get_reformat_attributes()
-        self.add_new_line(fw,'## Attritue editions')
-        for action in attrs_actions:
-            self.add_new_line(fw,f'ncatted -O -h -a {action} {file_out}')
+        if len(attrs_actions)>0:
+            self.add_new_line(fw,'## Attritube editions')
+            for action in attrs_actions:
+                self.add_new_line(fw,f'ncatted -O -h -a {action} {file_out}')
 
 
         ##finishing...
