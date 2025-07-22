@@ -1,15 +1,18 @@
-import os
+import __init__,os
 import pandas as pd
 from product_info import ProductInfo
 
 
 class DatasetSelection():
 
-    def __init__(self, mode):
-        sdir = os.path.abspath(os.path.dirname(__file__))
+    def __init__(self, mode, path2info):
+        sdir = os.path.abspath(os.path.dirname(__init__.__file__))
 
-        self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
-        print(f'[INFO] Dataset selection path: {self.path2info}')
+        self.path2info = path2info if path2info is not None else os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
+
+        if not os.path.isdir(self.path2info):
+            print(f'[ERROR] Product info folder {self.path2info} does not exist or is not a valid directory')
+        #print(f'[INFO] Dataset selection path: {self.path2info}')
 
         self.dfselection = None
         self.params = {
@@ -17,22 +20,28 @@ class DatasetSelection():
             'LEVEL': None,
             'DATASET': None,
             'SENSOR': None,
-            'FREQUENCY': None
+            'FREQUENCY': None,
+            'USER_VALUE': None
         }
 
         file = None
 
         if mode.upper() == 'NRT' or mode.upper() == 'DT':
             file = os.path.join(self.path2info, 'NRTDictionary.csv')
-        if mode.upper() == 'MY' or mode.upper() == 'MYINT':
+        if mode.upper() == 'MY':
             file = os.path.join(self.path2info, 'MYDictionary.csv')
 
         if file is not None and os.path.exists(file):
             try:
                 self.dfselection = pd.read_csv(file, sep=';')
             except:
+                print(f'[ERROR] Dictionary {file} is not a valid semcolon separated CSV file ')
                 self.dfselection = None
 
+    def set_params_from_dict(self,params_dict):
+        for param in params_dict:
+            self.params[param.upper()] = params_dict[param]['values']
+    ##deprecated
     def set_params(self, region, level, dataset_type, sensor, frequency):
         params_here = [region, level, dataset_type, sensor, frequency]
         keys = list(self.params.keys())
@@ -54,14 +63,17 @@ class DatasetSelection():
             if self.params[k] is not None:
                 n_params = n_params + 1
         if n_params == 0:
+            print(f'[ERROR] At least one argument is required for the dataset selection.')
             return product_names, datasets_names
 
         for idx, row in self.dfselection.iterrows():
             add = True
             for k in self.params.keys():
-                v = self.params[k]
-                if v is not None:
-                    if v != row[k]:
+                vlist = self.params[k]
+                if vlist is not None:
+
+                    # if v != row[k]:
+                    if row[k].strip().upper() not in vlist:
                         add = False
                         # print(k, v, row[k])
             if add:

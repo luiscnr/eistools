@@ -1,6 +1,4 @@
-import calendar
-import os
-import json
+import calendar,os,json,__init__
 from datetime import datetime as dt
 from datetime import timedelta
 from source_info import SourceInfo
@@ -10,7 +8,7 @@ from netCDF4 import Dataset
 
 class ProductInfo:
     def __init__(self):
-        sdir = os.path.abspath(os.path.dirname(__file__))
+        sdir = os.path.abspath(os.path.dirname(__init__.__file__))
         self.path2info = os.path.join(os.path.dirname(sdir), 'PRODUCT_INFO')
         self.path_reformat_script = os.path.join(os.path.dirname(sdir), 'reformatting_file_cmems2_202211.sh')
 
@@ -19,24 +17,27 @@ class ProductInfo:
         self.pinfo = {}
         self.dinfo = {}
 
-        self.modes = ['my', 'nrt']
-        self.basins = ['bal', 'blk', 'med']
-        self.levels = ['l3', 'l4']
-        self.dataset_types = ['optics', 'plankton', 'reflectance', 'transp']
-        self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
-        self.dict_info = {}
-        self.start_my_dictionary()
-        self.start_nrt_dictionary()
+
+        # self.modes = ['my', 'nrt']
+        # self.basins = ['bal', 'blk', 'med']
+        # self.levels = ['l3', 'l4']
+        # self.dataset_types = ['optics', 'plankton', 'reflectance', 'transp']
+        # self.sensors = ['olci', 'multi', 'gapfree-multi', 'multi-climatology']
+        # self.dict_info = {}
+        # self.start_my_dictionary()
+        # self.start_nrt_dictionary()
 
         self.MODE = 'UPLOAD'  # UPLOAD, REFORMAT, NONE
 
         self.params_slurm = {
             'nodes': '1',
             'ntasks': '1',
-            'p': 'octac',
+            'partition': 'octac',
             'mail-type': 'BEGIN,END,FAIL',
             'mail-user': 'lgonzalezvilas@artov.ismar.cnr.it'
         }
+
+
 
         # self.parameter_code = {
         #     'plankton':{
@@ -230,7 +231,21 @@ class ProductInfo:
             f.close()
         else:
             print(f'[ERROR] Product file {fproduct} does not exist')
+        self.check_true_false_params()
         return valid
+
+    def check_true_false_params(self):
+        keys = {'add_default_global_attrs': True}
+        for key in keys:
+            default_val = keys[key]
+            if not key in self.dinfo and default_val is not None:
+                self.dinfo[key]=True
+            else:
+                sval = self.dinfo[key].strip()
+                if sval=="1" or sval.lower()=='true':
+                    self.dinfo[key] = True
+                else:
+                    self.dinfo[key] = False
 
     def set_param(self, pinfo_out, param_name, param_value):
         if pinfo_out is None:
@@ -1022,6 +1037,7 @@ class ProductInfo:
         f = self.dinfo['f-option']
 
         file_slurm = None
+        path = None
 
         if f == 'D' or f == 'INTERP':
             path = os.path.join(self.dinfo['path_origin'], datehere.strftime('%Y'), datehere.strftime('%j'))
@@ -1032,11 +1048,130 @@ class ProductInfo:
 
         return path, file_slurm
 
+
     def get_files_reformat(self, path, datehere):
-        if not 'files_reformat' in self.dinfo.keys(): return None
+        if not 'files_reformat' in self.dinfo.keys():
+            print(f'[ERROR] files_reformat key should be included in the configuration file for {self.product_name}/{self.dataset_name}')
+            return [None]*3
+        str_r = self.dinfo['files_reformat']
+        format_date_r = [x.strip() for x in self.dinfo['format_date_files_reformat'].split(',')]
+
+        ldictfiles = [x.strip() for x in str_r.split(';')]
+
+        first_file = None
+        var_to_delete = []
+        extra_files = {}
+
+        dims = None
+        sizes = None
+        added_var_dims = None
+
+        structure = {
+            'dimensions':[],
+            'global_attrs':[],
+            'dims_attrs':[],
+            'file_info':{}
+        }
+
+        for ifile in range(len(ldictfiles)):
+            ldict = ldictfiles[ifile]
+            info = [x.strip() for x in ldict.split(',')]
+            name_file = info[0]
+            ifile_format = ifile if len(ldictfiles)==len(format_date_r) else 0
+            name_file_date = name_file.replace('DATE', datehere.strftime(format_date_r[ifile_format]))
+            file_date = os.path.join(path, name_file_date)
+            if not os.path.exists(file_date):
+                print(f'[ERROR] {file_date} does not exist. Please review.')
+                return [None] * 3
+            var_config = []
+            mode_var = info[1]
+            if len(info) > 2 and mode_var!='*':
+                for ivar in range(2, len(info)):
+                    var_config.append(info[ivar])
+            if mode_var not in ['-','+','*']:
+                print(f'[ERROR] Variable mode for files_reformat should be *,+ or -')
+                return [None]*3
+
+            dataset = Dataset(file_date)
+            variables = list(dataset.variables)
+            dims_here = list(dataset.dimensions)
+
+            size_dims = {dims_here[idx]:len(dataset.dimensions[dims_here[idx]]) for idx in range(len(dims_here))}
+
+
+            if ifile == 0:
+                first_file = file_date
+                dims = dims_here
+                structure['dimensions'] = dims
+                structure['global_attrs'] = dataset.ncattrs()
+                structure['dims_attrs'] = {dim:dataset.variables[dim].ncattrs() for dim in dims}
+                sizes = size_dims
+                added_var_dims = [False]*len(dims)
+            else:
+                for dim in dims_here:
+                    if dim not in dims:
+                        print(f'[ERROR] Dimension {dim} in file {name_file} is not included in the reference file')
+                        return [None]*3
+                    if size_dims[dim]!=sizes[dim]:
+                        print(f'[ERROR] Dimension {dim} in file {name_file} has a size ({size_dims[dim]}) different from the reference file ({sizes[dim]})')
+                        return [None] * 3
+
+
+
+            var_to_include_here = []
+            var_to_delete_here = []
+            var_file = []
+
+            for var_name in variables:
+                if var_name in dims:
+                    if ifile==0: added_var_dims[dims.index(var_name)]=True
+                    continue
+
+                if mode_var=='-' and var_name in var_config:
+                    var_to_delete_here.append(var_name)
+                elif (mode_var=='+' and var_name in var_config) or mode_var=='*':
+                    var_to_include_here.append(var_name)
+
+            if ifile==0:
+                if mode_var=='-':
+                    var_to_delete = var_to_delete_here.copy()
+                elif mode_var=='+':
+                    var_to_delete = [var_name for var_name in variables if (var_name not in var_to_include_here and var_name not in dims)]
+                for var_name in variables:
+                    if var_name not in var_to_delete and var_name not in dims:
+                        var_file.append(var_name)
+
+            else:
+                if mode_var == '-':
+                    var_to_include_here = [var_name for var_name in variables if (var_name not in var_to_delete_here and var_name not in dims)]
+                extra_files[file_date] = var_to_include_here
+                var_file = var_to_include_here.copy()
+            structure['file_info'][name_file_date]={
+                'variables':var_file,
+                'global_attrs': dataset.ncattrs(),
+                'variable_attrs':{varn:dataset.variables[varn].ncattrs() for varn in var_file}
+            }
+            dataset.close()
+
+        if sum(added_var_dims) < len(dims):
+            print(f'[ERROR] Dimension variables are not defined in file {first_file}')
+            return [None] * 3
+        return first_file, var_to_delete, extra_files, structure
+
+    def get_files_reformat_deprecated(self, path, datehere):
+        if not 'files_reformat' in self.dinfo.keys():
+            print(f'[ERROR] files_reformat key should be included in the configuration file for {self.product_name}/{self.dataset_name}')
+            return [None]*5
         str_r = self.dinfo['files_reformat']
         format_date_r = self.dinfo['format_date_files_reformat']
-        include_qi_bands = True if self.dinfo['include_qi_bands']=="1" else False
+        include_qi_bands = True if self.dinfo['include_qi_bands'].startswith("1") else False
+
+
+        qi_band_here = None
+
+        if include_qi_bands and len(self.dinfo['include_qi_bands'].split(':'))==2:
+            qi_band_here = self.dinfo['include_qi_bands'].split(':')[1]
+
 
         ldictfiles = [x.strip() for x in str_r.split(';')]
 
@@ -1054,7 +1189,7 @@ class ProductInfo:
             name_file_date = name_file.replace('DATE', datehere.strftime(format_date_r))
             file_date = os.path.join(path, name_file_date)
             if not os.path.exists(file_date):
-                print(f'[ERROR] {file_date} does not exist. Please review ')
+                print(f'[ERROR] {file_date} does not exist. Please review.')
                 return [None] * 5
             var_config = []
             if (len(info) == 2 and info[1] != '*') or len(info) > 2:
@@ -1092,7 +1227,9 @@ class ProductInfo:
             if include_qi_bands:
                 if ifile == 0:
                     if 'QI' in variables:
-                        if len(var_to_include) == 1:
+                        if qi_band_here is not None and qi_band_here in var_to_include.keys():
+                            rename_qi_to = f'QI_{qi_band_here}'
+                        elif len(var_to_include) == 1:
                             rename_qi_to = f'QI_{list(var_to_include.keys())[0]}'
                         else:
                             print(f'[ERROR] Error in file {first_file}: ')
@@ -1106,7 +1243,9 @@ class ProductInfo:
                                 no_qi_bands.append(var_name)
                 else:
                     if 'QI' in variables:
-                        if len(var_to_include) == 1:
+                        if qi_band_here is not None and qi_band_here in var_to_include.keys():
+                            rename_qi_to = f'QI_{qi_band_here}'
+                        elif len(var_to_include) == 1:
                             name_var = list(var_to_include.keys())[0]
                             var_to_include[name_var] = 'QI'
                         else:
@@ -1128,31 +1267,381 @@ class ProductInfo:
             return [None] * 5
         return first_file, var_to_delete, rename_qi_to, no_qi_bands, extra_files
 
-    def get_reformat_cmd_202411(self, datehere):
+
+    def get_reformat_attributes(self):
+        print(f'[INFO] Check reformat attributes')
+        info_reformat_attributes = []
+        action = 'edit_attr'
+        index = 0
+        while f'{action}_{index}' in self.dinfo.keys():
+            vals = [x.strip() for x in self.dinfo[f'{action}_{index}'].split(',')]
+            if vals[3]=='c' and not vals[4].startswith(f'\"'):
+                vals[4] = f'\"{vals[4]}\"'
+            strval=",".join(vals)
+            info_reformat_attributes.append(strval)
+            index = index + 1
+        return info_reformat_attributes
+
+    def get_rename_variables(self, datehere,dimensions):
+        print(f'[INFO] Check rename variables...')
+        name_r = [x.strip().split(',')[0] for x in self.dinfo['files_reformat'].split(';')]
+        format_date_r = [x.strip() for x in self.dinfo['format_date_files_reformat'].split(',')]
+
+        rename_variables = {}
+        index = 0
+        while f'rename_var_{index}' in self.dinfo.keys():
+            vals = [x.strip() for x in self.dinfo[f'rename_var_{index}'].split(',')]
+            if vals[1] in dimensions:
+                print(f'[ERROR] {vals[1]} is a dimension variable, it could not be used with rename_var. To rename a dimension (dimension + variable) use rename_dim')
+                return None
+            if vals[0].strip()=='*':
+                rename_variables['*']={vals[1]:vals[2]}
+            else:
+                try:
+                    index_n = name_r.index(vals[0])
+                except ValueError:
+                    print(f'[ERROR] {vals[0]} is not in the list of files to be reformatted.')
+                    return None
+                index_f = index_n if len(name_r) == len(format_date_r) else 0
+                name_file_date = vals[0].replace('DATE', datehere.strftime(format_date_r[index_f]))
+                if name_file_date not in rename_variables.keys():
+                    rename_variables[name_file_date]= {vals[1]:vals[2]}
+                else:
+                    rename_variables[name_file_date][vals[1]] = vals[2]
+
+            index = index + 1
+
+
+        # for name in rename_variables:
+        #     for v in rename_variables[name]:
+        #         print(name,'/',v,'-->',rename_variables[name][v])
+
+        return rename_variables
+
+
+    def get_rename_attributes(self, structure):
+        print(f'[INFO] Check rename attributes...')
+        rename_attributes = {}
+        index = 0
+        global_attrs = structure['global_attrs']
+        all_variables_attrs = structure['all_variables_attrs']
+        dims_attrs = structure['dims_attrs']
+
+        while f'rename_attr_{index}' in self.dinfo.keys():
+            vals = [x.strip() for x in self.dinfo[f'rename_attr_{index}'].split(',')]
+            if vals[0] not in structure['all_attrs']:
+                print(f'[ERROR] Attribute {vals[0]} could not be found. Please check it. ')
+                return [None]*2
+            rename_attributes[vals[0]] = vals[1]
+            if vals[0] in structure['global_attrs']:
+                global_attrs[global_attrs.index(vals[0])]=vals[1]
+            else:
+                for var in all_variables_attrs:
+                    if vals[0] in all_variables_attrs[var]:
+                        all_variables_attrs[var][all_variables_attrs[var].index(vals[0])]=vals[1]
+                for dim in dims_attrs:
+                    if vals[0] in dims_attrs[dim]:
+                        dims_attrs[dim][dims_attrs.index(dim)]=vals[1]
+            index = index + 1
+        all_attrs_new = global_attrs
+        for var in all_variables_attrs:
+            all_attrs_new = all_attrs_new + all_variables_attrs[var]
+        for dim in dims_attrs:
+            all_attrs_new = all_attrs_new + dims_attrs[dim]
+
+        structure['all_attrs'] = all_attrs_new
+        structure['global_attrs'] = global_attrs
+        structure['all_variables_attrs'] = all_variables_attrs
+        structure['dims_attrs'] = dims_attrs
+
+        return rename_attributes,structure
+
+    def get_rename_dimensions(self,dimensions):
+        print(f'[INFO] Check rename dimensions...')
+        rename_dimensions = {}
+        newdimensions = dimensions.copy()
+        index = 0
+        while f'rename_dim_{index}' in self.dinfo.keys():
+            vals = [x.strip() for x in self.dinfo[f'rename_dim_{index}'].split(',')]
+            if vals[0] not in dimensions:
+                print(f'[ERROR] {vals[0]} is not a correct dimension')
+                return [None]*2
+            rename_dimensions[vals[0]] = vals[1]
+            newdimensions[dimensions.index(vals[0])] = vals[1]
+            index = index + 1
+        return rename_dimensions,newdimensions
+
+
+    def check_reformat_cmd_parameters(self):
+        keys = ['parameter','parameter_code']
+        all_keys = True
+        for key in keys:
+            if not key in self.dinfo:
+                print(f'[ERROR] Key {key} is required in json for dataset {self.product_name}/{self.dataset_name}')
+                all_keys = False
+        return all_keys
+
+    def get_reformat_cmd_202411(self, datehere,use_sh):
         path, file_slurm = self.get_file_slurm_reformat_202411(datehere)
         if path is None:
             return None
+        if use_sh:
+            file_slurm = file_slurm.replace('.slurm','.sh')
+
+        first_file, var_to_delete, extra_files,structure = self.get_files_reformat(path, datehere)
+        if first_file is None:
+            return None
+
+        variables_to_rename = self.get_rename_variables(datehere,structure['dimensions'])
+
+        if variables_to_rename is None:
+            return
+
+        all_variables = []
+        all_attrs = structure['global_attrs']
+        all_variables_attrs = {}
+        for f in structure['file_info']:
+            for var in structure['file_info'][f]['variables']:
+                var_to_add = var
+                var_attrs = structure['file_info'][f]['variable_attrs'][var]
+
+                if '*' in variables_to_rename and var in variables_to_rename['*']:
+                    var_to_add = variables_to_rename['*'][var]
+                if f in variables_to_rename and var in variables_to_rename[f]:
+                    var_to_add = variables_to_rename[f][var]
+                if var_to_add not in all_variables:
+                    all_variables.append(var_to_add)
+                    all_variables_attrs[var_to_add] = var_attrs
+                    all_attrs = all_attrs + var_attrs
+                else:
+                    print(f'Variable {var_to_add} in file {f} is duplicated. Please rename it using rename_var_')
+                    return
+        for dim in structure['dims_attrs']:
+            all_attrs = all_attrs + structure['dims_attrs'][dim]
+
+        structure['all_attrs'] = all_attrs
+        structure['all_variables_attrs'] = all_variables_attrs
 
 
 
-        #f = self.dinfo['f-option']
-        first_file, var_to_delete, rename_qi_to, no_qi_bands, extra_files = self.get_files_reformat(path, datehere)
+
+        dims_to_rename,new_dimensions = self.get_rename_dimensions(structure['dimensions'])
+        if dims_to_rename is None:
+            return
+        if len(dims_to_rename)>0:
+            structure['dimensions'] = new_dimensions
+            old_dims_attrs = structure['dims_attrs']
+            new_dims_attrs = {}
+            for odim in old_dims_attrs:
+                ndim = dims_to_rename[odim] if odim in dims_to_rename.keys() else odim
+                new_dims_attrs[ndim] = structure['dims_attrs'][odim]
+            structure['dims_attrs'] = new_dims_attrs
+
+        ##global attributes form
+        gattributes_to_delete = self.get_gattributes_to_delete()
+
+        attributes_to_rename,structure = self.get_rename_attributes(structure)
+        if attributes_to_rename is None:
+            return
+
+
+
+        print('¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¿¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡¡')
+        print(structure.keys())
+        # print(structure['all_attrs'])
+        # print(structure['all_variables_attrs'])
+        # print(structure['global_attrs'])
+        # print(structure['dims_attrs'])
+        #structure['global_attrs'] = global_attrs
+
+
+
+        # if not self.check_reformat_cmd_parameters():
+        #     return None
+
         file_tmp = os.path.join(path, 'Temp.nc')
+        file_tmp = f'\"{file_tmp}\"'
 
         fw = open(file_slurm, 'w')
         fw.write('#!/bin/bash')
-        for param_slurm in self.params_slurm:
-            if self.params_slurm[param_slurm] is not None:
-                line = f'SBATCH --{param_slurm}=self.params_slurm[param_slurm]'
-                self.add_new_line(fw, line)
+        if not use_sh:
+            for param_slurm in self.params_slurm:
+                if self.params_slurm[param_slurm] is not None:
+                    line = f'SBATCH --{param_slurm}={self.params_slurm[param_slurm]}'
+                    self.add_new_line(fw, line)
+        self.add_new_line(fw, '')
+
+
+        ##copy reference file (first file) as file out
+        file_out = self.get_file_path_orig_name(None, datehere)
+        name_first = os.path.basename(first_file)
+        #first_file_com = f'\"{first_file}\"'
+        file_out = f'\"{file_out}\"'
+        self.add_new_line(fw, f'cp \"{first_file}\" {file_out}')
+
+        # delete variables not to be included in the reformat
+        if len(var_to_delete) > 0:
+            self.add_new_line(fw, '##Deleting variables...')
+            line_extract = f'ncks -h  -C -O -x -v {var_to_delete[0]}'
+            for idx in range(1,len(var_to_delete)):
+                line_extract = f'{line_extract},{var_to_delete[idx]}'
+                # self.add_new_line(fw, f'cp {file_out} {file_tmp}')
+                # self.add_new_line(fw, f'ncks -h  -C -O -x -v {var_name} {file_tmp} {file_out}')
+                #self.add_new_line(fw, f'ncks -h  -C -O -x -v {var_name} {file_out}')
+                #self.add_new_line(fw, f'rm {file_tmp}')
+                #self.add_new_line(fw, '')
+            line_extract = f'{line_extract} {file_out} {file_tmp}'
+            self.add_new_line(fw,line_extract)
+            self.add_new_line(fw,f'mv {file_tmp} {file_out}')
+
+        self.add_new_line(fw, '')
+
+        #getting variables first file
+        dataset_check = Dataset(first_file)
+        all_variables = list(dataset_check.variables)
+        dataset_check.close()
+
+        #rename variables included in the first file (rename is done direcly in file_out
+        if name_first in variables_to_rename:
+
+            for vname_in in variables_to_rename[name_first]:
+                if vname_in not in all_variables or vname_in in var_to_delete:
+                    print(f'[WARNING] Variable {vname_in} is not  in {name_first}. Variable can not be renamed')
+                    continue
+                else:
+                    vname_out = variables_to_rename[name_first][vname_in]
+                    self.add_new_line(fw, f'##Renaming variable {vname_in} to {vname_out}')
+                    self.add_new_line(fw, f'ncrename  -h -O -v {vname_in},{vname_out}  {file_out} >/dev/null')
+
+
+
+        #default global attributes
+        if self.dinfo['add_default_global_attrs']:
+            self.add_new_line(fw,'')
+            self.add_new_line(fw, f'##Setting global attributes...')
+            self.add_new_line(fw, f'ncatted -h -a title,global,o,c,\"{self.dataset_name}\" {file_out}')
+            self.add_new_line(fw, f'ncatted -h -a cmems_product_id,global,o,c,\"{self.product_name}\" {file_out}')
+            if 'parameter' in self.dinfo.keys():
+                self.add_new_line(fw, f'ncatted -h -a parameter,global,o,c,\"{self.dinfo["parameter"]}\" {file_out}')
+            if 'parameter_code' in self.dinfo.keys():
+                self.add_new_line(fw, f'ncatted -h -a parameter_code,global,o,c,\"{self.dinfo["parameter_code"]}\" {file_out}')
+            self.add_new_line(fw,'')
+
+        #adding variable from other files
+        lines_invert_renaming = []
+        for file_in in extra_files:
+
+            name_in = os.path.basename(file_in)
+            file_in_c = f'\"{file_in}\"'
+            var_to_include = extra_files[file_in]
+
+            ##renaming variables before being added
+            if name_in in variables_to_rename:
+                dataset_check = Dataset(file_in)
+                for vname_in in variables_to_rename[name_in]:
+                    if vname_in not in dataset_check.variables or vname_in in var_to_delete:
+                        print(f'[WARNING] Variable {vname_in} is not  in {name_in}. Variable can not be renamed')
+                        continue
+                    else:
+                        vname_out = variables_to_rename[name_in][vname_in]
+                        self.add_new_line(fw, f'##Renaming variable {vname_in} to {vname_out}')
+                        self.add_new_line(fw, f'ncrename  -h -O -v {vname_in},{vname_out}  {file_in_c}')
+                        if vname_in in var_to_include:
+                            var_to_include[var_to_include.index(vname_in)] = vname_out
+                        lines_invert_renaming.append(f'ncrename  -h -O -v {vname_out},{vname_in}  {file_in_c}')
+
+                dataset_check.close()
+
+            self.add_new_line(fw,'')
+            self.add_new_line(fw, f'## Addding variables from file {file_in}:')
+
+            for var in var_to_include:
+                all_variables.append(var)
+                self.add_new_line(fw, f'ncks -h  -A -v {var} {file_in_c} {file_out}')
+
+            self.add_new_line(fw,'')
+
+        #renaming final variables
+        if '*' in variables_to_rename:
+            self.add_new_line(fw, f'##Renaming final variables...')
+            for vname_in in variables_to_rename['*']:
+                vname_out = variables_to_rename['*'][vname_in]
+                self.add_new_line(fw, f'ncrename  -h -O -v {vname_in},{vname_out}  {file_out}')
+        self.add_new_line(fw,'')
+
+        ##renaming dimensions
+        if len(dims_to_rename)>0:
+            self.add_new_line(fw,f'##Renaming dimensions...')
+            for dname in dims_to_rename:
+                self.add_new_line(fw, f'ncrename -h -O -d {dname},{dims_to_rename[dname]} -v {dname},{dims_to_rename[dname]} {file_out}')
+
+
+        ##renaming attributes
+        if len(attributes_to_rename)>0:
+            self.add_new_line(fw,f'##Renaming attributes...')
+            for aname in attributes_to_rename:
+                self.add_new_line(fw,f'ncrename -h -O -a {aname},{attributes_to_rename[aname]} {file_out}')
+
+
+        ##atribute editions
+        attrs_actions = self.get_reformat_attributes()
+        self.add_new_line(fw,'## Attritue editions')
+        for action in attrs_actions:
+            self.add_new_line(fw,f'ncatted -O -h -a {action} {file_out}')
+
+
+        ##finishing...
+        if len(lines_invert_renaming)>0:
+            self.add_new_line(fw,'##Invert renaming variables in original files...')
+            for line in lines_invert_renaming:
+                self.add_new_line(fw,line)
+        self.add_new_line(fw, '')
+
+        if os.path.exists(file_tmp[1:-1]):
+            self.add_new_line(fw,f'rm {file_tmp}')
+
+
+        fw.close()
+
+        ##creating cmd
+        file_slurm = f'\"{file_slurm}\"'
+        if use_sh:
+            cmd = f'sh {file_slurm}'
+        else:
+            cmd = f'sbatch --wait {file_slurm}'
+
+        return cmd
+
+    def get_reformat_cmd_202411_deprecated(self, datehere,use_sh):
+        path, file_slurm = self.get_file_slurm_reformat_202411(datehere)
+        if path is None:
+            return None
+        if use_sh:
+            file_slurm = file_slurm.replace('.slurm','.sh')
+
+        first_file, var_to_delete, rename_qi_to, no_qi_bands, extra_files = self.get_files_reformat(path, datehere)
+        if first_file is None:
+            return None
+        if not self.check_reformat_cmd_parameters():
+            return None
+        file_tmp = os.path.join(path, 'Temp.nc')
+        file_tmp = f'\"{file_tmp}\"'
+
+        fw = open(file_slurm, 'w')
+        fw.write('#!/bin/bash')
+        if not use_sh:
+            for param_slurm in self.params_slurm:
+                if self.params_slurm[param_slurm] is not None:
+                    line = f'SBATCH --{param_slurm}={self.params_slurm[param_slurm]}'
+                    self.add_new_line(fw, line)
         self.add_new_line(fw, '')
         ##self.add_new_line(fw,'source /home/$USER/load_miniconda3.source')
         ##self.add_new_line(fw,'conda activate op_proc_202211v2')
 
         ##copy first file as file out
         file_out = self.get_file_path_orig_name(None, datehere)
-
-
+        first_file = f'\"{first_file}\"'
+        file_out = f'"{file_out}\"'
         self.add_new_line(fw, f'cp {first_file} {file_out}')
         self.add_new_line(fw, '')
 
@@ -1174,6 +1663,7 @@ class ProductInfo:
         self.add_new_line(fw,'')
 
         #global parameters
+
         self.add_new_line(fw, f'##Setting global attributes...')
         self.add_new_line(fw, f'ncatted -h -a title,global,o,c,\"{self.dataset_name}\" {file_out}')
         self.add_new_line(fw, f'ncatted -h -a cmems_product_id,global,o,c,\"{self.product_name}\" {file_out}')
@@ -1184,6 +1674,7 @@ class ProductInfo:
 
         #extra variables
         for file_in in extra_files:
+            file_in_c = f'\"{file_in}\"'
             self.add_new_line(fw, f'## Addding variables from file {file_in}:')
             var_to_include = extra_files[file_in]
             for var in var_to_include:
@@ -1191,14 +1682,14 @@ class ProductInfo:
                 var_qi = var_to_include[var]
                 if var_qi is not None:
                     var_qi_expected = f'QI_{var}'
-                    self.add_new_line(fw, f'cp {file_in} {file_tmp}')
+                    self.add_new_line(fw, f'cp {file_in_c} {file_tmp}')
                     if var_qi_expected!=var_qi: ##rename must be done first
                         self.add_new_line(fw,f'ncrename --no_abc -h -a -v {var_qi},{var_qi_expected}  {file_tmp} >/dev/null')
                     self.add_new_line(fw,f'ncks -h  -A -v {var} {file_tmp} {file_out}')
                     self.add_new_line(fw, f'ncks -h  -A -v {var_qi_expected} {file_tmp} {file_out}')
                     self.add_new_line(fw, f'rm {file_tmp}')
                 else:
-                    self.add_new_line(fw, f'ncks -h  -A -v {var} {file_in} {file_out}')
+                    self.add_new_line(fw, f'ncks -h  -A -v {var} {file_in_c} {file_out}')
                     no_qi_bands.append(var)
                 self.add_new_line(fw, '## ------')
             self.add_new_line(fw,'')
@@ -1211,7 +1702,11 @@ class ProductInfo:
         fw.close()
 
         ##creating cmd
-        cmd = f'sbatch --wait {file_slurm}'
+        file_slurm = f'\"{file_slurm}\"'
+        if use_sh:
+            cmd = f'sh {file_slurm}'
+        else:
+            cmd = f'sbatch --wait {file_slurm}'
 
         return cmd
 

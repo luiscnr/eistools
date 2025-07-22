@@ -4,7 +4,7 @@ parser = argparse.ArgumentParser(description='NASA Get Scenes. Patch to retrieve
 parser.add_argument("-m", "--mode", help="Mode", choices=["LIST", "DOWNLOAD", "NRT_TO_DT", "TEST"])
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
 parser.add_argument("-sen", "--sensor",
-                    help="Specify sensor: VIIRS, VIIRSJ, AQUA, PACE_AOP (options in the configuration file)",
+                    help="Specify sensor: VIIRS, VIIRSJ, AQUA, PACE_AOP, PACE_SCI (options in the configuration file)",
                     required=True)
 parser.add_argument("-d", "--date",
                     help="Specify a date in yyyymmdd format, or a date list file if option -list_dates is activated",
@@ -82,13 +82,25 @@ def download_date(ndownload, sensor, site_name, lat_point, lon_point, date_here)
     else:
         print(f'[INFO] No granules were found to be downloaded for date: {date_here}')
 
-
 def make_test():
+    print('1')
     from nasa_download import NASA_DOWNLOAD
     ndownload = NASA_DOWNLOAD()
     from datetime import datetime as dt
     from datetime import timedelta
-    fout = '/mnt/c/DATA_LUIS/OCTAC_WORK/BAL_EVOLUTION_202411/AQUA_2019.csv'
+    work_date = dt(2025, 5, 5)
+    geo_limits = [10, 15, 85, 90]
+    list = ndownload.getscenes_by_region_EarthData_API('PACE_AOP', work_date, geo_limits, True)
+    print(list)
+    print('2')
+    return True
+
+def make_test_2():
+    from nasa_download import NASA_DOWNLOAD
+    ndownload = NASA_DOWNLOAD()
+    from datetime import datetime as dt
+    from datetime import timedelta
+    fout = '/mnt/c/DATA_LUIS'
     fw = open(fout, 'w')
     work_date = dt(2019, 6, 1)
     end_date = dt(2019, 9, 30)
@@ -109,6 +121,7 @@ def main():
     ##for testing
     if args.mode == 'TEST':
         make_test()
+        return
 
     ##Getting arguemnts
     import os

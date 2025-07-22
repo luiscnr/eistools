@@ -83,7 +83,19 @@ class NASA_DOWNLOAD:
                 "suffix_dt": ".L2.OC_AOP.V2_0.nc",
                 "name_cnr_prefix": "P",
                 "name_cnr_suffix": ".L2_OCI_OC.nc",
-                "short_name": "PACE_OCI_L2_AOP_NRT"
+                "short_name": "PACE_OCI_L2_AOP"
+            },
+            'PACE_SCI': {
+                'direct_access_folder': 'PACE-OCI',
+                'nrt_wce': "PACE_OCI.DATET\d*\.L1B\.OC_SCI\.V2_0\.NRT\.nc",
+                'dt_wce': "PACE_OCI.DATET\d*\.L1B\.OC_SCI\.V2_0\.nc",
+                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/PACESOURCES",
+                "nrt_cnr_server_wce": "DATE_PACE_NRT_REGION_oc_proc_L2_",
+                "prefix": "PACE_OCI.DATE",
+                "suffix_dt": ".L2.OC_AOP.V2_0.nc",
+                "name_cnr_prefix": "P",
+                "name_cnr_suffix": ".L2_OCI_OC.nc",
+                "short_name": "PACE_OCI_L1B_SCI"
             }
         }
 
@@ -205,11 +217,14 @@ class NASA_DOWNLOAD:
         bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
         date_next = date_here + timedelta(hours=24)
         temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
+
         url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
+        print(url_complete)
         http = urllib3.PoolManager()
         resp = http.request("GET", url_complete)
         data = json.loads(resp.data)
         ngranules = data['hits']
+        print(ngranules)
         granules = []
         if ngranules > 0:
             for item in data['items']:

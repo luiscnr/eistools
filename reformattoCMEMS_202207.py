@@ -330,7 +330,8 @@ def make_reformat_daily_dataset(pinfo, start_date, end_date, verbose):
         if args.reformat_version=='202207':
             cmd = pinfo.get_reformat_cmd(date_work)
         elif args.reformat_version=='202411':
-            cmd = pinfo.get_reformat_cmd_202411(date_work)
+            #cmd = pinfo.get_reformat_cmd_202411(date_work,False)
+            cmd = pinfo.get_reformat_cmd_202411_deprecated(date_work,False)
 
         if cmd is None:
             date_work = date_work + timedelta(hours=24)

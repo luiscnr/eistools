@@ -1659,12 +1659,75 @@ def correct_time():
             os.rename(file_out, file)
 
 
+def do_test():
+    file_nc = "/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/ITALIAN_SITES_VALIDATION_PUBLICATION/OCI/VEIT/MDB_rc_PACE_OCI_1KM_HYPSTAR_VEIT_COMMONMU_V3WL.nc"
+    from netCDF4 import Dataset
+    dataset = Dataset(file_nc)
+    sat_time = dataset.variables['satellite_time'][:]
+    mu_valid_common = dataset.variables['mu_valid_common'][:]
+    for muv,stime in zip(mu_valid_common,sat_time):
+        if muv==1:
+            stime = dt.utcfromtimestamp(stime)
+            print(stime.strftime('%Y-%m-%d'))
+    dataset.close()
+
+def do_test2():
+    # dir_base = '/mnt/c/DATA/FICE2025/GROUP_ASSIGMENTS/pysas/output/L1A'
+    # file_hdf = os.path.join(dir_base,'pySAS004_20250506_003348_L1A.hdf')
+    # file_out = os.path.join(dir_base,'pySAS004_20250506_003348_L1A_out.hdf')
+    # from h5py import Dataset
+    # import h5py
+    # print(os.path.exists(file_hdf))
+    # f = h5py.File(file_hdf, 'r')
+    # print(f.keys())
+    dir_base = '/mnt/c/DATA/FICE2025/GROUP_ASSIGMENTS/out'
+    fout = os.path.join(os.path.dirname(dir_base),'OutWaypoints_05062025.csv')
+    fw = open(fout,'w')
+    for name in os.listdir(dir_base):
+        print(name)
+        file_in = os.path.join(dir_base,name)
+        fr = open(file_in,'r')
+        n = 0
+        for line in fr:
+            if n>=2:
+                fw.write(line)
+            n = n +1
+
+
+        fr.close()
+    fw.close()
+
+
+def ele():
+    dir_base = '/mnt/c/DATA/satdata'
+    file_pace = os.path.join(dir_base,'PACE_OCI.20250505T060115.L2.OC_AOP.V3_0.NRT.nc')
+    from netCDF4 import Dataset
+    dataset = Dataset(file_pace)
+    lat_array = dataset.groups['navigation_data'].variables['latitude'][:]
+    lon_array = dataset.groups['navigation_data'].variables['longitude'][:]
+    dist_squared = ((lat_array - 13.1091) ** 2) + ((lon_array - 88.8514) ** 2)
+    print(lat_array.shape)
+    print(lon_array.shape)
+    print(dist_squared.shape)
+    r, c = np.unravel_index(np.argmin(dist_squared),
+                            lat_array.shape)  # index to the closest in the latitude and longitude arrays
+
+    print(r,c)
+    print(lat_array[r,c])
+    print(lon_array[r,c])
+    dataset.close()
+    return True
+
 def main():
+    if ele():
+        return
     # if tal():
     #     return
-    if check_download():
-        return
+    #if check_download():
+    #    return
     if args.mode == 'TEST':
+        print('here')
+        do_test2()
         # from netCDF4 import Dataset
         # file_nc = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/AERONET_OC/MDB_CERTO_OLCI_300M_CERTO-OLCI-L3_20190827T000000_20240818T000000_AERONET_Section-7_Platform.nc'
         # dataset = Dataset(file_nc,'r')

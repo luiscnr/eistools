@@ -89,7 +89,7 @@ class S3Bucket():
         if 's3_bucket_name' in product_info.dinfo:
             self.S3_BUCKET_NAME = product_info.dinfo['s3_bucket_name']
         if 'remote_dataset_tag' in product_info.dinfo:
-            self.TAG = product_info.dinfo['remote_dataset_tag'][1:]
+            self.TAG = product_info.dinfo['remote_dataset_tag']
 
         return True
 
@@ -351,7 +351,7 @@ class S3Bucket():
         if files is None:
             files = {}
         paginator = self.s3client.get_paginator("list_objects_v2")
-        prefix = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}'
+        prefix = f'native/{self.PRODUCT}/{self.DATASET}{self.TAG}/{subdir}'
         print(f'[INFO] Listing files in {self.S3_BUCKET_NAME}/{prefix}')
         for result in paginator.paginate(Bucket=self.S3_BUCKET_NAME, Prefix=prefix):
             if "Contents" in result:
@@ -388,7 +388,7 @@ class S3Bucket():
         if files is None:
             files = {}
         paginator = self.s3client.get_paginator("list_objects_v2")
-        prefix = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}'
+        prefix = f'native/{self.PRODUCT}/{self.DATASET}{self.TAG}/{subdir}'
         start_date = start_date.replace(day=10)
         end_date = end_date.replace(day=20)
         print(f'[INFO] Listing monthly files in {self.S3_BUCKET_NAME}/{prefix}')
