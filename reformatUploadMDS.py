@@ -311,7 +311,7 @@ def main():
                 make_reformat_daily(pinfo, pinfomy, start_date, end_date)
             elif not args.make_only_reformat and args.make_only_upload:
                 make_upload_daily(pinfo,pinfomy,start_date,end_date)
-            elif not args.make_only_reformat and not args.make_only_upload():
+            elif not args.make_only_reformat and not args.make_only_upload:
                 make_reformat_daily(pinfo, pinfomy, start_date, end_date)
                 make_upload_daily(pinfo, pinfomy, start_date, end_date)
             #if not args.no_upload:
