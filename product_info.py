@@ -1467,7 +1467,7 @@ class ProductInfo:
         if not use_sh:
             for param_slurm in self.params_slurm:
                 if self.params_slurm[param_slurm] is not None:
-                    line = f'SBATCH --{param_slurm}={self.params_slurm[param_slurm]}'
+                    line = f'#SBATCH --{param_slurm}={self.params_slurm[param_slurm]}'
                     self.add_new_line(fw, line)
         self.add_new_line(fw, '')
 
