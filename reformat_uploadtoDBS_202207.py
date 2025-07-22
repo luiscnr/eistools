@@ -181,7 +181,7 @@ def main():
 def get_datasets():
     # name_products = []
     # name_datasets = []
-    dsel = DatasetSelection(args.mode)
+    dsel = DatasetSelection(args.mode,None)
     if args.name_product and args.name_dataset:
         name_products = [args.name_product]
         name_datasets = [args.name_dataset]
