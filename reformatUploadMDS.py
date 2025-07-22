@@ -249,7 +249,7 @@ def make_reformat_daily(pinfo, pinfomy, start_date, end_date):
     #    pinfomy = pinfo.get_pinfomy_equivalent()
     reformat = ReformatCMEMS(args.reformat_version,args.verbose)
     reformat.use_sh = args.use_sh_reformat
-    reformat.launch_script = False if args.make_test_reformat else False
+    reformat.launch_script = False if args.make_test_reformat else True
     if pinfomy is not None:
         if args.verbose:
             print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
