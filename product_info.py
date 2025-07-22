@@ -34,7 +34,7 @@ class ProductInfo:
             'ntasks': '1',
             'partition': 'octac',
             'mail-type': 'BEGIN,END,FAIL',
-            'mail-user': 'lgonzalezvilas@artov.ismar.cnr.it'
+            'mail-user': 'luis.gonzalezvilas@artov.ismar.cnr.it'
         }
 
 
@@ -1414,7 +1414,7 @@ class ProductInfo:
                     all_variables_attrs[var_to_add] = var_attrs
                     all_attrs = all_attrs + var_attrs
                 else:
-                    print(f'Variable {var_to_add} in file {f} is duplicated. Please rename it using rename_var_')
+                    print(f'Variable {var_to_add} in file {f} is duplicated. Please do not use it or rename it using rename_var_')
                     return
         for dim in structure['dims_attrs']:
             all_attrs = all_attrs + structure['dims_attrs'][dim]
