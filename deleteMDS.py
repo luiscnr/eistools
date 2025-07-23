@@ -1,7 +1,6 @@
 import pytz,os
 
-from uploadMDS import FTPUpload
-from  uploadMDS import Deliveries
+import uploadMDS as uMDS
 from s3buckect import S3Bucket
 from datetime import datetime as dt
 
@@ -11,7 +10,7 @@ class DeleteMDS:
         self.verbose = verbose
 
     def delete_daily_dataset_impl(self,pinfo, mode, year, month, start_day, end_day):
-        ftpdu = FTPUpload(mode)
+        ftpdu = uMDS.FTPUpload(mode)
 
         sb = S3Bucket()
         sb.update_params_from_pinfo(pinfo)
@@ -19,7 +18,7 @@ class DeleteMDS:
         if not conn:
             print(f'[ERROR] Connection error with s3 bucket. Daily dataset could not be deleted')
             return
-        deliveries = Deliveries()
+        deliveries = uMDS.Deliveries()
         rpath, sdir = pinfo.get_remote_path(year, month)
         if self.verbose:
             print(f'[INFO] Remote path: {rpath}/{sdir}')
