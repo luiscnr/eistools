@@ -20,7 +20,7 @@ parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True,
                              'LOG_HYPSTAR',
                              'TEST', 'UPDATE_TIME_CMEMS_DAILY', 'UPDATE_TIME_CMEMS_MONTHLY', 'REMOVE_NR_SOURCES',
                              'CREATE_MASK',
-                             'APPLY_MASK', 'CREATE_MASK_CDF', 'UPDATE_TIME_EXTRACTS'])
+                             'APPLY_MASK', 'CREATE_MASK_CDF', 'UPDATE_TIME_EXTRACTS','COMPARE_NC'])
 parser.add_argument("-p", "--path", help="Input path")
 parser.add_argument("-o", "--output_path", help="Output path")
 parser.add_argument("-mvar", "--mask_variable", help="Mask variable")
@@ -1718,14 +1718,128 @@ def ele():
     dataset.close()
     return True
 
+def compare_files(file1,file2):
+    from netCDF4 import Dataset
+    import warnings
+    warnings.filterwarnings("ignore")
+    dataset1 = Dataset(file1)
+    dataset2 = Dataset(file2)
+    #dimensions
+    dims1 = dataset1.dimensions
+    dims2 = dataset2.dimensions
+    status = 'OK'
+    errors = []
+    if len(dims1)!=len(dims2):
+        errors.append(f'Number of dimensions is not the same: {len(dims1)} vs. {len(dims2)}')
+    for dim in dims1:
+        if dim not in dims2:
+            errors.append(f'Dimension {dim} is in file1 but not in file2')
+        else:
+            size1 = len(dataset1.dimensions[dim])
+            size2 = len(dataset2.dimensions[dim])
+            if size1 != size2:
+                errors.append(f'Dimensions {dim} have different sizes: {size1} vs. {size2}')
+    for dim in dims2:
+        if dim not in dims1:
+            errors.append(f'Dimension {dim} is in file2 but not in file1')
+    if len(errors)>0:
+        status = 'ERROR'
+    print(f'Dimensions: {status}')
+    if len(errors)>0:
+        print(f'{len(errors)} errors')
+        for error in errors:
+            print(f'[ERROR]{error}')
+    print('------------------------------------')
+
+    # variables
+    vars1 = dataset1.variables
+    vars2 = dataset2.variables
+    status = 'OK'
+    errors = []
+    if len(vars1) != len(vars2):
+        errors.append(f'Number of variables is not the same: {len(vars1)} vs. {len(vars2)}')
+    for var in vars1:
+        if var not in vars2:
+            errors.append(f'Variable {var} is in file1 but not in file2')
+        else:
+            size1 = dataset1.variables[var].shape
+            size2 = dataset2.variables[var].shape
+            if size1 != size2:
+                errors.append(f'Variables {var} have different sizes: {size1} vs. {size2}')
+    for var in vars2:
+        if var not in vars1:
+            errors.append(f'Variable {var} is in file2 but not in file1')
+    if len(errors) > 0:
+        status = 'ERROR'
+    print(f'Variables: {status}')
+    if len(errors) > 0:
+        print(f'{len(errors)} errors')
+        for error in errors:
+            print(f'[ERROR]{error}')
+    print('------------------------------------')
+
+    #global attrs
+    attrs1 = dataset1.__dict__
+    attrs2 = dataset2.__dict__
+    compare_attrs('Global attrs',attrs1,attrs2)
+    print('------------------------------------')
+
+    for var in vars1:
+        if var in vars2:
+            attrs1 = dataset1.variables[var].__dict__
+            attrs2 = dataset2.variables[var].__dict__
+            compare_attrs(f'Variable {var}',attrs1,attrs2)
+    print('------------------------------------------------------')
+    print('DATA CHECK:')
+    for var in vars1:
+        if var in vars2:
+            array1 = dataset1.variables[var][:]
+            array2 = dataset2.variables[var][:]
+            div = array1/array2
+            print(f'Var {var} {np.min(div)} {np.max(div)}')
+
+
+    dataset1.close()
+    dataset2.close()
+
+def compare_attrs(ref,attrs1,attrs2):
+    errors = []
+    warnings = []
+    for key in attrs1:
+        if not key in attrs2:
+            errors.append(f'{key} is available in file 1 but not available in file 2')
+        else:
+            if attrs1[key] != attrs2[key]:
+                warnings.append(f'{key}: {attrs1[key]} not equal to {attrs2[key]}')
+    for key in attrs2:
+        if not key in attrs1:
+            errors.append(f'{key} is available in file 1 but not available in file 2')
+
+    status = 'OK'
+    if len(errors)>0:
+        status = 'ERROR'
+    elif len(warnings)>0 and len(errors)==0:
+        status = 'WARNING'
+
+    print(f'{ref}->{status}')
+    if len(errors)>0:
+        print(f'{len(errors)} errors')
+        for error in errors:
+            print(f'[ERROR]{error}')
+    if len(warnings)>0:
+        print(f'{len(warnings)} warnings')
+        for warning in warnings:
+            print(f'[WARNING]{warning}')
+
 def main():
-    if ele():
-        return
+    # if ele():
+    #     return
     # if tal():
     #     return
     #if check_download():
     #    return
     if args.mode == 'TEST':
+
         print('here')
         do_test2()
         # from netCDF4 import Dataset
@@ -1789,20 +1903,7 @@ def main():
         ##kk()
 
         # update_time(args.path,args.start_date,args.end_date)
-        #correct_time()
-        return
-
-    # if check_med():
-    #     return
-    # if resolve_CCOC_778():
-    #     return
-    # if do_empty_copy():
-    #     return
-    # if do_check():
-    #     return
-
-    if args.mode == 'UPDATE_TIME_EXTRACTS':
-        dir_extracts_certo = None
+        #correct_tim
         dir_extracts_cmems = None
         if args.path:
             dir_extracts_certo = args.path
@@ -1811,6 +1912,21 @@ def main():
         if dir_extracts_certo is not None:
             update_time_extracts(dir_extracts_certo,dir_extracts_cmems)
         return
+
+    if args.mode == 'COMPARE_NC':
+        dir_base1='/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/UPLOAD_CODE_NEW_VERSION/COMPARISON/OLD'
+        dir_base2='/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/UPLOAD_CODE_NEW_VERSION/COMPARISON/NEW'
+        ref = args.path if args.path else None
+        for name in os.listdir(dir_base1):
+            if ref is not None:
+                if name.find(ref)<0:
+                    continue
+            if not name.endswith('.nc'):
+                continue
+            file1 = os.path.join(dir_base1,name)
+            file2 = os.path.join(dir_base2,name)
+            if os.path.exists(file1) and os.path.exists(file2):
+                compare_files(file1,file2)
 
     if args.mode == 'REMOVE_NR_SOURCES':
         remove_nr_sources_impl(args.path, args.start_date, args.end_date, args.type_sources)

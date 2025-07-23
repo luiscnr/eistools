@@ -36,7 +36,7 @@ parser.add_argument("-dname", "--name_dataset", help="Product name")
 parser.add_argument("-del", "--delete_orig", help="Delete original files after uploading them", action="store_true")
 
 
-args = parser.parse_args()
+argsu = parser.parse_args()
 
 
 def main():
@@ -50,7 +50,7 @@ def main():
         return
     if not check_datasets(name_products, name_datasets):
         return
-    if args.verbose:
+    if argsu.verbose:
         print(f'[INFO] Number of selected datasets: {n_datasets}')
         for idataset in range(n_datasets):
             print(f'[INFO]  {name_products[idataset]}/{name_datasets[idataset]}')
@@ -59,53 +59,53 @@ def main():
     start_date, end_date = get_dates()
     if start_date is None or end_date is None:
         return
-    if args.verbose:
+    if argsu.verbose:
         print(f'[INFO] Start date: {start_date} End date: {end_date}')
 
-    if args.check_param:
+    if argsu.check_param:
         return
 
     pinfo = ProductInfo()
     for idataset in range(n_datasets):
         pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] Working with dataset: {name_products[idataset]}/{name_datasets[idataset]}')
         if pinfo.dinfo['frequency'] == 'd':
             pinfomy = None
-            if args.mode == 'DT':
+            if argsu.mode == 'DT':
                 pinfomy = pinfo.get_pinfomy_equivalent()
-            if not args.no_upload:
+            if not argsu.no_upload:
                 make_upload_daily(pinfo, pinfomy, start_date, end_date)
 
         if pinfo.dinfo['frequency'] == 'c':
-            if not args.mode=='MY':
+            if not argsu.mode=='MY':
                 print('f[ERROR] Climatology always must be run as MY')
                 return
-            if not args.no_upload:
-                upload_climatology_dataset_pinfo(pinfo,args.mode,start_date,end_date)
+            if not argsu.no_upload:
+                upload_climatology_dataset_pinfo(pinfo,argsu.mode,start_date,end_date)
 
         if pinfo.dinfo['frequency'] == 'm':
-            if args.verbose:
+            if argsu.verbose:
                 print('***********************************************************')
                 print(f'[INFO] Uploading files to DU: Started')
             pinfomy = None
-            if args.mode == 'DT':
+            if argsu.mode == 'DT':
                 pinfomy = pinfo.get_pinfomy_equivalent()
             pinfo.MODE = 'UPLOAD'
             if pinfomy is not None:
-                if args.verbose:
+                if argsu.verbose:
                     print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
                 pinfomy.MODE = 'UPLOAD'
-                upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date,args.use_mds, args.verbose)
+                upload_monthly_dataset_pinfo(pinfomy, 'MY', start_date, end_date,argsu.use_mds, argsu.verbose)
                 # delete nrt
-                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, args.use_mds,args.verbose)
+                delete.make_delete_monthly_dataset(pinfo, 'NRT', start_date, end_date, argsu.use_mds,argsu.verbose)
             else:
-                upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.use_mds,args.verbose)
-            if args.verbose:
+                upload_monthly_dataset_pinfo(pinfo, argsu.mode, start_date, end_date, argsu.use_mds,argsu.verbose)
+            if argsu.verbose:
                 print(f'[INFO] Uploading files to DU: Completed')
 
 # def make_upload_climatology(pinfo,start_date,end_date):
-#     if args.verbose:
+#     if argsu.verbose:
 #         print(f'[INFO] Uploading files to DU: Started')
 #     pinfo.MODE = 'UPLOAD'
 #
@@ -120,33 +120,33 @@ def main():
 #             day_fin = end_date.day
 #
 #
-#     if args.verbose:
+#     if argsu.verbose:
 #         print(f'[INFO] Uploading files to DU: Completed')
 
 def make_upload_daily(pinfo, pinfomy, start_date, end_date):
-    if args.verbose:
+    if argsu.verbose:
         print(f'[INFO] Uploading files to DU: Started')
     pinfo.MODE = 'UPLOAD'
     delete_nrt = False
 
     if pinfomy is not None:
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
         pinfomy.MODE = 'UPLOAD'
-        upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date,args.use_mds, args.verbose)
+        upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date,argsu.use_mds, argsu.verbose)
         delete_nrt = True
         # delete nrt
-        # delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, args.verbose)
+        # delete.make_delete_daily_dataset(pinfo, 'NRT', start_date, end_date, argsu.verbose)
     else:
-        upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date,args.use_mds, args.verbose)
+        upload_daily_dataset_pinfo(pinfo, argsu.mode, start_date, end_date,argsu.use_mds, argsu.verbose)
 
     # delete nrt if neeed
     if delete_nrt:
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
-        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt,args.use_mds, args.verbose)
+        delete_nrt_daily_dataset(pinfo, start_date_nrt, end_date_nrt,argsu.use_mds, argsu.verbose)
 
-    if args.verbose:
+    if argsu.verbose:
         print(f'[INFO] Uploading files to DU: Completed')
 
 
@@ -154,16 +154,16 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
 def get_datasets():
     # name_products = []
     # name_datasets = []
-    dsel = DatasetSelection(args.mode)
-    if args.name_product and args.name_dataset:
-        name_products = [args.name_product]
-        name_datasets = [args.name_dataset]
-    elif args.name_product and not args.name_dataset:
-        name_products, name_datasets = dsel.get_list_product_datasets_from_product_nane(args.name_product)
-    elif not args.name_product and args.name_dataset:
-        name_products, name_datasets = dsel.get_list_product_datasets_from_dataset_nane(args.name_dataset)
+    dsel = DatasetSelection(argsu.mode)
+    if argsu.name_product and argsu.name_dataset:
+        name_products = [argsu.name_product]
+        name_datasets = [argsu.name_dataset]
+    elif argsu.name_product and not argsu.name_dataset:
+        name_products, name_datasets = dsel.get_list_product_datasets_from_product_nane(argsu.name_product)
+    elif not argsu.name_product and argsu.name_dataset:
+        name_products, name_datasets = dsel.get_list_product_datasets_from_dataset_nane(argsu.name_dataset)
     else:
-        dsel = DatasetSelection(args.mode)
+        dsel = DatasetSelection(argsu.mode)
         region, sensor, dataset_type, frequency, level = get_params_selection_dataset()
         dsel.set_params(region, level, dataset_type, sensor, frequency)
         name_products, name_datasets = dsel.get_list_product_datasets_from_params()
@@ -177,25 +177,25 @@ def get_params_selection_dataset():
     dataset_type = None
     frequency = None
     level = None
-    if args.region:
-        region = args.region
-    if args.sensor:
-        sensor = args.sensor
-    if args.dataset_type:
-        dataset_type = args.dataset_type
-    if args.frequency_product:
-        frequency = args.frequency_product
-    if args.level:
-        level = args.level
+    if argsu.region:
+        region = argsu.region
+    if argsu.sensor:
+        sensor = argsu.sensor
+    if argsu.dataset_type:
+        dataset_type = argsu.dataset_type
+    if argsu.frequency_product:
+        frequency = argsu.frequency_product
+    if argsu.level:
+        level = argsu.level
     return region, sensor, dataset_type, frequency, level
 
 
 ##DATASETS CHECKING
 def check_datasets(name_products, name_datasets):
-    mode_check = args.mode
-    if args.mode == 'MYINT':
+    mode_check = argsu.mode
+    if argsu.mode == 'MYINT':
         mode_check = 'MY'
-    if args.mode == 'DT':
+    if argsu.mode == 'DT':
         mode_check = 'NRT'
     pinfo = ProductInfo()
     for idataset in range(len(name_products)):
@@ -243,12 +243,12 @@ def check_datasets(name_products, name_datasets):
 def get_dates():
     start_date = None
     end_date = None
-    if not args.start_date and not args.end_date:
+    if not argsu.start_date and not argsu.end_date:
         print(f'[ERROR] Start date(-sd) is not given.')
         return start_date, end_date
-    start_date_p = args.start_date
-    if args.end_date:
-        end_date_p = args.end_date
+    start_date_p = argsu.start_date
+    if argsu.end_date:
+        end_date_p = argsu.end_date
     else:
         end_date_p = start_date_p
     start_date = get_date_from_param(start_date_p)
@@ -285,56 +285,56 @@ def get_date_from_param(dateparam):
 #     print('STARTED')
 #     pinfo = ProductInfo()
 #
-#     if args.region:
-#         region = args.region
+#     if argsu.region:
+#         region = argsu.region
 #         if region == 'BS':
 #             region = 'BLK'
 #
 #     do_multiple_datasets = False
-#     if args.mode and args.region and args.level and args.dataset_type and args.sensor:
+#     if argsu.mode and argsu.region and argsu.level and argsu.dataset_type and argsu.sensor:
 #         # pinfo.set_dataset_info_fromparam('MY','BAL','l3','plankton','multi')
-#         pinfo.set_dataset_info_fromparam(args.mode, region, args.level, args.dataset_type, args.sensor)
-#     elif args.mode and args.name_product and args.name_dataset:
-#         pinfo.set_dataset_info(args.name_product, args.name_dataset)
-#     elif args.mode and args.name_product and not args.name_dataset:
-#         pinfo.set_product_info(args.name_product)
+#         pinfo.set_dataset_info_fromparam(argsu.mode, region, argsu.level, argsu.dataset_type, argsu.sensor)
+#     elif argsu.mode and argsu.name_product and argsu.name_dataset:
+#         pinfo.set_dataset_info(argsu.name_product, argsu.name_dataset)
+#     elif argsu.mode and argsu.name_product and not argsu.name_dataset:
+#         pinfo.set_product_info(argsu.name_product)
 #         do_multiple_datasets = True
 #
-#     if args.start_date and args.end_date and not do_multiple_datasets:
-#         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
-#         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+#     if argsu.start_date and argsu.end_date and not do_multiple_datasets:
+#         start_date = dt.strptime(argsu.start_date, '%Y-%m-%d')
+#         end_date = dt.strptime(argsu.end_date, '%Y-%m-%d')
 #         if pinfo.dinfo['frequency'] == 'd':
-#             upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
-#             if args.delete_orig:
+#             upload_daily_dataset_pinfo(pinfo, argsu.mode, start_date, end_date, argsu.verbose)
+#             if argsu.delete_orig:
 #                 pinfo.MODE = 'REFORMAT'
-#                 pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-#                 if args.verbose:
+#                 pinfo.delete_list_file_path_orig(start_date, end_date, argsu.verbose)
+#                 if argsu.verbose:
 #                     print(f'[INFO] Deleting files: Completed')
 #         if pinfo.dinfo['frequency'] == 'm':
-#             upload_monthly_dataset_pinfo(pinfo, args.mode, start_date, end_date, args.verbose)
+#             upload_monthly_dataset_pinfo(pinfo, argsu.mode, start_date, end_date, argsu.verbose)
 #         if pinfo.dinfo['frequency'] == 'c':
-#             upload_climatology_dataset_pinfo(pinfo, args.mode, start_date, end_date)
+#             upload_climatology_dataset_pinfo(pinfo, argsu.mode, start_date, end_date)
 #
-#     if args.start_date and args.end_date and do_multiple_datasets:
-#         start_date = dt.strptime(args.start_date, '%Y-%m-%d')
-#         end_date = dt.strptime(args.end_date, '%Y-%m-%d')
+#     if argsu.start_date and argsu.end_date and do_multiple_datasets:
+#         start_date = dt.strptime(argsu.start_date, '%Y-%m-%d')
+#         end_date = dt.strptime(argsu.end_date, '%Y-%m-%d')
 #         for dname in pinfo.pinfo:
 #             pinfo_here = ProductInfo()
-#             pinfo_here.set_dataset_info(args.name_product, dname)
+#             pinfo_here.set_dataset_info(argsu.name_product, dname)
 #             make = True
-#             if args.frequency_product and args.frequency_product != pinfo_here.dinfo['frequency']:
+#             if argsu.frequency_product and argsu.frequency_product != pinfo_here.dinfo['frequency']:
 #                 make = False
 #             if pinfo_here.dinfo['frequency'] == 'd' and make:
-#                 upload_daily_dataset_pinfo(pinfo_here, args.mode, start_date, end_date, args.verbose)
-#                 if args.delete_orig:
+#                 upload_daily_dataset_pinfo(pinfo_here, argsu.mode, start_date, end_date, argsu.verbose)
+#                 if argsu.delete_orig:
 #                     pinfo.MODE = 'REFORMAT'
-#                     pinfo.delete_list_file_path_orig(start_date, end_date, args.verbose)
-#                     if args.verbose:
+#                     pinfo.delete_list_file_path_orig(start_date, end_date, argsu.verbose)
+#                     if argsu.verbose:
 #                         print(f'[INFO] Deleting files: Completed')
 #             if pinfo_here.dinfo['frequency'] == 'm' and make:
-#                 upload_monthly_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+#                 upload_monthly_dataset_pinfo(pinfo_here, argsu.mode, start_date, end_date)
 #             if pinfo_here.dinfo['frequency'] == 'c' and make:
-#                 upload_climatology_dataset_pinfo(pinfo_here, args.mode, start_date, end_date)
+#                 upload_climatology_dataset_pinfo(pinfo_here, argsu.mode, start_date, end_date)
 
     # b = pinfo.check_dataset_namesin_dict()
     # print(b)
@@ -376,7 +376,7 @@ def upload_daily_dataset_pinfo(pinfo, mode, start_date, end_date, use_mds, verbo
             if mode == 'DT':
                 pinfomy = pinfo.get_pinfomy_equivalent()
             if pinfomy is not None:
-                if args.verbose:
+                if argsu.verbose:
                     print(
                         f'[INFO] Upload to equivalent MY (myint) product: {pinfomy.product_name} : datataset: {pinfomy.dataset_name}')
                 upload_daily_dataset_impl(pinfomy, 'MY', year, month, day_ini, day_fin, use_mds,verbose)
@@ -456,7 +456,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
     ndelivered = 0
     for day in range(start_day, end_day + 1):
         date_here = dt(year, month, day)
-        if args.verbose:
+        if argsu.verbose:
             print('-------------------------')
             print(f'[INFO] Date: {date_here}')
         pfile = pinfo.get_file_path_orig_reformat(date_here)
@@ -482,7 +482,7 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
 
         status = ''
         count = 0
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
 
         while status != 'Delivered' and count < 10:
@@ -506,18 +506,18 @@ def upload_daily_dataset_impl(pinfo, mode, year, month, start_day, end_day, use_
             ndelivered = ndelivered + 1
 
     if ndelivered > 0:
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] Number of files to be delivered: {ndelivered}')
         dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
         ftpdu.go_dnt(pinfo.product_name)
         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
         if status == 'Delivered':
-            if args.verbose:
+            if argsu.verbose:
                 print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
         else:
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
     else:
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] No files to be delivered')
 
     ftpdu.close()
@@ -593,7 +593,7 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month,use_md
     ndelivered = 0
     for month in range(start_month, end_month + 1):
         date_here = dt(year, month, 15)
-        if args.verbose:
+        if argsu.verbose:
             print('-------------------------')
             print(f'[INFO] Date: {date_here}')
         pfile = pinfo.get_file_path_orig_monthly(path_orig, date_here)
@@ -616,7 +616,7 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month,use_md
 
         status = ''
         count = 0
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] Remote_file_name: {remote_file_name}')
 
         while status != 'Delivered' and count < 10:
@@ -638,18 +638,18 @@ def upload_monthly_dataset_impl(pinfo, mode, year, start_month, end_month,use_md
             ndelivered = ndelivered + 1
 
     if ndelivered > 0:
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] Number of files to be delivered: {ndelivered}')
         dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
         ftpdu.go_dnt(pinfo.product_name)
         status, rr, start_upload_TS, stop_upload_TS = ftpdu.transfer_file(dnt_file_name, dnt_file_path)
         if status == 'Delivered':
-            if args.verbose:
+            if argsu.verbose:
                 print(f'[INFO] DNT file {dnt_file_name} transfer to DU succeeded')
         else:
             print(f'[ERROR] DNT file {dnt_file_name} transfer to DU failed')
     else:
-        if args.verbose:
+        if argsu.verbose:
             print(f'[INFO] No files to be delivered')
 
     ftpdu.close()

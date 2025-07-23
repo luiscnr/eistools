@@ -5,7 +5,8 @@ from datetime import datetime as dt
 from datetime import timedelta
 from product_info import ProductInfo
 from reformatCMEMS import ReformatCMEMS
-import uploadtoDBS_202207 as Upload
+from uploadMDS import UploadMDS
+
 
 parser = argparse.ArgumentParser(description='Reformat and upload to the MDS')
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
@@ -263,26 +264,29 @@ def make_reformat_daily(pinfo, pinfomy, start_date, end_date):
 
 def make_upload_daily(pinfo, pinfomy, start_date, end_date):
     if args.verbose:
-        print(f'[INFO] Uploading files to DU: Started')
+        print(f'[INFO] Uploading files to MDS: Started')
     delete_nrt = False
     pinfo.MODE = 'UPLOAD'
+    upload = UploadMDS(args.verbose)
     if pinfomy is not None:
         if args.verbose:
             print(f'[INFO] Using equivalent MY product: {pinfomy.product_name};dataset:{pinfomy.dataset_name}')
         pinfomy.MODE = 'UPLOAD'
-        Upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, True,args.verbose)
+        upload.make_upload_daily('MY',pinfomy,start_date,end_date)
+        #upload.upload_daily_dataset_pinfo(pinfomy, 'MY', start_date, end_date, True,args.verbose)
         delete_nrt = True
     else:
-        Upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, True, args.verbose)
+        upload.make_upload_daily(args.mode,pinfo,start_date,end_date)
+        #Upload.upload_daily_dataset_pinfo(pinfo, args.mode, start_date, end_date, True, args.verbose)
 
     #delete nrt if needed
     if delete_nrt:
         start_date_nrt = start_date - timedelta(days=1)
         end_date_nrt = end_date - timedelta(days=1)
-        Upload.delete_nrt_daily_dataset(pinfo,start_date_nrt,end_date_nrt,True,args.verbose)
+        upload.delete_nrt_daily_dataset(pinfo,start_date_nrt,end_date_nrt,True,args.verbose)
 
     if args.verbose:
-        print(f'[INFO] Uploading files to DU: Completed')
+        print(f'[INFO] Uploading files to MDS: Completed')
         print('***********************************************************')
         print(f'[INFO] Deleting files: Started')
 
