@@ -1914,8 +1914,10 @@ def main():
         return
 
     if args.mode == 'COMPARE_NC':
-        dir_base1='/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/UPLOAD_CODE_NEW_VERSION/COMPARISON/OLD'
-        dir_base2='/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/UPLOAD_CODE_NEW_VERSION/COMPARISON/NEW'
+        #dir_base1='/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/UPLOAD_CODE_NEW_VERSION/COMPARISON/OLD'
+        #dir_base2='/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/UPLOAD_CODE_NEW_VERSION/COMPARISON/NEW'
+        dir_base1='/store/COP2-OC-TAC/OCTACMANAGER/UPLOAD_TEST_NEWVERSION/COMPARISON/OLD'
+        dir_base2='/store/COP2-OC-TAC/OCTACMANAGER/UPLOAD_TEST_NEWVERSION/COMPARISON/NEW'
         ref = args.path if args.path else None
         for name in os.listdir(dir_base1):
             if ref is not None:
