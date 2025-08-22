@@ -11,6 +11,7 @@ import json
 
 
 class NASA_DOWNLOAD:
+
     def __init__(self):
         import __init__
         main_path = os.path.dirname(__init__.__file__)
@@ -18,7 +19,8 @@ class NASA_DOWNLOAD:
         if not os.path.exists(config_file):
             config_file = os.path.join(os.path.dirname(main_path),'config_download_tool.ini')
         if not os.path.exists(config_file):
-            print('[WARNING] Configuration file config_download_tool does not exist. Some charteristics could not be loaded')
+            config_filem = os.path.join(main_path, 'config_download_tool.ini')
+            print(f'[WARNING] Configuration file {config_filem} or {config_file} does not exist. Some charteristics could not be loaded')
 
         self.apikey = '22da4a89034645c3653f75dcd49ea11639976cef'
         self.apikey_list = {}
@@ -29,75 +31,14 @@ class NASA_DOWNLOAD:
         if os.path.exists(config_file):
             self.load_configuration(config_file)
 
-
-
         self.direct_access_base_url = 'https://oceandata.sci.gsfc.nasa.gov/directdataaccess/Level-2/'
+        self.direct_access_base_url_level1b = 'https://oceandata.sci.gsfc.nasa.gov/directdataaccess/Level-1B/'
         self.url_download = 'https://oceandata.sci.gsfc.nasa.gov/ob/getfile/'
         self.api_download = 'https://cmr.earthdata.nasa.gov/search/granules.umm_json?page_size=20&sort_key=short_name&sort_key=start_date'
         self.time_min = 6
         self.time_max = 18
-        self.sensors = {
-            'AQUA': {
-                'direct_access_folder': 'Aqua-MODIS',
-                'nrt_wce': "AQUA_MODIS.DATET\d*\.L2\.OC\.NRT\.nc",
-                'dt_wce': "AQUA_MODIS.DATET\d*\.L2\.OC\.nc",
-                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/AQUASOURCES",
-                "prefix": "AQUA_MODIS.DATE",
-                "suffix_dt": ".L2.OC.nc",
-                "name_cnr_prefix": "A",
-                "name_cnr_suffix": ".L2_LAC_OC.nc",
-                "short_name": "MODISA_L2_OC_NRT"
-            },
-            'VIIRSJ': {
-                'direct_access_folder': 'NOAA20-VIIRS',
-                'nrt_wce': "JPSS1_VIIRS.DATET\d*\.L2\.OC\.NRT\.nc",
-                'dt_wce': "JPSS1_VIIRS.DATET\d*\.L2\.OC\.nc",
-                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/VIIRSJSOURCES",
-                "nrt_cnr_server_wce": "DATE_VIIRSJ_NRT_REGION_oc_proc_L2_",
-                "prefix": "JPSS1_VIIRS.DATE",
-                "suffix_dt": ".L2.OC.nc",
-                "name_cnr_prefix": "V",
-                "name_cnr_suffix": ".L2_JPSS1_OC.nc",
-                "short_name": "VIIRSJ1_L2_OC_NRT"
 
-            },
-            'VIIRS': {
-                'direct_access_folder': 'SNPP-VIIRS',
-                'nrt_wce': "SNPP_VIIRS.DATET\d*\.L2\.OC\.NRT\.nc",
-                'dt_wce': "SNPP_VIIRS.DATET\d*\.L2\.OC\.nc",
-                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/VIIRSSOURCES",
-                "nrt_cnr_server_wce": "DATE_VIIRS_NRT_REGION_oc_proc_L2_",
-                "prefix": "SNPP_VIIRS.DATE",
-                "suffix_dt": ".L2.OC.nc",
-                "name_cnr_prefix": "V",
-                "name_cnr_suffix": ".L2_SNPP_OC.nc",
-                "short_name": "VIIRSN_L2_OC_NRT"
-            },
-            'PACE_AOP':{
-                'direct_access_folder': 'PACE-OCI',
-                'nrt_wce': "PACE_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.NRT\.nc",
-                'dt_wce': "PACE_OCI.DATET\d*\.L2\.OC_AOP\.V2_0\.nc",
-                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/PACESOURCES",
-                "nrt_cnr_server_wce": "DATE_PACE_NRT_REGION_oc_proc_L2_",
-                "prefix": "PACE_OCI.DATE",
-                "suffix_dt": ".L2.OC_AOP.V2_0.nc",
-                "name_cnr_prefix": "P",
-                "name_cnr_suffix": ".L2_OCI_OC.nc",
-                "short_name": "PACE_OCI_L2_AOP"
-            },
-            'PACE_SCI': {
-                'direct_access_folder': 'PACE-OCI',
-                'nrt_wce': "PACE_OCI.DATET\d*\.L1B\.OC_SCI\.V2_0\.NRT\.nc",
-                'dt_wce': "PACE_OCI.DATET\d*\.L1B\.OC_SCI\.V2_0\.nc",
-                "nrt_cnr_server_dir": "/mnt/c/DATA_LUIS/OCTAC_WORK/CC0C-591-_100days/PACESOURCES",
-                "nrt_cnr_server_wce": "DATE_PACE_NRT_REGION_oc_proc_L2_",
-                "prefix": "PACE_OCI.DATE",
-                "suffix_dt": ".L2.OC_AOP.V2_0.nc",
-                "name_cnr_prefix": "P",
-                "name_cnr_suffix": ".L2_OCI_OC.nc",
-                "short_name": "PACE_OCI_L1B_SCI"
-            }
-        }
+
 
     def load_configuration(self,fconfig):
         import configparser
@@ -116,11 +57,6 @@ class NASA_DOWNLOAD:
                     self.load_sensor(section.upper(),options[section])
                 if options[section]['type']=='site':
                     self.load_site(section.upper(),options[section])
-
-        # print(self.apikey_list)
-        # print(self.apikey)
-        # print(self.sensors_info)
-        # print(self.sensors_names)
 
     def load_site(self,site_name,site_section):
         self.sites_info[site_name]={
@@ -177,7 +113,7 @@ class NASA_DOWNLOAD:
 
     def check_scenes_med_bs_API(self,sen,date_here):
         ##check first dt
-        short_name = self.sensors[sen]['short_name']
+        short_name = self.sensors_info[sen]['short_name']
         short_name_dt = short_name.replace('_NRT', '')
         geo_limits = [30.0,48.0,-6.0,42.0]
         bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
@@ -212,24 +148,24 @@ class NASA_DOWNLOAD:
 
 
     def getscenes_by_region_EarthData_API(self,sen, date_here,geo_limits,is_dt):
-        short_name = self.sensors[sen]['short_name']
+        short_name = self.sensors_info[sen]['short_name']
         if is_dt: short_name = short_name.replace('_NRT','')
         bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
         date_next = date_here + timedelta(hours=24)
         temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
 
         url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
-        print(url_complete)
+        #print(url_complete)
         http = urllib3.PoolManager()
         resp = http.request("GET", url_complete)
         data = json.loads(resp.data)
         ngranules = data['hits']
-        print(ngranules)
+        #print(ngranules)
         granules = []
         if ngranules > 0:
             for item in data['items']:
-                print('---------------------------------------------------------')
-                print(item)
+                #print('---------------------------------------------------------')
+                #print(item)
                 name = item['umm']['DataGranule']['ArchiveAndDistributionInformation'][0]['Name']
                 date_name = dt.strptime(name.split('.')[1], '%Y%m%dT%H%M%S')
                 if self.time_min <= date_name.hour <= self.time_max:
@@ -238,7 +174,7 @@ class NASA_DOWNLOAD:
 
     def getscenes_by_point_EarthData_API(self, sen, date_here, insitu_lat,insitu_lon,is_dt):
 
-        short_name = self.sensors[sen]['short_name']
+        short_name = self.sensors_info[sen]['short_name']
         if is_dt: short_name = short_name.replace('_NRT', '')
 
         lon_min = insitu_lon - 0.5
@@ -248,6 +184,7 @@ class NASA_DOWNLOAD:
         bounding_box = f'{lon_min},{lat_min},{lon_max},{lat_max}'
         date_next = date_here + timedelta(hours=24)
         temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
+        print(f'[INFO] Retrieving list for sensor: {short_name}')
         #url_complete = f'{self.api_download}&short_name={short_name}&provider=OB_DAAC&bounding_box={bounding_box}&temporal={temporal}'
         url_complete = f'{self.api_download}&short_name={short_name}&bounding_box={bounding_box}&temporal={temporal}'
         #url_complete = f'{self.api_download}&short_name={short_name}&temporal={temporal}'
@@ -284,26 +221,26 @@ class NASA_DOWNLOAD:
 
 
     def get_path_orig(self, sensor, date_here):
-        path = self.sensors[sensor]['nrt_cnr_server_dir']
+        path = self.sensors_info[sensor]['nrt_cnr_server_dir']
         path_date = os.path.join(path, date_here.strftime('%Y'), date_here.strftime('%j'))
         return path_date
 
     def get_list_files_orig(self, sensor, date_here):
-        path = self.sensors[sensor]['nrt_cnr_server_dir']
+        path = self.sensors_info[sensor]['nrt_cnr_server_dir']
         path_date = os.path.join(path, date_here.strftime('%Y'), date_here.strftime('%j'))
 
         dest_list = {}
 
         for name in os.listdir(path_date):
-            prefix = self.sensors[sensor]['name_cnr_prefix']
-            suffix = self.sensors[sensor]['name_cnr_suffix']
+            prefix = self.sensors_info[sensor]['name_cnr_prefix']
+            suffix = self.sensors_info[sensor]['name_cnr_suffix']
 
             if not name.startswith(prefix) or not name.endswith(suffix):
                 continue
 
             datestr = name[name.find(prefix) + len(prefix):name.find(suffix)]
-            suffix_dt = self.sensors[sensor]['suffix_dt']
-            name_output = self.sensors[sensor]['prefix']
+            suffix_dt = self.sensors_info[sensor]['suffix_dt']
+            name_output = self.sensors_info[sensor]['prefix']
             datefile = dt.strptime(datestr, '%Y%j%H%M%S')
             name_output = name_output.replace('DATE', datefile.strftime('%Y%m%dT%H%M%S'))
             name_output = f'{name_output}{suffix_dt}'
@@ -313,8 +250,8 @@ class NASA_DOWNLOAD:
         return dest_list
 
     def get_date_with01(self, name_file, sensor):
-        prefix = self.sensors[sensor]['prefix']
-        suffix = self.sensors[sensor]['suffix_dt']
+        prefix = self.sensors_info[sensor]['prefix']
+        suffix = self.sensors_info[sensor]['suffix_dt']
         datestr = name_file[prefix.find('DATE'):name_file.find(suffix)]
         datestr = dt.strptime(datestr, '%Y%m%dT%H%M%S').replace(second=1).strftime('%Y%m%dT%H%M%S')
         name_file_out = prefix.replace('DATE', datestr)
@@ -325,7 +262,8 @@ class NASA_DOWNLOAD:
         year_str = date_here.strftime('%Y')
         #jday_str = date_here.strftime('%j')
         jday_str = date_here.strftime('%d-%b-%Y')
-        url = os.path.join(self.direct_access_base_url, self.sensors[sensor]['direct_access_folder'], year_str,
+        baseurl = self.direct_access_base_url_level1b if sensor=='PACE_SCI' else self.direct_access_base_url
+        url = os.path.join(baseurl, self.sensors_info[sensor]['direct_access_folder'], year_str,
                            jday_str)
         return url
 
@@ -333,19 +271,25 @@ class NASA_DOWNLOAD:
         url = os.path.join(self.url_download, name_file)
         return url
 
-    def download_file(self, name_file, file_out):
-        url = self.get_url_download(name_file)
-        r = requests.get(url, allow_redirects=True)
-        open(file_out, 'wb').write(r.content)
+    def download_granule(self, granule, path_out,overwrite):
+        import obdaac_download as od
+        file_out = os.path.join(path_out,granule)
+        if os.path.exists(file_out) and not overwrite:
+            print(f'[WARNING] File {file_out} already exist. Skipping...')
+            return
+        url = self.get_url_download(granule)
+        od.do_download(url, path_out, self.apikey)
+
+        #open(file_out, 'wb').write(r.content)
 
     def get_wce_nrt_cnr_server(self, sensor, date_here, region):
-        wce = self.sensors[sensor]['nrt_cnr_server_wce']
+        wce = self.sensors_info[sensor]['nrt_cnr_server_wce']
         wce = wce.replace('DATE', date_here.strftime('%Y%j'))
         wce = wce.replace('REGION', region.upper())
         return wce
 
     def get_folder_nrt_cnr_server(self, sensor, date_here):
-        path_base = self.sensors[sensor]['nrt_cnr_server_dir']
+        path_base = self.sensors_info[sensor]['nrt_cnr_server_dir']
         folder = os.path.join(path_base, date_here.strftime('%Y'), date_here.strftime('%j'))
         return folder
 
@@ -360,7 +304,7 @@ class NASA_DOWNLOAD:
                 date_str_file = name.split('_')[7][1:].split('.')[0]
                 date_file = dt.strptime(date_str_file, '%Y%j%H%M%S')
                 str_date_prefix = date_file.strftime('%Y%m%dT%H%M')
-                prefix = self.sensors[sensor]['prefix']
+                prefix = self.sensors_info[sensor]['prefix']
                 prefix = prefix.replace('DATE', str_date_prefix)
                 lprefix.append(prefix)
         if len(lprefix) == 0:
@@ -372,7 +316,7 @@ class NASA_DOWNLOAD:
         ssl._create_default_https_context = ssl._create_unverified_context
         url_date = self.get_url_date(sensor, date_here)
 
-        wce = self.sensors[sensor]['dt_wce']
+        wce = self.sensors_info[sensor]['dt_wce']
         wce = wce.replace('DATE', datestr)
 
         this_try = 1
@@ -405,10 +349,10 @@ class NASA_DOWNLOAD:
         page = response.read()
         page = page.decode('utf-8')
         if mode.upper() == 'NRT':
-            wce = self.sensors[sensor]['nrt_wce']
+            wce = self.sensors_info[sensor]['nrt_wce']
             suffix = 'L2.OC.NRT.nc'
         elif mode.upper() == 'DT':
-            wce = self.sensors[sensor]['dt_wce']
+            wce = self.sensors_info[sensor]['dt_wce']
             suffix = 'L2.OC.nc'
         wce = wce.replace('DATE', datestr)
 
@@ -429,3 +373,90 @@ class NASA_DOWNLOAD:
         scenes = list(set(scenes))
 
         print(' '.join(scenes))
+
+    def get_list_date(self,sensor, site_name, region, lat_point, lon_point, date_here,use_nrt):
+        import os
+        import obdaac_download as od
+        sensor = self.check_sensor(sensor)
+        if sensor is None:
+            return
+
+        is_dt = True if not use_nrt else False
+
+        listr = []
+        if site_name is not None:
+            listr = self.getscenes_by_site_EarthData_API(sensor, date_here, site_name, is_dt)
+        elif region is not None:
+            listr = self.getscenes_by_region_EarthData_API(sensor,date_here,region,is_dt)
+        elif lat_point is not None and lon_point is not None:
+            listr = self.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point, is_dt)
+
+        if is_dt and len(listr) == 0:  ##check also with nrt mode
+            is_dt = False
+            if site_name is not None:
+                listr = self.getscenes_by_site_EarthData_API(sensor, date_here, site_name, is_dt)
+            elif lat_point is not None and lon_point is not None:
+                listr = self.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point, is_dt)
+
+        return listr
+
+    def download_list(self,output_path,sensor,listr,date_here,overwrite):
+        import obdaac_download as od
+        if len(listr)==0:
+            print(f'[INFO] No granules were found to be downloaded for date: {date_here}')
+        if output_path is not None:
+            self.sensors_info[sensor]['nrt_cnr_server_dir'] = output_path
+        path_out = self.get_path_orig(sensor, date_here)
+
+        print(f'[INFO] {len(list)} granules identified for date {date_here}')
+
+        for granule in list:
+            print(f'[INFO] Downloading granule: {granule}')
+            file_granule = os.path.join(path_out, granule)
+            if os.path.exists(file_granule) and not overwrite:
+                print(f'[WARNING] Ouput file: {file_granule} already exists. Skipping....')
+                return
+            url = self.get_url_download(granule)
+            od.do_download(url, path_out, self.apikey)
+
+    def download_date(self,output_path,sensor, site_name,region, lat_point, lon_point, date_here,use_nrt,overwrite):
+        listr = self.get_list_date(sensor,site_name,region,lat_point,lon_point,date_here,use_nrt)
+        self.download_list(output_path,sensor,listr,date_here,overwrite)
+        # import os
+        # import obdaac_download as od
+        # sensor = self.check_sensor(sensor)
+        # if sensor is None:
+        #     return
+        # if output_path is not None:
+        #     self.sensors_info[sensor]['nrt_cnr_server_dir'] = output_path
+        # path_out = self.get_path_orig(sensor, date_here)
+        #
+        # is_dt = True if not use_nrt else False
+        #
+        # list = []
+        # if site_name is not None:
+        #     list = self.getscenes_by_site_EarthData_API(sensor, date_here, site_name, is_dt)
+        # elif lat_point is not None and lon_point is not None:
+        #     list = self.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point, is_dt)
+        #
+        # if is_dt and len(list)==0: ##check also with nrt mode
+        #     is_dt = False
+        #     if site_name is not None:
+        #         list = self.getscenes_by_site_EarthData_API(sensor, date_here, site_name, is_dt)
+        #     elif lat_point is not None and lon_point is not None:
+        #         list = self.getscenes_by_point_EarthData_API(sensor, date_here, lat_point, lon_point, is_dt)
+        #
+        # if len(list) > 0:
+        #     print(f'[INFO] {len(list)} granules identified for date {date_here}')
+        #     for granule in list:
+        #         print(f'[INFO] Downloading granule: {granule}')
+        #         file_granule = os.path.join(path_out, granule)
+        #         if os.path.exists(file_granule) and not overwrite:
+        #             print(f'[WARNING] Ouput file: {file_granule} already exists. Skipping....')
+        #             return
+        #
+        #         url = self.get_url_download(granule)
+        #         od.do_download(url, path_out, self.apikey)
+        # else:
+        #     print(f'[INFO] No granules were found to be downloaded for date: {date_here}')
+
