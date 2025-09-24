@@ -45,7 +45,18 @@ class CMEMS_LOIS:
                 date_list.append(work_date)
                 work_date = work_date + timedelta(hours=24)
 
+        myintdate = None
+        if 'myint_date' in cmems_options and cmems_options['myint_date'] is not None:
+            try:
+                myintdate = dt.strptime(cmems_options['myint_date'],'%Y-%m-%d')
+            except:
+                print(f'[WARNING] Format for option cmems_download/myiint_date {cmems_options["myint_date"]} is not correct. It should be YYYY-mm-ddd. Date will not be used')
+                pass
+
         for work_date in date_list:
+            usemyint = False
+            if myintdate is not None:
+                usemyint = True if myintdate>=work_date else False
 
             if 'remote_name' in list(cmems_options.keys()):
                 bucket, key, available = sb.check_daily_file_name(work_date,cmems_options['remote_name'])
@@ -64,7 +75,7 @@ class CMEMS_LOIS:
                         else:
                             file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, overwrite)
                     if self.verbose:
-                        print(f'--> Output file: {file_out} Download status: {os.path.exists(file_out)}')
+                        print(f'[INFO] Output file: {file_out} Download status: {os.path.exists(file_out)}')
         sb.close_client()
 
     def get_folder_out(self,work_date, od, ods):
