@@ -33,7 +33,7 @@ class GeneralHTML_Download():
         if url is None:
             print(f'[ERROR] URL for date {date_here.strftime("%Y-%m-%d")} could not be retrieved')
             return
-        self.httpdl(url,output_path)
+        return self.httpdl(url,output_path)
 
     def getSession(self):
         if self.global_session is None:
@@ -67,6 +67,7 @@ class GeneralHTML_Download():
 
 
         percent_included = []
+
         with self.global_session.get(urlStr, stream=True, timeout=self.timeout) as req:
             if req.status_code != 200:
                 status = req.status_code
@@ -92,7 +93,7 @@ class GeneralHTML_Download():
         return status
 
     def check_file_date(self,outputdir,date_here):
-        path_here = self.path
+        path_here = self.path.split('/')[-1]
         for iformat,format in enumerate(self.date_formats):
             path_here = path_here.replace(f'$DATE{iformat}$',date_here.strftime(format))
         file_here = os.path.join(outputdir,path_here)
