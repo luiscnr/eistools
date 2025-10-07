@@ -314,8 +314,7 @@ class EUMDAC_LOIS:
             print(f'[INFO] {len(products)} datasets found for the given area of interest')
 
         if len(products) == 0:
-            print(
-                f'[WARNING] No product found for S3 {level} {resolution}  for date {datestr}, bounding box: {boundingbox}, timeliness: {timeliness}')
+            print(f'[WARNING] No product found for S3 {level} {resolution}  for date {datestr}, bounding box: {boundingbox}, timeliness: {timeliness}')
             return products, list_products, collection_id
 
         self.save_file_list(list_products)

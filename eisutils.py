@@ -1840,8 +1840,12 @@ def main():
     #    return
     if args.mode == 'TEST':
 
-        print('here')
-        do_test2()
+
+        from html_download import  OC_CCI_V6_Download
+        cciDownload = OC_CCI_V6_Download()
+        cciDownload.overwritte = True
+        cciDownload.download_date(dt(2024,6,3),'/mnt/c/DATA')
+        # do_test2()
         # from netCDF4 import Dataset
         # file_nc = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/AERONET_OC/MDB_CERTO_OLCI_300M_CERTO-OLCI-L3_20190827T000000_20240818T000000_AERONET_Section-7_Platform.nc'
         # dataset = Dataset(file_nc,'r')
@@ -1904,13 +1908,13 @@ def main():
 
         # update_time(args.path,args.start_date,args.end_date)
         #correct_tim
-        dir_extracts_cmems = None
-        if args.path:
-            dir_extracts_certo = args.path
-        if args.output_path:
-            dir_extracts_cmems = args.output_path
-        if dir_extracts_certo is not None:
-            update_time_extracts(dir_extracts_certo,dir_extracts_cmems)
+        # dir_extracts_cmems = None
+        # if args.path:
+        #     dir_extracts_certo = args.path
+        # if args.output_path:
+        #     dir_extracts_cmems = args.output_path
+        # if dir_extracts_certo is not None:
+        #     update_time_extracts(dir_extracts_certo,dir_extracts_cmems)
         return
 
     if args.mode == 'COMPARE_NC':
