@@ -1844,8 +1844,8 @@ def main():
         from html_download import  OC_CCI_V6_Download
         cciDownload = OC_CCI_V6_Download()
         cciDownload.overwritte = False
-        status = cciDownload.download_date(dt(2024,6,3),'/mnt/c/DATA')
-        if status==0 and cciDownload.check_file_date('/mnt/c/DATA',dt(2024,6,3)):
+        status = cciDownload.download_date(dt(2024,3,24),'/mnt/c/DATA')
+        if status==0 and cciDownload.check_file_date('/mnt/c/DATA',dt(2024,3,24)):
             print('termina')
         # do_test2()
         # from netCDF4 import Dataset

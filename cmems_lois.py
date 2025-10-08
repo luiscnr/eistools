@@ -50,15 +50,16 @@ class CMEMS_LOIS:
             try:
                 myintdate = dt.strptime(cmems_options['myint_date'],'%Y-%m-%d')
             except:
-                print(f'[WARNING] Format for option cmems_download/myiint_date {cmems_options["myint_date"]} is not correct. It should be YYYY-mm-ddd. Date will not be used')
+                print(f'[WARNING] Format for option cmems_download/myint_date {cmems_options["myint_date"]} is not correct. It should be YYYY-mm-ddd. Date will not be used')
                 pass
 
         for work_date in date_list:
             usemyint = False
             if myintdate is not None:
-                usemyint = True if myintdate>=work_date else False
-
+                usemyint = True if work_date>=myintdate else False
             if 'remote_name' in list(cmems_options.keys()):
+                if usemyint:
+                    cmems_options['remote_name'] = cmems_options['remote_name'].replace('my','myint')
                 bucket, key, available = sb.check_daily_file_name(work_date,cmems_options['remote_name'])
             else:
                 bucket, key, available, usemyint = sb.check_daily_file_params(work_date)
