@@ -378,7 +378,7 @@ class NASA_DOWNLOAD:
         print(' '.join(scenes))
 
 
-    def get_list_date_with_options(self,options):
+    def get_list_date_with_options(self,options,sensor, site_name, region, lat_point, lon_point, date_here):
         timeliness = 'DT' if 'timeliness' not in options.keys() else options['timeliness']
         version = None if 'version' not in options.keys() else options['version']
         if timeliness is None:
