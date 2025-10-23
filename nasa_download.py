@@ -40,6 +40,7 @@ class NASA_DOWNLOAD:
 
 
 
+
     def load_configuration(self,fconfig):
         import configparser
         options = configparser.ConfigParser()
@@ -149,6 +150,8 @@ class NASA_DOWNLOAD:
 
     def getscenes_by_region_EarthData_API(self,sen, date_here,geo_limits,is_dt):
         short_name = self.sensors_info[sen]['short_name']
+
+
         if is_dt: short_name = short_name.replace('_NRT','')
         bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
         date_next = date_here + timedelta(hours=24)
@@ -373,6 +376,50 @@ class NASA_DOWNLOAD:
         scenes = list(set(scenes))
 
         print(' '.join(scenes))
+
+
+    def get_list_date_with_options(self,options):
+        timeliness = 'DT' if 'timeliness' not in options.keys() else options['timeliness']
+        version = None if 'version' not in options.keys() else options['version']
+        if timeliness is None:
+            print(f'[ERROR] Timeliness {timeliness} is not valid. Download can not be started')
+            return
+
+        if version is not None:
+            version_valid = True if version.startswith('V') else False
+            if version_valid:
+                try:
+                    float(version[1:].replace('_','.'))
+                except:
+                    version_valid = False
+            if not version_valid:
+                print(f'[ERROR] Version {version} is not valid. It should be in the format V#_# (e.g. V3_1). Download can not be started')
+                return
+
+
+        list_dt = []
+        list_nrt = []
+        if timeliness=='DT' or timeliness=='ANY':
+            list_dt = self.get_list_date(sensor,site_name,region,lat_point,lon_point,date_here,False)
+        if timeliness=='NRT' or timeliness=='ANY':
+            list_nrt = self.get_list_date(sensor,site_name,region,lat_point,lon_point,date_here,True)
+
+        final_list = []
+        for granule in list_dt:
+            if version is not None and granule.find(version)==-1:
+                print(f'[WARNING] Granule {granule} is not in the correct version {version} required for downloading')
+                continue
+            final_list.append(granule)
+        for granule in list_nrt:
+            if version is not None and granule.find(version)==-1:
+                print(f'[WARNING] Granule {granule} is not in the correct version {version} required for downloading')
+                continue
+            final_list.append(granule)
+
+        return final_list
+
+
+
 
     def get_list_date(self,sensor, site_name, region, lat_point, lon_point, date_here,use_nrt):
         import os
