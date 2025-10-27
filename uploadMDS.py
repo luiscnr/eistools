@@ -9,7 +9,7 @@ from deleteMDS import DeleteMDS
 
 class UploadMDS:
 
-    def __init__(self, version,verbose):
+    def __init__(self, verbose):
         #self.mode = 'REFORMAT'
         self.verbose = verbose
 
