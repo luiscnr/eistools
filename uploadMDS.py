@@ -83,7 +83,7 @@ class UploadMDS:
     #important: pinfo is a ProductInfo object already containing the information of the product and dataset
     # mode: MY o NRT, (DT)
     def upload_daily_dataset_impl(self,pinfo, mode, year, month, start_day, end_day):
-        ftpdu = FTPUpload(mode,True)
+        ftpdu = FTPUpload(mode)
         deliveries = Deliveries()
         path_orig = pinfo.get_path_orig(year)
         rpath, sdir = pinfo.get_remote_path(year, month)
