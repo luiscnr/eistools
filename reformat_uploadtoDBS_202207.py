@@ -190,7 +190,7 @@ def get_datasets():
     elif not args.name_product and args.name_dataset:
         name_products, name_datasets = dsel.get_list_product_datasets_from_dataset_nane(args.name_dataset)
     else:
-        dsel = DatasetSelection(args.mode)
+        dsel = DatasetSelection(args.mode,None)
         region, sensor, dataset_type, frequency, level = get_params_selection_dataset()
         dsel.set_params(region, level, dataset_type, sensor, frequency)
         name_products, name_datasets = dsel.get_list_product_datasets_from_params()
