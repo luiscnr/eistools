@@ -331,7 +331,7 @@ class S3Bucket():
             if date >= datemyintref:
                 remote_name = remote_name.replace('my', 'myint')
 
-        key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+        key = f'native/{self.PRODUCT}/{self.DATASET}{self.TAG}/{subdir}/{remote_name}'
 
         isuploaded = True
         try:
