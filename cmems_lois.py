@@ -54,6 +54,7 @@ class CMEMS_LOIS:
                 pass
 
         for work_date in date_list:
+            print(work_date,type(work_date))
             usemyint = False
             if myintdate is not None:
                 usemyint = True if work_date>=myintdate else False

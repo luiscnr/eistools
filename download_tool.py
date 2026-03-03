@@ -56,6 +56,7 @@ def main():
     if args.sensor == 'CMEMS':
         cmems_options = get_cmems_options()
         if cmems_options is None:
+            print(f'[ERROR] Error retrieving CMEMS options')
             return
 
         make_cmems_download(cmems_options, args.make_download, output_directory, ods)
@@ -88,6 +89,7 @@ def get_cmems_options():
     from product_info import ProductInfo
     from s3buckect import S3Bucket
     from datetime import datetime as dt
+    from datetime import timedelta
     keyList = ['start_date', 'end_date', 'date_list','product', 'dataset', 'endpoint', 'bucket', 'tag']
     cmems_options = {key: None for key in keyList}
     if args.date_list_file:
@@ -100,14 +102,20 @@ def get_cmems_options():
             except:
                 pass
         cmems_options['date_list'] = date_list
-        cmems_options['start_date'] = 'NotNeeded'
-        cmems_options['end_date'] = 'NotNeeded'
+        cmems_options['start_date'] = None
+        cmems_options['end_date'] = None
     else:
         start_date, end_date = get_start_end_dates()
         cmems_options['start_date'] = start_date
         cmems_options['end_date'] = end_date
-        cmems_options['date_list'] = 'NotNeeded'
+        work_date = start_date
+        date_list = []
+        while work_date <= end_date:
+            date_list.append(work_date)
+            work_date = work_date + timedelta(hours=24)
+        cmems_options['date_list'] = date_list
     if args.config_file:
+        print(f'[ERROR] --config_file (-c) is not implemented')
         return None
     else:
         if not args.product_name:
@@ -158,6 +166,8 @@ def get_start_end_dates():
             except:
                 print(f'[ERROR] Start date {args.start_date} is not in the correct format')
                 return None, None
+        else:
+            start_date = None
         if args.end_date:
             try:
                 end_date = dt.strptime(args.end_date, '%Y-%m-%d')
