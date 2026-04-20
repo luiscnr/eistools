@@ -1,10 +1,11 @@
-import argparse
-import os
+import argparse, os
+from datetime import datetime as dt
+from datetime import timedelta
 
 parser = argparse.ArgumentParser(description='Download tool')
 parser.add_argument("-c", "--config_file", help="Configuration file")
 
-parser.add_argument("-s", "--sensor", help="Sensor", choices=["OLCIA", "OLCIB", "OLCI", "CMEMS"], required=True)
+parser.add_argument("-s", "--sensor", help="Sensor", choices=["OLCIA", "OLCIB", "OLCI", "CMEMS","CCI_4KM"], required=True)
 parser.add_argument("-od", "--output_directory",
                     help="Output directory for downloading (only if make download is enabled)")
 parser.add_argument("-ods", "--output_directory_structure", help="Output directory structure")
@@ -30,6 +31,15 @@ parser.add_argument("-olcil", "--olci_level", choices=["L1B", "L2"], help="Level
 
 parser.add_argument("-ow", "--overwrite", help="Overwrite output file(s).", action="store_true")
 parser.add_argument("-v", "--verbose", help="Verbose mode.", action="store_true")
+
+##cci options
+##region -reg_cci --region_cci
+parser.add_argument("-reg_cci", "--region_cci", help="Region", choices=["GLOBAL","BAL", "MED", "BLK", "ARC","MED+BLK"],default="GLOBAL")
+##-var --var_group
+parser.add_argument("-var_cci", "--var_cci_group", help="Variable group for cci, combining using _: all, rrs, chl, iop, kd, owt, obs, rrsfile, chlfile, iopfile, kdfile",default='all')
+##-type_cci --type_cci_product
+parser.add_argument("-type_cci", "--type_cci_product", help="CCI Type product",choices=["subset","all","rrs","chl","iop","kd"],default='subset')
+
 
 args = parser.parse_args()
 
@@ -61,6 +71,12 @@ def main():
 
         make_cmems_download(cmems_options, args.make_download, output_directory, ods)
 
+    if args.sensor == 'CCI_4KM':
+        print(f'[INFO] Started download for sensor CCI_4KM. Make download: {args.make_download}')
+        cci_options = get_cci_options()
+        if args.make_download:
+            make_cci_download(cci_options,output_directory, ods)
+
     # if args.sensor.startswith('OLCI'):
     #     include_sensors = set_sensors()
     #     if check_olci(include_sensors):
@@ -74,6 +90,13 @@ def make_cmems_download(cmems_options, make_download, output_directory, ods):
     clois = CMEMS_LOIS(args.verbose)
     clois.make_cmems_download(cmems_options,make_download,output_directory,ods,args.overwrite)
 
+def make_cci_download(cci_options,output_directory,ods):
+    from html_download import OC_CCI_V6_Download
+
+    cci_download = OC_CCI_V6_Download(cci_options['type_product'])
+    cci_download.make_bulk_download(cci_options,output_directory,ods,args.overwrite)
+
+
 def create_if_not_exists(folder):
     if not os.path.exists(folder):
         try:
@@ -84,12 +107,47 @@ def create_if_not_exists(folder):
 
     return True
 
+def get_cci_options():
+    region = None if args.region_cci=="GLOBAL" else args.region_cci
+    cci_options = {
+        'region': region,
+        'var_group': args.var_cci_group,
+        'geo_limits': None,
+        'var_list': None,
+        'date_list': None,
+        'start_date': None,
+        'end_date':None,
+        'type_product': args.type_cci_product
+    }
+    if args.date_list_file:
+        date_list = []
+        fr = open(args.date_list_file,'r')
+        for line in fr:
+            try:
+                date_here = dt.strptime(line.strip(),'%Y-%m-%d')
+                date_list.append(date_here)
+            except:
+                pass
+        cci_options['date_list'] = date_list
+        cci_options['start_date'] = None
+        cci_options['end_date'] = None
+    else:
+        start_date, end_date = get_start_end_dates()
+        cci_options['start_date'] = start_date
+        cci_options['end_date'] = end_date
+        work_date = start_date
+        date_list = []
+        while work_date <= end_date:
+            date_list.append(work_date)
+            work_date = work_date + timedelta(hours=24)
+        cci_options['date_list'] = date_list
+
+    return cci_options
 
 def get_cmems_options():
     from product_info import ProductInfo
     from s3buckect import S3Bucket
-    from datetime import datetime as dt
-    from datetime import timedelta
+
     keyList = ['start_date', 'end_date', 'date_list','product', 'dataset', 'endpoint', 'bucket', 'tag']
     cmems_options = {key: None for key in keyList}
     if args.date_list_file:
