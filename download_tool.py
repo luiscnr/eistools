@@ -5,7 +5,7 @@ from datetime import timedelta
 parser = argparse.ArgumentParser(description='Download tool')
 parser.add_argument("-c", "--config_file", help="Configuration file")
 
-parser.add_argument("-s", "--sensor", help="Sensor", choices=["OLCIA", "OLCIB", "OLCI", "CMEMS","CCI_4KM"], required=True)
+parser.add_argument("-s", "--sensor", help="Sensor", choices=["OLCIA", "OLCIB", "OLCI", "CMEMS","CCI"], required=True)
 parser.add_argument("-od", "--output_directory",
                     help="Output directory for downloading (only if make download is enabled)")
 parser.add_argument("-ods", "--output_directory_structure", help="Output directory structure")
@@ -38,7 +38,7 @@ parser.add_argument("-reg_cci", "--region_cci", help="Region", choices=["GLOBAL"
 ##-var --var_group
 parser.add_argument("-var_cci", "--var_cci_group", help="Variable group for cci, combining using _: all, rrs, chl, iop, kd, owt, obs, rrsfile, chlfile, iopfile, kdfile",default='all')
 ##-type_cci --type_cci_product
-parser.add_argument("-type_cci", "--type_cci_product", help="CCI Type product",choices=["subset","all","rrs","chl","iop","kd"],default='subset')
+parser.add_argument("-type_cci", "--type_cci_product", help="CCI Type product",choices=["subset","all","all_1km","rrs","chl","iop","kd","subset_1km"],default='subset')
 
 
 args = parser.parse_args()
@@ -71,8 +71,8 @@ def main():
 
         make_cmems_download(cmems_options, args.make_download, output_directory, ods)
 
-    if args.sensor == 'CCI_4KM':
-        print(f'[INFO] Started download for sensor CCI_4KM. Make download: {args.make_download}')
+    if args.sensor == 'CCI':
+        print(f'[INFO] Started download for sensor CCI. Make download: {args.make_download}')
         cci_options = get_cci_options()
         if args.make_download:
             make_cci_download(cci_options,output_directory, ods)

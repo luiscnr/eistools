@@ -209,6 +209,13 @@ class OC_CCI_V6_Download(GeneralHTML_Download):
             server = 'https://www.oceancolour.org/thredds/ncss/cci/v6.0-release/geographic/daily/all_products'
             path = '$DATE0$/ESACCI-OC-L3S-OC_PRODUCTS-MERGED-1D_DAILY_4km_GEO_PML_OCx_QAA-$DATE1$-fv6.0.nc'
             all_vars = self.get_all_vars()
+        elif type_product=='all_1km':
+            server  ='https://www.oceancolour.org/thredds/fileServer/cci/v6.0-1km-release/geographic/'
+            path = '$DATE0$/ESACCI-OC-L3S-OC_PRODUCTS-MERGED-1D_DAILY_1km_GEO_PML_OCx_QAA-$DATE1$-fv6.0_1km.nc'
+        elif type_product=='subset_1km':
+            server = 'https://www.oceancolour.org/thredds/ncss/grid/cci/v6.0-1km-release/geographic'
+            path = '$DATE0$/ESACCI-OC-L3S-OC_PRODUCTS-MERGED-1D_DAILY_1km_GEO_PML_OCx_QAA-$DATE1$-fv6.0_1km.nc'
+            all_vars = self.get_all_vars_1km()
 
         self.type_product = type_product
 
@@ -229,24 +236,49 @@ class OC_CCI_V6_Download(GeneralHTML_Download):
         if geo_limits is not None:
             limits = geo_limits
         elif region is not None:
-            if region.lower()=='arc':
-                limits = [65,90,-180,180]
-            elif region.lower()=='bal':
-                limits = [53.2,65.9,9.2,30.3]
-            elif region.lower()=='med':
-                limits = [30,46,-6,36.5]
-            elif region.lower()=='blk':
-                limits = [40,48,26.5,42]
-            elif region.lower()=='med+blk':
-                limits = [30,48,-6,42]
-            else:
-                print(f'[WARNING] Region is not valid. Choose among: arc, bal, blk, med or med+blk')
+            limits = self.get_geo_limits_by_region(region)
+            if limits is None:
                 return
         subset = {
             'vars': variable_list,
             'geo': limits
         }
         self.download_date(work_date,output_path,netcdf_subset=subset)
+
+    def download_subset_1km(self,work_date,output_path,region,var_list=None,geo_limits=None):
+        variable_list = None
+        if var_list is not None:
+            variable_list = var_list
+        else:
+            variable_list = self.get_all_vars_1km()
+        limits = None
+        if geo_limits is not None:
+            limits = geo_limits
+        elif region is not None:
+            limits = self.get_geo_limits_by_region(region)
+            if limits is None:
+                return
+        subset = {
+            'vars': variable_list,
+            'geo': limits
+        }
+        self.download_date(work_date, output_path, netcdf_subset=subset)
+
+    def get_geo_limits_by_region(self,region):
+        if region.lower() == 'arc':
+            limits = [65, 90, -180, 180]
+        elif region.lower() == 'bal':
+            limits = [53.2, 65.9, 9.2, 30.3]
+        elif region.lower() == 'med':
+            limits = [30, 46, -6, 36.5]
+        elif region.lower() == 'blk':
+            limits = [40, 48, 26.5, 42]
+        elif region.lower() == 'med+blk':
+            limits = [30, 48, -6, 42]
+        else:
+            print(f'[WARNING] Region is not valid. Choose among: arc, bal, blk, med or med+blk')
+            limits = None
+        return limits
 
     def make_bulk_download(self,options,output_directory,ods,overwrite):
         date_list = options['date_list']
@@ -265,6 +297,8 @@ class OC_CCI_V6_Download(GeneralHTML_Download):
 
             if self.type_product=='subset':
                 self.download_subset(work_date,output_path_date,options['var_group'],options['region'],var_list=options['var_list'],geo_limits=options['geo_limits'])
+            elif self.type_product=='subset_1km':
+                self.download_subset_1km(work_date, output_path_date,options['region'],var_list=options['var_list'], geo_limits=options['geo_limits'])
             else:
                 self.download_date(work_date,output_path_date,netcdf_subset=None)
 
@@ -306,6 +340,11 @@ class OC_CCI_V6_Download(GeneralHTML_Download):
 
     def get_all_vars(self):
         return self.get_rrsfile_vars()+self.get_chl_vars()+self.get_iop_vars()+self.get_kd_vars()
+
+    def get_all_vars_1km(self):
+        rrs_vars = [f'Rrs_{x}' for x in self.bands]
+        chl_vars = ['chlor_a']
+        return rrs_vars+chl_vars
 
     def get_rrs_vars(self):
         rrs_vars = [f'Rrs_{x}' for x in self.bands]
