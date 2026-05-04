@@ -1831,6 +1831,45 @@ def compare_attrs(ref,attrs1,attrs2):
         for warning in warnings:
             print(f'[WARNING]{warning}')
 
+def add_chl_from_cci_1km():
+    print('[INFO] Started: Add chl from CCI 1 km')
+    from netCDF4 import Dataset
+    from datetime import timezone
+    path_base = '/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/MDBsV3/MULTI_CONCATENATED'
+    path_sources = '/store/COP2-OC-TAC/BAL_MATCHUPS/slurmscripts_202602/SOURCES_CCI_1KM_BAL'
+
+    file_mdb = os.path.join(path_base,'MDBr__CMEMS_MULTI_ALLBAL_VALID_LOC_19970901_20241231.nc')
+    dset  = Dataset(file_mdb,'a')
+    satellite_chl = dset.variables['mu_satellite_CHL_202411'][:]
+    indices_valid = np.ma.where(satellite_chl.mask==False)
+    insitu_time = dset.variables['insitu_time'][indices_valid[0],0]
+    insitu_lat = dset.variables['insitu_latitude'][indices_valid[0],0]
+    insitu_lon = dset.variables['insitu_longitude'][indices_valid[0],0]
+    chla_cci_1km = np.ma.masked_all(satellite_chl.shape)
+    lat_array = None
+    lon_array = None
+    for idx in range(insitu_time.shape[0]):
+        time_here = dt.fromtimestamp(insitu_time[idx]).astimezone(timezone.utc)
+        index = indices_valid[0][idx]
+
+
+        path_day = os.path.join(path_sources,time_here.strftime('%Y'),time_here.strftime('%j'))
+        file_day = os.path.join(path_day,f'ESACCI-OC-L3S-OC_PRODUCTS-MERGED-1D_DAILY_1km_GEO_PML_OCx_QAA-{time_here_str}-fv6.0_1km.nc')
+        if os.path.exists(file_day):
+            dset = Dataset(file_day)
+            chla_array  = dset.variables['chlor_a'][:]
+            if lat_array is None and lon_array is None:
+                lat_array = dset.variables['lat'][:]
+                lon_array = dset.variables['lon'][:]
+            dset.close()
+            y_point = int(np.argmin(np.abs(lat_array-insitu_lat[idx])))
+            x_point = int(np.argmin(np.abs(lon_array-insitu_lon[idx])))
+            chla_cci_1km[index] = np.ma.median(chla_array[0,y_point-1:y_point+2,x_point-1:x_point+2])
+            print(index, '->', time_here.strftime('%Y-%m-%d'), insitu_lat[idx], insitu_lon[idx],chla_cci_1km[index])
+        else:
+            print(f'warning {file_day} does not exist')
+    dset.close()
+
 def main():
     # if ele():
     #     return
@@ -1840,13 +1879,13 @@ def main():
     #    return
     if args.mode == 'TEST':
 
-
-        from html_download import  OC_CCI_V6_Download
-        cciDownload = OC_CCI_V6_Download()
-        cciDownload.overwritte = False
-        status = cciDownload.download_date(dt(2024,3,24),'/mnt/c/DATA')
-        if status==0 and cciDownload.check_file_date('/mnt/c/DATA',dt(2024,3,24)):
-            print('termina')
+        add_chl_from_cci_1km()
+        # from html_download import  OC_CCI_V6_Download
+        # cciDownload = OC_CCI_V6_Download()
+        # cciDownload.overwritte = False
+        # status = cciDownload.download_date(dt(2024,3,24),'/mnt/c/DATA')
+        # if status==0 and cciDownload.check_file_date('/mnt/c/DATA',dt(2024,3,24)):
+        #     print('termina')
         # do_test2()
         # from netCDF4 import Dataset
         # file_nc = '/mnt/c/DATA_LUIS/DOORS_WORK/Extracts_2024/AERONET_OC/MDB_CERTO_OLCI_300M_CERTO-OLCI-L3_20190827T000000_20240818T000000_AERONET_Section-7_Platform.nc'
