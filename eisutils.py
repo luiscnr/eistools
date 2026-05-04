@@ -1853,7 +1853,7 @@ def add_chl_from_cci_1km():
         time_here = dt.fromtimestamp(insitu_time[idx]).astimezone(timezone.utc)
         index = indices_valid[0][idx]
 
-
+        time_here_str = time_here.strftime('%Y%m%d')
         path_day = os.path.join(path_sources,time_here.strftime('%Y'),time_here.strftime('%j'))
         file_day = os.path.join(path_day,f'ESACCI-OC-L3S-OC_PRODUCTS-MERGED-1D_DAILY_1km_GEO_PML_OCx_QAA-{time_here_str}-fv6.0_1km.nc')
         if os.path.exists(file_day):
