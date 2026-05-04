@@ -1835,7 +1835,8 @@ def add_chl_from_cci_1km():
     print('[INFO] Started: Add chl from CCI 1 km')
     from netCDF4 import Dataset
     from datetime import timezone
-    path_base = '/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/MDBsV3/MULTI_CONCATENATED'
+    #path_base = '/mnt/c/Users/LuisGonzalez/OneDrive - NOLOGIN OCEANIC WEATHER SYSTEMS S.L.U/CNR/OCTAC_WORK/BAL_EVOLUTION_202411/MATCH-UPS_ANALYSIS_2024/MDBsV3/MULTI_CONCATENATED'
+    path_base = '/store/COP2-OC-TAC/BAL_MATCHUPS/slurmscripts_202602'
     path_sources = '/store/COP2-OC-TAC/BAL_MATCHUPS/slurmscripts_202602/SOURCES_CCI_1KM_BAL'
 
     file_mdb = os.path.join(path_base,'MDBr__CMEMS_MULTI_ALLBAL_VALID_LOC_19970901_20241231.nc')
