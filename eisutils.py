@@ -1876,8 +1876,8 @@ def add_chl_from_cci_1km():
     dset.close()
 
 def add_source_to_match_ups_csv():
-    # dir_base = '/mnt/c/DATA/'
-    # dir_sources = '/mnt/c/DATA'
+    #dir_base = '/mnt/c/DATA/'
+    #dir_sources = '/mnt/c/DATA'
     dir_base = '/store3/HYPERNETS/slurmscripts_pace'
     dir_sources = '/store2/OC/OCI/sources'
     file_csv = os.path.join(dir_base,'MATCH-UPS_PACE_OCI_1KM_L2GEN_V3_20240306T000000_20240831T235959_MEDA_LAIT.csv')
@@ -1886,17 +1886,21 @@ def add_source_to_match_ups_csv():
     source_array = ['N/Av']*len(sat_time)
     for idx,stime in enumerate(sat_time):
         dtime = dt.strptime(stime,'%d/%m/%Y %H:%M')
-        ref = dtime.strftime('%Y%m%dT%H%M')
         dir_date = os.path.join(dir_sources,dtime.strftime('%Y'),dtime.strftime('%j'))
+        max_diff = 1440
         if not os.path.isdir(dir_date):
             continue
+
         for name in os.listdir(dir_date):
             if name.endswith('L1B.V3.nc'):
                 date_file_str = name.split('.')[1]
-                date_file_ref = dt.strptime(date_file_str,'%Y%m%dT%H%M%S').strftime('%Y%m%dT%H%M')
-                if date_file_ref==ref:
-                    source_array[idx] = os.path.join(dir_date,name)
-                    break
+                date_file = dt.strptime(date_file_str,'%Y%m%dT%H%M%S')
+                dif = (dtime-date_file).total_seconds()
+                if 0 < dif < max_diff:
+                    max_diff = dif
+                    source_array[idx]=os.path.join(dir_date,name)
+
+
     df['source'] = source_array[:]
     df.to_csv(file_csv,sep=';',index=None)
 
@@ -1911,6 +1915,7 @@ def main():
     #if check_download():
     #    return
     if args.mode == 'TEST':
+
         add_source_to_match_ups_csv()
         # add_chl_from_cci_1km()
         # from html_download import  OC_CCI_V6_Download
