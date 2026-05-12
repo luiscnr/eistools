@@ -1892,7 +1892,7 @@ def add_source_to_match_ups_csv():
             continue
         for name in os.listdir(dir_date):
             if name.endswith('L1B.V3.nc'):
-                date_file_str = name.split(name,'.')[1]
+                date_file_str = name.split('.')[1]
                 date_file_ref = dt.strptime(date_file_str,'%Y%m%dT%H%M%S').strftime('%Y%m%dT%H%M')
                 if date_file_ref==ref:
                     source_array[idx] = os.path.join(dir_date,name)
