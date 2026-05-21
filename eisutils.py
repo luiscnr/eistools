@@ -1915,8 +1915,19 @@ def main():
     #if check_download():
     #    return
     if args.mode == 'TEST':
-
-        add_source_to_match_ups_csv()
+        from nasa_download import NASA_DOWNLOAD
+        ndownload = NASA_DOWNLOAD()
+        download_options = {
+            'timeliness': 'DT',
+            'version': 'V3_2'
+        }
+        region = [45.3129, 45.314899999999994, 12.5073, 12.5093]
+        date_here = dt(2024, 3, 5)
+        list_aop_here = ndownload.get_list_date_with_options(download_options, 'PACE_AOP', None, region, None, None,
+                                                             date_here)
+        for granule in list_aop_here:
+            ndownload.download_granule(granule,'/mnt/c/DATA',False)
+        #add_source_to_match_ups_csv()
         # add_chl_from_cci_1km()
         # from html_download import  OC_CCI_V6_Download
         # cciDownload = OC_CCI_V6_Download()

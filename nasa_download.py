@@ -149,10 +149,14 @@ class NASA_DOWNLOAD:
 
 
     def getscenes_by_region_EarthData_API(self,sen, date_here,geo_limits,is_dt):
+
         short_name = self.sensors_info[sen]['short_name']
 
 
         if is_dt: short_name = short_name.replace('_NRT','')
+
+
+
         bounding_box = f'{geo_limits[2]},{geo_limits[0]},{geo_limits[3]},{geo_limits[1]}'
         date_next = date_here + timedelta(hours=24)
         temporal = f'{date_here.strftime("%Y-%m-%d")},{date_next.strftime("%Y-%m-%d")}'
@@ -404,17 +408,29 @@ class NASA_DOWNLOAD:
         if timeliness=='NRT' or timeliness=='ANY':
             list_nrt = self.get_list_date(sensor,site_name,region,lat_point,lon_point,date_here,True)
 
+        if timeliness=='DT':
+            list_granules = list_dt
+        elif timeliness=='NRT':
+            list_granules = list_nrt
+        else:
+            list_granules = list_nrt + list_dt
+
         final_list = []
-        for granule in list_dt:
+
+        for granule in list_granules:
             if version is not None and granule.find(version)==-1:
-                print(f'[WARNING] Granule {granule} is not in the correct version {version} required for downloading')
+                print(f'[WARNING] Granule {granule} is not in the correct version {version} required for downloading.')
+                version_granule = granule.split('.')[-2]
+                granule = granule.replace(version_granule,version)
+                print(f'[WARNING] Granule {granule} with the correct version added to the list, but it could not be downloaded.')
+                final_list.append(granule)
                 continue
             final_list.append(granule)
-        for granule in list_nrt:
-            if version is not None and granule.find(version)==-1:
-                print(f'[WARNING] Granule {granule} is not in the correct version {version} required for downloading')
-                continue
-            final_list.append(granule)
+        # for granule in list_nrt:
+        #     if version is not None and granule.find(version)==-1:
+        #         print(f'[WARNING] Granule {granule} is not in the correct version {version} required for downloading')
+        #         continue
+        #     final_list.append(granule)
 
         return final_list
 
@@ -422,8 +438,7 @@ class NASA_DOWNLOAD:
 
 
     def get_list_date(self,sensor, site_name, region, lat_point, lon_point, date_here,use_nrt):
-        import os
-        import obdaac_download as od
+
         sensor = self.check_sensor(sensor)
         if sensor is None:
             return
