@@ -1,9 +1,11 @@
+import numpy as np
+
 import __init__,os
 import pandas as pd
 from product_info import ProductInfo
 
 
-class DatasetSelection():
+class DatasetSelection:
 
     def __init__(self, mode, path2info):
         sdir = os.path.abspath(os.path.dirname(__init__.__file__))
@@ -34,8 +36,8 @@ class DatasetSelection():
         if file is not None and os.path.exists(file):
             try:
                 self.dfselection = pd.read_csv(file, sep=';')
-            except:
-                print(f'[ERROR] Dictionary {file} is not a valid semcolon separated CSV file ')
+            except Exception as ex:
+                print(f'[ERROR] Dictionary {file} is not a valid semi colon separated CSV file. Exception {ex} ')
                 self.dfselection = None
 
     def set_params_from_dict(self,params_dict):
@@ -87,8 +89,6 @@ class DatasetSelection():
 
     def get_list_product_datasets_from_dataset_nane(self, dataset_name):
         return self.get_list_product_datasets_from_param_value('DNAME', dataset_name)
-
-
 
     def get_list_product_datasets_from_param_value(self, param, value):
         product_names = []
@@ -156,5 +156,51 @@ class DatasetSelection():
             return True
         else:
             print(
-                f'[ERROR] Dataset name {name_dataset} differs from expeced file name: {expected_name} according to params')
+                f'[ERROR] Dataset name {name_dataset} differs from expected file name: {expected_name} according to params')
             return False
+
+    def get_potential_choices(self):
+        if self.dfselection is None:
+            return None
+
+        region_values = [x.upper() for x in np.unique(self.dfselection['REGION'][:]).tolist()]
+        if 'BLK' in region_values:
+            region_values = region_values + ['BS']
+
+        choices = {
+            'region': region_values,
+            'level': [x.upper() for x in np.unique(self.dfselection['LEVEL'][:]).tolist()],
+            'sensor': [x.lower() for x in np.unique(self.dfselection['SENSOR'][:]).tolist()],
+            'dataset': [x.lower() for x in np.unique(self.dfselection['DATASET'][:]).tolist()],
+            'frequency': [x.lower() for x in np.unique(self.dfselection['FREQUENCY'][:]).tolist()]
+        }
+        if 'USER_VALUE' in self.dfselection.columns:
+            choices['user_value'] = [x.lower() for x in np.unique(self.dfselection['USER_VALUE'][:]).tolist()]
+
+        # params = {
+        #     'region': {
+        #         'values': None,
+        #         'potential_values': region_value
+        #     },
+        #     'level': {
+        #         'values': None,
+        #         'potential_values': ['L3', 'L4']
+        #     },
+        #     'sensor': {
+        #         'values': None,
+        #         'potential_values': ['MULTI', 'OLCI', 'GAPFREE_MULTI', 'CCI']
+        #     },
+        #     'dataset': {
+        #         'values': None,
+        #         'potential_values': ['REFLECTANCE', 'PLANKTON', 'OPTICS', 'TRANSP', 'PP']
+        #     },
+        #     'frequency': {
+        #         'values': None,
+        #         'potential_values': ['DAILY', 'MONTHLY', 'CLIMA']
+        #     },
+        #     'user_value': {
+        #         'values': None
+        #     }
+        #
+        # }
+        return choices

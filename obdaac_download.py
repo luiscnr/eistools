@@ -224,8 +224,13 @@ def retrieveURL(request,localpath='.', uncompress=False, verbose=0,force_downloa
     if parsedRequest.query:
         netpath = netpath + joiner + parsedRequest.query
 
-    status = httpdl(server, netpath, localpath=localpath, uncompress=uncompress, verbose=verbose,force_download=force_download)
-    
+    try:
+        status = httpdl(server, netpath, localpath=localpath, uncompress=uncompress, verbose=verbose,force_download=force_download)
+    except Exception as ex:
+        print(f'[ERROR] Exception: {ex} while downloading {localpath}. File will be removed. ')
+        os.remove(localpath)
+        return -1
+
     if checksum and not uncompress:
         cksumURL = 'https://'+server + '/checkdata/' + parsedRequest.path
         dnldfile = localpath / parsedRequest.path

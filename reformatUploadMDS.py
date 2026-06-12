@@ -17,15 +17,16 @@ parser.add_argument("-only_reformat", "--make_only_reformat", help="Only reforma
 parser.add_argument("-use_sh", "--use_sh_reformat", help="Create sh file for reformat.", action="store_true")
 parser.add_argument("-test_reformat", "--make_test_reformat", help="Reformat script is created but not launched. To create a sh script instead of the slurm default, use -use_sh(--use_sh_reformat) option", action="store_true")
 parser.add_argument('-check', "--check_param", help="Check params mode.", action="store_true")
+parser.add_argument('-select_choices', "--check_select_choices", help="Check choices for the arguments for dataset selection.", action="store_true")
 parser.add_argument("-m", "--mode", help="Mode.", type=str, required=True, choices=['NRT', 'DT', 'MY'])
-parser.add_argument("-r", "--region", help="Dataset selection by region. Choices: MED, BS, BLK, ARC.", type=str)
-parser.add_argument("-l", "--level", help="Dataset selection by level. Choices: L3, L4", type=str)
+parser.add_argument("-r", "--region", help="Dataset selection by region.", type=str)
+parser.add_argument("-l", "--level", help="Dataset selection by level.", type=str)
 parser.add_argument("-d", "--dataset_type",
-                    help="Dataset selection by dataset type. Choices: reflectance, plankton, optics, transp, pp.",
+                    help="Dataset selection by dataset type.",
                     type=str)
-parser.add_argument("-s", "--sensor", help="Dataset selection by sensor. Choices: multi, olci, gapfree_multi, cci",
+parser.add_argument("-s", "--sensor", help="Dataset selection by sensor.",
                     type=str)
-parser.add_argument("-fr", "--frequency", help="Dataset selection by frequency. Choices: daily, monthly, climatology")
+parser.add_argument("-fr", "--frequency", help="Dataset selection by frequency.")
 parser.add_argument("-user", "--user_value", help="Dataset selection by user value. ")
 parser.add_argument("-sd", "--start_date", help="Start date (yyyy-mm-dd)")
 parser.add_argument("-ed", "--end_date", help="Start date (yyyy-mm-dd)")
@@ -38,33 +39,34 @@ args = parser.parse_args()
 
 
 
-def get_params_selection_dataset():
+def get_params_selection_dataset(choices):
     args_dict = vars(args)
     if 'dataset_type' in args_dict.keys():
         args_dict['dataset'] = args_dict.pop('dataset_type')
+
     params = {
         'region': {
             'values': None,
-            'potential_values': ['BAL', 'ARC', 'BLK', 'BS', 'MED']
+            'potential_values': [x.upper() for x in choices['region']] if 'region' in choices else None
         },
         'level': {
             'values': None,
-            'potential_values': ['L3', 'L4']
+            'potential_values': [x.upper() for x in choices['level']] if 'level' in choices else None
         },
         'sensor': {
             'values': None,
-            'potential_values': ['MULTI', 'OLCI', 'GAPFREE_MULTI', 'CCI']
+            'potential_values': [x.upper() for x in choices['sensor']] if 'sensor' in choices else None
         },
         'dataset': {
             'values': None,
-            'potential_values': ['REFLECTANCE', 'PLANKTON', 'OPTICS', 'TRANSP', 'PP']
+            'potential_values': [x.upper() for x in choices['dataset']] if 'dataset' in choices else None
         },
         'frequency': {
             'values': None,
-            'potential_values': ['DAILY', 'MONTHLY', 'CLIMA']
+            'potential_values': [x.upper() for x in choices['frequency']] if 'frequency' in choices else None
         },
         'user_value': {
-            'values': None
+            'values': [x.upper() for x in choices['user_value']] if 'user_value' in choices else None
         }
 
     }
@@ -83,7 +85,7 @@ def get_params_selection_dataset():
                 vals[vals.index('BS')] = 'BLK'
 
             params[param]['values'] = vals
-            if param == 'user_value':
+            if params[param]['potential_values'] is None:
                 continue
             for val in vals:
                 if val not in params[param]['potential_values']:
@@ -118,10 +120,13 @@ def get_datasets():
     elif not args.name_product and args.name_dataset:
         name_products, name_datasets = dsel.get_list_product_datasets_from_dataset_nane(args.name_dataset)
     else:
-        selection_params = get_params_selection_dataset()
+        choices = dsel.get_potential_choices()
+
+        selection_params = get_params_selection_dataset(choices)
+        if selection_params is None:
+            return [None]*2
+
         dsel.set_params_from_dict(selection_params)
-        # print(dsel.params)
-        # dsel.set_params(region, level, dataset_type, sensor, frequency)
         name_products, name_datasets = dsel.get_list_product_datasets_from_params()
 
     return name_products, name_datasets
@@ -130,13 +135,13 @@ def get_datasets():
 ##DATASETS CHECKING
 def check_datasets(name_products, name_datasets):
     mode_check = 'NRT' if args.mode == 'DT' else args.mode
-    # if args.mode == 'MYINT':
-    #     mode_check = 'MY'
-    # if args.mode == 'DT':
-    #     mode_check = 'NRT'
     pinfo = ProductInfo()
     if args.product_info_folder:
         pinfo.path2info = args.product_info_folder
+
+    dsel = DatasetSelection(mode_check, args.product_info_folder)
+    choices = dsel.get_potential_choices()
+    params_dict = get_params_selection_dataset(choices)
 
     for idataset in range(len(name_products)):
         valid = pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
@@ -148,7 +153,8 @@ def check_datasets(name_products, name_datasets):
             print(
                 f'[ERROR] Dataset {name_datasets[idataset]} is {mode_here},but script was launched in mode {mode_check} ({args.mode})')
             return False
-        params_dict = get_params_selection_dataset()
+
+
         valid_dataset = True
         for param in params_dict:
 
@@ -159,38 +165,11 @@ def check_datasets(name_products, name_datasets):
             param_here = pinfo.dinfo[param]
             arg_vals = params_dict[param]['values']
             if param_here.upper() not in arg_vals:
-                valid_dataset = False
-                print(
-                    f'[ERROR] Inconsistency error between CSV dictionary and JSON product file. {param} is defined as {param_here} in JSON, but it was not given as a possible argument: {args.vals}  ')
+                print(f'[WARNING] {name_products[idataset]}/{name_datasets[idataset]}:Inconsistency  between CSV dictionary and JSON product file. {param} is defined as {param_here} in JSON, whereas the argument(s) passed and defined in the CSV dictionary are {arg_vals}')
 
         if not valid_dataset:
             return False
 
-        # if region is not None:
-        #     region_here = pinfo.dinfo['region']
-        #     if region_here != region:
-        #         print(f'[ERROR] Dataset region is {region_here} but {region} was given in the script')
-        #         return False
-        # if sensor is not None:
-        #     sensor_here = pinfo.dinfo['sensor'].lower()
-        #     if sensor_here != sensor:
-        #         print(f'[ERROR] Dataset sensor is {sensor_here} but {sensor} was given in the script')
-        #         return False
-        # if dataset_type is not None:
-        #     dataset_type_here = pinfo.dinfo['dataset'].lower()
-        #     if dataset_type_here != dataset_type:
-        #         print(f'[ERROR] Dataset dataset_type is {dataset_type_here} but {dataset_type} was given in the script')
-        #         return False
-        # if frequency is not None:
-        #     frequency_here = pinfo.dinfo['frequency'].lower()
-        #     if frequency_here != frequency:
-        #         print(f'[ERROR] Dataset frequency is {frequency_here} but {frequency} was given in the script')
-        #         return False
-        # if level is not None:
-        #     level_here = pinfo.dinfo['level'].lower()
-        #     if level_here != level:
-        #         print(f'[ERROR] Dataset level is {level_here} but {level} was given in the script')
-        #         return False
 
     return True
 
@@ -297,12 +276,24 @@ def make_upload_daily(pinfo, pinfomy, start_date, end_date):
 
 
 def main():
-    print('[INFO] Started reformat and upload')
+    print('[INFO] Started reformat and upload code!')
+
+    if args.check_select_choices:
+        dsel = DatasetSelection(args.mode, args.product_info_folder)
+        choices = dsel.get_potential_choices()
+        if choices is None:
+            return
+        for choice in choices:
+            print(f'[DATASET SELECTION] {choice}: {choices[choice]}')
+        return
 
     ##DATASETS SELECTION
     if args.verbose:
         print(f'[INFO] Dataset selection')
     name_products, name_datasets = get_datasets()
+    if name_products is None or name_datasets is None:
+        print(f'[ERROR] No datasets selected')
+        return
     n_datasets = len(name_products)
     if n_datasets == 0:
         print(f'[ERROR] No datasets selected')
@@ -330,15 +321,15 @@ def main():
     if args.product_info_folder:
         pinfo.path2info = args.product_info_folder
 
-
-
     for idataset in range(n_datasets):
         pinfo.set_dataset_info(name_products[idataset], name_datasets[idataset])
         if args.verbose:
             print(f'[INFO] Working with dataset: {name_products[idataset]}/{name_datasets[idataset]}')
+
         pinfomy = None
         if args.mode == 'DT':
             pinfomy = pinfo.get_pinfomy_equivalent()
+
         if pinfo.dinfo['frequency'] == 'd':
             if args.make_test_reformat:
                 make_reformat_daily(pinfo, pinfomy, start_date, end_date)

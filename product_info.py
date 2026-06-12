@@ -228,8 +228,9 @@ class ProductInfo:
                     valid = True
                 else:
                     print(f'[ERROR] Dataset {dataset_name} is not available in: {fproduct}')
-            except:
-                print(f'[ERROR] JSON file {fproduct} is not valid, could not be parsed')
+            except Exception as ex:
+                print(f'[ERROR] JSON file {fproduct} is not valid, could not be parsed. Exception:')
+                print(f'        {ex}')
 
             f.close()
         else:
@@ -805,32 +806,45 @@ class ProductInfo:
         print('checking multi sources...')
 
     def delete_list_file_path_orig(self, start_date, end_date, verbose):
-        for y in range(start_date.year, end_date.year + 1):
-            mini = 1
-            mfin = 12
-            if y == start_date.year:
-                mini = start_date.month
-            if y == end_date.year:
-                mfin = end_date.month
-            path_ref = self.get_path_orig(y)
+        work_date = start_date
+        while work_date <= end_date:
+            if verbose:
+                print('----------------------------------------------------------------------------------')
+                print(f'[INFO] Checking date: {work_date}')
+            path_ref = self.get_path_orig(work_date.year)
+            file = self.get_file_path_orig(path_ref, work_date)
+            if not file is None and os.path.exists(file):
+                if verbose:
+                    print(f'[INFO] Removing file {file}')
+                os.remove(file)
+            work_date= work_date+ timedelta(days=1)
 
-            for m in range(mini, mfin + 1):
-                day_ini = 1
-                day_fin = calendar.monthrange(y, m)[1]
-                if m == start_date.month:
-                    day_ini = start_date.day
-                if m == end_date.month:
-                    day_fin = end_date.day
-                for d in range(day_ini, day_fin + 1):
-                    datehere = dt(y, m, d)
-                    if verbose:
-                        print('----------------------------------------------------------------------------------')
-                        print(f'[INFO] Checking date: {datehere}')
-                    file = self.get_file_path_orig(path_ref, datehere)
-                    if not file is None and os.path.exists(file):
-                        if verbose:
-                            print(f'[INFO] Removing file {file}')
-                        os.remove(file)
+        # for y in range(start_date.year, end_date.year + 1):
+        #     mini = 1
+        #     mfin = 12
+        #     if y == start_date.year:
+        #         mini = start_date.month
+        #     if y == end_date.year:
+        #         mfin = end_date.month
+        #     path_ref = self.get_path_orig(y)
+
+            # for m in range(mini, mfin + 1):
+            #     day_ini = 1
+            #     day_fin = calendar.monthrange(y, m)[1]
+            #     if m == start_date.month:
+            #         day_ini = start_date.day
+            #     if m == end_date.month:
+            #         day_fin = end_date.day
+            #     for d in range(day_ini, day_fin + 1):
+            #         datehere = dt(y, m, d)
+            #         if verbose:
+            #             print('----------------------------------------------------------------------------------')
+            #             print(f'[INFO] Checking date: {datehere}')
+            #         file = self.get_file_path_orig(path_ref, datehere)
+            #         if not file is None and os.path.exists(file):
+            #             if verbose:
+            #                 print(f'[INFO] Removing file {file}')
+            #             os.remove(file)
 
     def delete_list_file_path_orig_monthly(self, start_date, end_date, verbose):
         for y in range(start_date.year, end_date.year + 1):
@@ -1055,7 +1069,7 @@ class ProductInfo:
     def get_files_reformat(self, path, datehere):
         if not 'files_reformat' in self.dinfo.keys():
             print(f'[ERROR] files_reformat key should be included in the configuration file for {self.product_name}/{self.dataset_name}')
-            return [None]*3
+            return [None] * 4
         str_r = self.dinfo['files_reformat']
         format_date_r = [x.strip() for x in self.dinfo['format_date_files_reformat'].split(',')]
 
@@ -1085,7 +1099,7 @@ class ProductInfo:
             file_date = os.path.join(path, name_file_date)
             if not os.path.exists(file_date):
                 print(f'[ERROR] {file_date} does not exist. Please review.')
-                return [None] * 3
+                return [None] * 4
             var_config = []
             mode_var = info[1]
             if len(info) > 2 and mode_var!='*':
@@ -1093,7 +1107,7 @@ class ProductInfo:
                     var_config.append(info[ivar])
             if mode_var not in ['-','+','*']:
                 print(f'[ERROR] Variable mode for files_reformat should be *,+ or -')
-                return [None]*3
+                return [None] * 4
 
             dataset = Dataset(file_date)
             variables = list(dataset.variables)
@@ -1114,12 +1128,10 @@ class ProductInfo:
                 for dim in dims_here:
                     if dim not in dims:
                         print(f'[ERROR] Dimension {dim} in file {name_file} is not included in the reference file')
-                        return [None]*3
+                        return [None] * 4
                     if size_dims[dim]!=sizes[dim]:
                         print(f'[ERROR] Dimension {dim} in file {name_file} has a size ({size_dims[dim]}) different from the reference file ({sizes[dim]})')
-                        return [None] * 3
-
-
+                        return [None] * 4
 
             var_to_include_here = []
             var_to_delete_here = []
@@ -1158,7 +1170,7 @@ class ProductInfo:
 
         if sum(added_var_dims) < len(dims):
             print(f'[ERROR] Dimension variables are not defined in file {first_file}')
-            return [None] * 3
+            return [None] * 4
         return first_file, var_to_delete, extra_files, structure
 
     def get_files_reformat_deprecated(self, path, datehere):
@@ -1398,7 +1410,7 @@ class ProductInfo:
         variables_to_rename = self.get_rename_variables(datehere,structure['dimensions'])
 
         if variables_to_rename is None:
-            return
+            return None
 
         all_variables = []
         all_attrs = structure['global_attrs']
@@ -1418,7 +1430,7 @@ class ProductInfo:
                     all_attrs = all_attrs + var_attrs
                 else:
                     print(f'Variable {var_to_add} in file {f} is duplicated. Please do not use it or rename it using rename_var_')
-                    return
+                    return None
         for dim in structure['dims_attrs']:
             all_attrs = all_attrs + structure['dims_attrs'][dim]
 
@@ -1429,7 +1441,7 @@ class ProductInfo:
 
         dims_to_rename,new_dimensions = self.get_rename_dimensions(structure['dimensions'])
         if dims_to_rename is None:
-            return
+            return None
         if len(dims_to_rename)>0:
             structure['dimensions'] = new_dimensions
             old_dims_attrs = structure['dims_attrs']
@@ -1444,20 +1456,8 @@ class ProductInfo:
 
         attributes_to_rename,structure = self.get_rename_attributes(structure)
         if attributes_to_rename is None:
-            return
+            return None
 
-
-
-        # print(structure['all_attrs'])
-        # print(structure['all_variables_attrs'])
-        # print(structure['global_attrs'])
-        # print(structure['dims_attrs'])
-        #structure['global_attrs'] = global_attrs
-
-
-
-        # if not self.check_reformat_cmd_parameters():
-        #     return None
 
         file_tmp = os.path.join(path, 'Temp.nc')
         file_tmp = f'\"{file_tmp}\"'
@@ -1481,6 +1481,7 @@ class ProductInfo:
 
         # delete variables not to be included in the reformat
         if len(var_to_delete) > 0:
+            self.add_new_line(fw, '')
             self.add_new_line(fw, '##Deleting variables...')
             line_extract = f'ncks -h  -C -O -x -v {var_to_delete[0]}'
             for idx in range(1,len(var_to_delete)):
@@ -1501,7 +1502,7 @@ class ProductInfo:
         all_variables_first = list(dataset_check.variables)
         dataset_check.close()
 
-        #rename variables included in the first file (rename is done direcly in file_out
+        #rename variables included in the first file (rename is done directly in file_out
         if name_first in variables_to_rename:
 
             for vname_in in variables_to_rename[name_first]:
@@ -1546,17 +1547,17 @@ class ProductInfo:
                         vname_out = variables_to_rename[name_in][vname_in]
                         if vname_in in all_variables:
                             all_variables[all_variables.index(vname_in)] = vname_out
-
+                        self.add_new_line(fw, '')
                         self.add_new_line(fw, f'##Renaming variable {vname_in} to {vname_out}')
                         self.add_new_line(fw, f'ncrename  -h -O -v {vname_in},{vname_out}  {file_in_c}')
                         if vname_in in var_to_include:
                             var_to_include[var_to_include.index(vname_in)] = vname_out
                         lines_invert_renaming.append(f'ncrename  -h -O -v {vname_out},{vname_in}  {file_in_c}')
-
+                        self.add_new_line(fw, '')
                 dataset_check.close()
 
             self.add_new_line(fw,'')
-            self.add_new_line(fw, f'## Addding variables from file {file_in}:')
+            self.add_new_line(fw, f'## Adding variables from file {file_in}:')
 
             for var in var_to_include:
                 #all_variables.append(var)
@@ -1574,8 +1575,11 @@ class ProductInfo:
 
 
         if self.dinfo['add_noqi_attr']:
+            self.add_new_line(fw, '##Adding noqi attribute...')
             noqi = None
             for var in all_variables:
+                if var=='lat' or var=='lon' or var=='stereographic' or var=='SENSORMASK':
+                    continue
                 if var.startswith('QI'):
                     continue
                 qi_var = f'QI_{var}'
@@ -1584,27 +1588,30 @@ class ProductInfo:
             if noqi is not None:
                 self.add_new_line(fw, f'ncatted -h -a noQI,global,o,c,\"{noqi}\" {file_out}')
 
+            self.add_new_line(fw, '')
 
         ##renaming dimensions
         if len(dims_to_rename)>0:
             self.add_new_line(fw,f'##Renaming dimensions...')
             for dname in dims_to_rename:
                 self.add_new_line(fw, f'ncrename -h -O -d {dname},{dims_to_rename[dname]} -v {dname},{dims_to_rename[dname]} {file_out}')
-
+            self.add_new_line(fw, '')
 
         ##renaming attributes
         if len(attributes_to_rename)>0:
             self.add_new_line(fw,f'##Renaming attributes...')
             for aname in attributes_to_rename:
-                self.add_new_line(fw,f'ncrename -h -O -a {aname},{attributes_to_rename[aname]} {file_out}')
+                self.add_new_line(fw,f'ncrename -h -O -a .{aname},{attributes_to_rename[aname]} {file_out}')
+            self.add_new_line(fw, '')
 
 
         ##atribute editions
         attrs_actions = self.get_reformat_attributes()
         if len(attrs_actions)>0:
-            self.add_new_line(fw,'## Attritube editions')
+            self.add_new_line(fw,'## Attribute editions')
             for action in attrs_actions:
                 self.add_new_line(fw,f'ncatted -O -h -a {action} {file_out}')
+            self.add_new_line(fw, '')
 
 
         ##finishing...

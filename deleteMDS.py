@@ -1,8 +1,9 @@
-import pytz,os
+import os
 
 import uploadMDS as uMDS
 from s3buckect import S3Bucket
 from datetime import datetime as dt
+from datetime import timezone
 
 class DeleteMDS:
 
@@ -47,7 +48,7 @@ class DeleteMDS:
 
             sdir_remote_file_name = os.path.join(sdir, remote_file_name)
             tagged_dataset = pinfo.get_tagged_dataset()
-            upload_TS = dt.now(pytz.UTC).strftime('%Y%m%dT%H%M%SZ')
+            upload_TS = dt.now(timezone.UTC).strftime('%Y%m%dT%H%M%SZ')
             deliveries.add_delete(pinfo.product_name, tagged_dataset, sdir_remote_file_name, upload_TS)
             dnt_file_name, dnt_file_path = deliveries.create_dnt_file(pinfo.product_name)
             ftpdu.go_dnt(pinfo.product_name)
