@@ -444,7 +444,7 @@ class ProductInfo:
         else:
             return None
 
-    def get_file_path_orig(self, path, datehere):
+    def get_file_path_orig(self, path, datehere,return_if_not_exist=False):
         tagprint = self.get_tag_print()
         if path is None:
             path = self.get_path_orig(datehere.year)
@@ -459,8 +459,11 @@ class ProductInfo:
         date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
         file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
         if not os.path.exists(file_path):
-            if tagprint is not None:
-                print(f'{tagprint} Expected file orig path {file_path} does not exist')
+            if return_if_not_exist:
+                return file_path
+            else:
+                if tagprint is not None:
+                    print(f'{tagprint} Expected file orig path {file_path} does not exist')
             return None
         return file_path
 
@@ -1634,7 +1637,7 @@ class ProductInfo:
         else:
             cmd = f'sbatch --wait {file_slurm}'
 
-        return cmd
+        return cmd, file_slurm
 
     def get_reformat_cmd_202411_deprecated(self, datehere,use_sh):
         path, file_slurm = self.get_file_slurm_reformat_202411(datehere)

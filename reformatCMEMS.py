@@ -21,7 +21,7 @@ class ReformatCMEMS:
             if self.version == '202207':
                 cmd = pinfo.get_reformat_cmd(date_work)
             elif self.version == '202411':
-                cmd = pinfo.get_reformat_cmd_202411(date_work,self.use_sh)
+                cmd,file_slurm = pinfo.get_reformat_cmd_202411(date_work,self.use_sh)
 
             if cmd is None:
                 date_work = date_work + timedelta(hours=24)
@@ -33,6 +33,26 @@ class ReformatCMEMS:
                 date_work = date_work + timedelta(hours=24)
                 continue
 
+            preformat = pinfo.check_path_reformat()
+            if preformat is not None:
+                file_orig = pinfo.get_file_path_orig(None, date_work,return_if_not_exist=True)
+                file_dest = pinfo.get_file_path_orig_reformat_name(date_work)
+
+                file_slurm = file_slurm.replace("\"","")
+                fw = open(file_slurm,'a')
+                fw.write('\n')
+                fw.write(f'##Moving reformated file {file_orig} to path reformat {file_dest}')
+                fw.write('\n')
+                fw.write(f'mv {file_orig} {file_dest}')
+                fw.write('\n')
+                fw.close()
+
+                # if os.path.exists(file_orig) and file_dest is not None:
+                #     if verbose:
+                #         print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
+                #     shutil.copy2(file_orig, file_dest)
+                #     os.remove(file_orig)
+
             prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = prog.communicate()
             if out:
@@ -43,14 +63,6 @@ class ReformatCMEMS:
             if err:
                 print(f'[CMD ERROR]{err}')
 
-            preformat = pinfo.check_path_reformat()
-            if preformat is not None:
-                file_orig = pinfo.get_file_path_orig(None, date_work)
-                file_dest = pinfo.get_file_path_orig_reformat_name(date_work)
-                if os.path.exists(file_orig) and file_dest is not None:
-                    if verbose:
-                        print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
-                    shutil.copy2(file_orig, file_dest)
-                    os.remove(file_orig)
+
 
             date_work = date_work + timedelta(hours=24)
