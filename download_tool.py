@@ -55,6 +55,9 @@ def main():
     output_directory = None
     if args.make_download:
         output_directory = args.output_directory
+        if output_directory is None:
+            print(f'[ERROR] A valid --output_directory (-od) argument is required with --make_download')
+            return
         if not create_if_not_exists(output_directory):
             print(f'[ERROR] Output directory does not exist and could not be created')
             return

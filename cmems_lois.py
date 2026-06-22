@@ -33,7 +33,7 @@ class CMEMS_LOIS:
         b = sb.star_client()
         if not b:
             print(f'[WARNING] Client S3 could not be started')
-            return
+            return None
         sb.update_params_from_dict(cmems_options)
         date_list = []
         if cmems_options['date_list'] is not None:
@@ -53,18 +53,29 @@ class CMEMS_LOIS:
                 print(f'[WARNING] Format for option cmems_download/myint_date {cmems_options["myint_date"]} is not correct. It should be YYYY-mm-ddd. Date will not be used')
                 pass
 
-        for work_date in date_list:
+        output_files = [None]*len(date_list)
+        for idate,work_date in enumerate(date_list):
+
             usemyint = False
             if myintdate is not None:
                 usemyint = True if work_date>=myintdate else False
-            if 'remote_name' in list(cmems_options.keys()):
+            if 'remote_name_abs' in list(cmems_options.keys()):
+                cmems_options['remote_name'] = cmems_options['remote_name_abs']
                 if usemyint:
-                    cmems_options['remote_name'] = cmems_options['remote_name'].replace('my','myint')
+                    cmems_options['remote_name'] = cmems_options['remote_name_abs'].replace('my','myint')
                 bucket, key, available = sb.check_daily_file_name(work_date,cmems_options['remote_name'])
             else:
                 bucket, key, available, usemyint = sb.check_daily_file_params(work_date)
+                if not available:
+                    remote_name = sb.search_key_by_date(work_date)
+                    if remote_name is not None:
+                        bucket, key, available = sb.check_daily_file_name(work_date, remote_name)
+                        if available:
+                            cmems_options['remote_name'] = remote_name
+
             if self.verbose or not make_download:
-                print(f'[INFO]{work_date.strftime("%Y-%m-%d")}:{bucket}/{key}->{available}')
+                print(f'[INFO] {work_date.strftime("%Y-%m-%d")}:{bucket}/{key}->{available}')
+
             if make_download and available:
                 folder_out = self.get_folder_out(work_date, output_directory, ods)
                 if folder_out is not None:
@@ -76,8 +87,13 @@ class CMEMS_LOIS:
                         else:
                             file_out, isdownloaded = sb.download_daily_file_params(work_date, folder_out, False, overwrite)
                     if self.verbose:
-                        print(f'[INFO] Output file: {file_out} Download status: {os.path.exists(file_out)}')
+                        print(f'[INFO] Output file: {file_out} Download status: {isdownloaded}')
+                    if isdownloaded:
+                        output_files[idate] = file_out
         sb.close_client()
+        return output_files
+
+
 
     def get_folder_out(self,work_date, od, ods):
         if ods is None:

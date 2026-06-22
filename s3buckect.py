@@ -2,7 +2,7 @@ from hashlib import md5
 import os
 
 
-class S3Bucket():
+class S3Bucket:
     def __init__(self):
         self.S3_ENDPOINT = "https://s3.waw3-1.cloudferro.com"
         self.S3_BUCKET_NAME = "mdl-native-15"
@@ -101,6 +101,7 @@ class S3Bucket():
         self.S3_BUCKET_NAME = options_dict['bucket']
         self.TAG = options_dict['tag']
 
+
     def star_client(self):
         try:
             import boto3
@@ -144,6 +145,7 @@ class S3Bucket():
         isdownloaded = os.path.exists(file_out)
 
         return file_out, isdownloaded
+
     def download_daily_file_params(self,date,path_out,check,overwrite):
         subdir = date.strftime('%Y/%m')
         remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
@@ -255,10 +257,25 @@ class S3Bucket():
 
         return self.S3_BUCKET_NAME, key, isuploaded
 
-    def check_daily_file_params(self,date):
+    def search_key_by_date(self,date):
         subdir = date.strftime('%Y/%m')
-        remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
+        prefix = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{date.strftime("%Y%m%d_")}'
+        objs = self.s3client.list_objects(Bucket=self.S3_BUCKET_NAME,Prefix=prefix)
+
+        remote_name = None
+        for obj in objs['Contents']:
+            remote_name = os.path.basename(obj['Key'])
+            print(f'[INFO] Found the following remote name for date {date.strftime("%Y-%m-%d")}: {remote_name}')
+        return remote_name
+
+
+    def check_daily_file_params(self,date,remote_name=None):
+        subdir = date.strftime('%Y/%m')
+        if remote_name is None:
+            remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
+
+
         isuploaded = True
         use_myint = False
         try:
@@ -273,7 +290,7 @@ class S3Bucket():
             except:
                 isuploaded = False
 
-        return self.S3_BUCKET_NAME,key, isuploaded, use_myint
+        return self.S3_BUCKET_NAME,key,isuploaded,use_myint
 
 
     def check_daily_file(self, mode, pinfo, date, verbose):

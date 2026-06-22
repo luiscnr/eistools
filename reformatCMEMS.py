@@ -47,11 +47,6 @@ class ReformatCMEMS:
                 fw.write('\n')
                 fw.close()
 
-                # if os.path.exists(file_orig) and file_dest is not None:
-                #     if verbose:
-                #         print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
-                #     shutil.copy2(file_orig, file_dest)
-                #     os.remove(file_orig)
 
             prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = prog.communicate()
@@ -63,6 +58,15 @@ class ReformatCMEMS:
             if err:
                 print(f'[CMD ERROR]{err}')
 
+            # DEPRECATED: Moving reformatted file to path reformat is now included in the slurm or sh script.
+            # if preformat is not None:
+            #     file_orig = pinfo.get_file_path_orig(None, date_work)
+            #     file_dest = pinfo.get_file_path_orig_reformat_name(date_work)
+            #     if os.path.exists(file_orig) and file_dest is not None:
+            #         if verbose:
+            #             print(f'[INFO] Moving reformated file {file_orig} to path reformat {file_dest}')
+            #         shutil.copy2(file_orig, file_dest)
+            #         os.remove(file_orig)
 
 
             date_work = date_work + timedelta(hours=24)
