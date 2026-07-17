@@ -60,7 +60,10 @@ class CMEMS_LOIS:
             if myintdate is not None:
                 usemyint = True if work_date>=myintdate else False
             if 'remote_name_abs' in list(cmems_options.keys()):
-                cmems_options['remote_name'] = cmems_options['remote_name_abs']
+                remote_name_abs = cmems_options['remote_name_abs']
+                if remote_name_abs.find('$DATE$')>=0:
+                    remote_name_abs = remote_name_abs.replace('$DATE$',work_date.strftime('%Y%m%d'))
+                cmems_options['remote_name'] = remote_name_abs
                 if usemyint:
                     cmems_options['remote_name'] = cmems_options['remote_name_abs'].replace('my','myint')
                 bucket, key, available = sb.check_daily_file_name(work_date,cmems_options['remote_name'])

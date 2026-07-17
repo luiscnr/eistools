@@ -266,6 +266,7 @@ class S3Bucket:
         for obj in objs['Contents']:
             remote_name = os.path.basename(obj['Key'])
             print(f'[INFO] Found the following remote name for date {date.strftime("%Y-%m-%d")}: {remote_name}')
+
         return remote_name
 
 
