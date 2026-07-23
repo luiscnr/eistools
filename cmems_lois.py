@@ -59,7 +59,7 @@ class CMEMS_LOIS:
             usemyint = False
             if myintdate is not None:
                 usemyint = True if work_date>=myintdate else False
-            if 'remote_name_abs' in list(cmems_options.keys()):
+            if 'remote_name_abs' in list(cmems_options.keys()) and cmems_options['remote_name_abs'] is not None:
                 remote_name_abs = cmems_options['remote_name_abs']
                 if remote_name_abs.find('$DATE$')>=0:
                     remote_name_abs = remote_name_abs.replace('$DATE$',work_date.strftime('%Y%m%d'))

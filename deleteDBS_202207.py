@@ -208,7 +208,7 @@ def delete_monthly_dataset_impl(pinfo, mode, year, month_ini, month_fin, use_mds
     sb.update_params_from_pinfo(pinfo)
     conn = sb.star_client()
     if not conn:
-        print(f'[ERROR] Connection error with s3 bucket. Daily dataset could not be deleted')
+        print(f'[ERROR] Connection error with s3 bucket. Monthly dataset could not be deleted')
         return
     deliveries = Deliveries()
     rpath, sdir = pinfo.get_remote_path_monthly(year)
