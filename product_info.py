@@ -1402,18 +1402,18 @@ class ProductInfo:
     def get_reformat_cmd_202411(self, datehere,use_sh):
         path, file_slurm = self.get_file_slurm_reformat_202411(datehere)
         if path is None:
-            return None
+            return [None]*2
         if use_sh:
             file_slurm = file_slurm.replace('.slurm','.sh')
 
         first_file, var_to_delete, extra_files,structure = self.get_files_reformat(path, datehere)
         if first_file is None:
-            return None
+            return [None]*2
 
         variables_to_rename = self.get_rename_variables(datehere,structure['dimensions'])
 
         if variables_to_rename is None:
-            return None
+            return [None]*2
 
         all_variables = []
         all_attrs = structure['global_attrs']
@@ -1433,7 +1433,7 @@ class ProductInfo:
                     all_attrs = all_attrs + var_attrs
                 else:
                     print(f'Variable {var_to_add} in file {f} is duplicated. Please do not use it or rename it using rename_var_')
-                    return None
+                    return [None]*2
         for dim in structure['dims_attrs']:
             all_attrs = all_attrs + structure['dims_attrs'][dim]
 
@@ -1444,7 +1444,7 @@ class ProductInfo:
 
         dims_to_rename,new_dimensions = self.get_rename_dimensions(structure['dimensions'])
         if dims_to_rename is None:
-            return None
+            return [None]*2
         if len(dims_to_rename)>0:
             structure['dimensions'] = new_dimensions
             old_dims_attrs = structure['dims_attrs']
@@ -1459,7 +1459,7 @@ class ProductInfo:
 
         attributes_to_rename,structure = self.get_rename_attributes(structure)
         if attributes_to_rename is None:
-            return None
+            return [None]*2
 
 
         file_tmp = os.path.join(path, 'Temp.nc')

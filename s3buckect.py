@@ -260,7 +260,13 @@ class S3Bucket:
     def search_key_by_date(self,date):
         subdir = date.strftime('%Y/%m')
         prefix = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{date.strftime("%Y%m%d_")}'
+
+
+
         objs = self.s3client.list_objects(Bucket=self.S3_BUCKET_NAME,Prefix=prefix)
+
+        if objs is None or not 'Contents' in objs:
+            return None
 
         remote_name = None
         for obj in objs['Contents']:
