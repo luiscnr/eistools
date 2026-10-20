@@ -1300,6 +1300,16 @@ class ProductInfo:
             index = index + 1
         return info_reformat_attributes
 
+    def get_delete_dimensions(self):
+        print(f'[INFO] Check delete dimensions')
+        action ='delete_dim'
+        info_delete_dimensions = []
+        index = 0
+        while f'{action}_{index}' in self.dinfo.keys():
+            info_delete_dimensions.append(self.dinfo[f'{action}_{index}'].strip())
+            index = index + 1
+        return info_delete_dimensions
+
     def get_rename_variables(self, datehere,dimensions):
         print(f'[INFO] Check rename variables...')
         name_r = [x.strip().split(',')[0] for x in self.dinfo['files_reformat'].split(';')]
@@ -1616,6 +1626,17 @@ class ProductInfo:
                 self.add_new_line(fw,f'ncatted -O -h -a {action} {file_out}')
             self.add_new_line(fw, '')
 
+
+        ##delete var dimension and dimension
+        dims_to_delete = self.get_delete_dimensions()
+        if len(dims_to_delete)>0:
+            for dim in dims_to_delete:
+                self.add_new_line(fw,'')
+                file_tmp_here = os.path.join(path, 'TempDim.nc')
+                line_delete_var = f'ncks -h  -C -O -x -v {dim} {file_out} {file_tmp_here}'
+                self.add_new_line(fw, line_delete_var)
+                line_mv = f'mv {file_tmp_here} {file_out}'
+                self.add_new_line(fw, line_mv)
 
         ##finishing...
         if len(lines_invert_renaming)>0:

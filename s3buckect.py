@@ -282,7 +282,6 @@ class S3Bucket:
             remote_name = f'{date.strftime("%Y%m%d_")}{self.DATASET}.nc'
         key = f'native/{self.PRODUCT}/{self.DATASET}_{self.TAG}/{subdir}/{remote_name}'
 
-
         isuploaded = True
         use_myint = False
         try:

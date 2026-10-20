@@ -53,12 +53,17 @@ class CMEMS_LOIS:
                 print(f'[WARNING] Format for option cmems_download/myint_date {cmems_options["myint_date"]} is not correct. It should be YYYY-mm-ddd. Date will not be used')
                 pass
 
+
+
         output_files = [None]*len(date_list)
         for idate,work_date in enumerate(date_list):
 
             usemyint = False
             if myintdate is not None:
                 usemyint = True if work_date>=myintdate else False
+
+
+
             if 'remote_name_abs' in list(cmems_options.keys()) and cmems_options['remote_name_abs'] is not None:
                 remote_name_abs = cmems_options['remote_name_abs']
                 if remote_name_abs.find('$DATE$')>=0:
@@ -71,6 +76,7 @@ class CMEMS_LOIS:
                 bucket, key, available, usemyint = sb.check_daily_file_params(work_date)
                 if not available:
                     remote_name = sb.search_key_by_date(work_date)
+
                     if remote_name is not None:
                         bucket, key, available = sb.check_daily_file_name(work_date, remote_name)
                         if available:
