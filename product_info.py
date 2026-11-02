@@ -1,5 +1,5 @@
 import calendar,os,json,__init__
-import time
+
 from datetime import datetime as dt
 from datetime import timedelta
 
@@ -427,6 +427,15 @@ class ProductInfo:
             name_file = self.dinfo['name_origin']
             date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
             file_path = os.path.join(path, name_file.replace('DATE', date_file_str))
+            n_tries = 0
+            n_tries_max = 60
+            while not os.path.exists(file_path):
+                time.sleep(5)
+                if tagprint is not None:
+                    print(f'{tagprint} Expecting for orig path {file_path} to be created...')
+                n_tries = n_tries + 1
+                if n_tries == n_tries_max:
+                    break
             if not os.path.exists(file_path):
                 if tagprint is not None:
                     print(f'{tagprint} Expected file orig path {file_path} does not exist')
@@ -460,13 +469,13 @@ class ProductInfo:
         date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
         file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
         n_tries = 0
-        n_max_tries = 60
+        n_tries_max = 60
         while not os.path.exists(file_path):
-            if tagprint is not None:
-                print(f'{tagprint} Expecting for file orig path {file_path}  to be created...')
             time.sleep(5)
+            if tagprint is not None:
+                print(f'{tagprint} Expecting for orig path {file_path} to be created...')
             n_tries = n_tries + 1
-            if n_tries == n_max_tries:
+            if n_tries == n_tries_max:
                 break
         if not os.path.exists(file_path):
             if return_if_not_exist:
@@ -1666,7 +1675,8 @@ class ProductInfo:
         if use_sh:
             cmd = f'sh {file_slurm}'
         else:
-            cmd = f'sbatch --wait {file_slurm}'
+            #cmd = f'sbatch --wait {file_slurm}'
+            cmd = f'sbatch {file_slurm}'
 
         return cmd, file_slurm
 
