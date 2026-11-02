@@ -7,7 +7,7 @@ from datetime import timezone
 
 class DeleteMDS:
 
-    def __init__(self, version,verbose):
+    def __init__(self, verbose):
         self.verbose = verbose
 
     def delete_daily_dataset_impl(self,pinfo, mode, year, month, start_day, end_day):
