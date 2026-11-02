@@ -1,8 +1,9 @@
 import calendar,os,json,__init__
+import time
 from datetime import datetime as dt
 from datetime import timedelta
 
-from pandas.core.interchange.from_dataframe import string_column_to_ndarray
+
 
 from source_info import SourceInfo
 import pandas as pd
@@ -458,11 +459,11 @@ class ProductInfo:
         name_file = self.dinfo['name_origin']
         date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
         file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
-        n_tries = 10
+        n_tries = 60
         while not os.path.exists(file_path):
             if tagprint is not None:
                 print(f'{tagprint} Expecting for file orig path {file_path}  to be created...')
-            wait(30)
+            time.sleep(5)
             n_tries = n_tries + 1
             if n_tries == 10:
                 break
