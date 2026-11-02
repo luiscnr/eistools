@@ -51,7 +51,7 @@ class ReformatCMEMS:
             prog = subprocess.Popen(cmd, shell=True, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
             out, err = prog.communicate()
             if out:
-                outstr = out.decode(("utf-8"))
+                outstr = out.decode("utf-8")
                 ierror = outstr.find('ERROR')
                 if ierror >= 0:
                     print(f'[CMD ERROR] {outstr[ierror:]}')

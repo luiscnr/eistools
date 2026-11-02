@@ -1657,8 +1657,8 @@ class ProductInfo:
         if use_sh:
             cmd = f'sh {file_slurm}'
         else:
-            #cmd = f'sbatch --wait {file_slurm}'
-            cmd = f'sbatch {file_slurm}'
+            cmd = f'sbatch --wait {file_slurm}'
+            #cmd = f'sbatch {file_slurm}'
 
         return cmd, file_slurm
 

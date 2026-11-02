@@ -100,6 +100,7 @@ class UploadMDS:
             CHECK = False
             n_tries = 0
             n_tries_max = 30
+            pinfo.MODE = 'REFORMAT'##to get [WARNING] in the methods get_file_path_orig and get_file_path_orig_reformat
             while not CHECK:
                 pfile = pinfo.get_file_path_orig_reformat(date_here)
                 if pfile is None:
@@ -108,10 +109,11 @@ class UploadMDS:
                 if CHECK:
                     break
                 time.sleep(5)
-                print(f'[ERROR] Error retrieving file. Retrying in 5 seconds...')
+                print(f'[WARNING] Error retrieving file. Retrying in 5 seconds...')
                 n_tries = n_tries + 1
                 if  n_tries==n_tries_max:
                     break
+            pinfo.MODE = 'UPLOAD'
             if self.verbose:
                 print(f'[INFO] File: {pfile}')
                 print(f'[INFO] Checking origin (local) file: {pfile} --> {CHECK}')
