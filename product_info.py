@@ -458,6 +458,14 @@ class ProductInfo:
         name_file = self.dinfo['name_origin']
         date_file_str = datehere.strftime(self.dinfo['format_date_origin'])
         file_path = os.path.join(path_jday, name_file.replace('DATE', date_file_str))
+        n_tries = 10
+        while not os.path.exists(file_path):
+            if tagprint is not None:
+                print(f'{tagprint} Expecting for file orig path {file_path}  to be created...')
+            wait(30)
+            n_tries = n_tries + 1
+            if n_tries == 10:
+                break
         if not os.path.exists(file_path):
             if return_if_not_exist:
                 return file_path
