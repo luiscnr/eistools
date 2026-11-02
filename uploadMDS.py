@@ -97,7 +97,6 @@ class UploadMDS:
             date_here = dt(year, month, day)
             if self.verbose:
                 print(f'[INFO] Date: {date_here}')
-
             CHECK = False
             n_tries = 0
             n_tries_max = 60
@@ -109,12 +108,10 @@ class UploadMDS:
                 if CHECK:
                     break
                 time.sleep(5)
+                print(f'[INFO] Error retrieving file {path_orig}. Retrying in 5 seconds...')
                 n_tries = n_tries + 1
                 if  n_tries==n_tries_max:
                     break
-
-
-
             if self.verbose:
                 print(f'[INFO] File: {pfile}')
                 print(f'[INFO] Checking origin (local) file: {pfile} --> {CHECK}')
