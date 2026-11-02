@@ -109,7 +109,7 @@ class UploadMDS:
                 if CHECK:
                     break
                 time.sleep(5)
-                print(f'[WARNING] Error retrieving file. Retrying in 5 seconds...')
+                print(f'[WARNING] Expecting for retrieving again the file in 5 seconds...')
                 n_tries = n_tries + 1
                 if  n_tries==n_tries_max:
                     break
