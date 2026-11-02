@@ -1,3 +1,4 @@
+import time
 from datetime import timedelta
 from datetime import datetime as dt
 from calendar import monthrange
@@ -96,13 +97,26 @@ class UploadMDS:
             date_here = dt(year, month, day)
             if self.verbose:
                 print(f'[INFO] Date: {date_here}')
-            pfile = pinfo.get_file_path_orig_reformat(date_here)
-            if pfile is None:
-                pfile = pinfo.get_file_path_orig(path_orig, date_here)
+
+            CHECK = False
+            n_tries = 0
+            n_tries_max = 60
+            while not CHECK:
+                pfile = pinfo.get_file_path_orig_reformat(date_here)
+                if pfile is None:
+                    pfile = pinfo.get_file_path_orig(path_orig, date_here)
+                CHECK = pinfo.check_file(pfile)
+                if CHECK:
+                    break
+                time.sleep(5)
+                n_tries = n_tries + 1
+                if  n_tries==n_tries_max:
+                    break
+
+
+
             if self.verbose:
                 print(f'[INFO] File: {pfile}')
-            CHECK = pinfo.check_file(pfile)
-            if self.verbose:
                 print(f'[INFO] Checking origin (local) file: {pfile} --> {CHECK}')
             if not CHECK:
                 print(f'[ERROR] Error with the file: {pfile}')
