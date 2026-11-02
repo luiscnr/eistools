@@ -992,7 +992,7 @@ class ProductInfo:
 
     def check_file(self, file):
         if file is None:
-            print(f'[ERROR] File variable is none')
+            #print(f'[ERROR] File variable is none')
             return False
         if not os.path.exists(file):
             print(f'[ERROR] File {file} does not exist')
