@@ -99,7 +99,7 @@ class UploadMDS:
                 print(f'[INFO] Date: {date_here}')
             CHECK = False
             n_tries = 0
-            n_tries_max = 60
+            n_tries_max = 30
             while not CHECK:
                 pfile = pinfo.get_file_path_orig_reformat(date_here)
                 if pfile is None:
@@ -108,7 +108,7 @@ class UploadMDS:
                 if CHECK:
                     break
                 time.sleep(5)
-                print(f'[INFO] Error retrieving file {path_orig}. Retrying in 5 seconds...')
+                print(f'[ERROR] Error retrieving file. Retrying in 5 seconds...')
                 n_tries = n_tries + 1
                 if  n_tries==n_tries_max:
                     break
