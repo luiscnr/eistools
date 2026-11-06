@@ -1421,13 +1421,8 @@ class ProductInfo:
         if first_file is None:
             return [None]*2
 
-        print(type(first_file),first_file)
-        print(type(extra_files),extra_files)
-
-
         variables_to_rename = self.get_rename_variables(datehere,structure['dimensions'])
 
-        print(type(variables_to_rename),variables_to_rename)
 
         if variables_to_rename is None:
             return [None]*2
@@ -1456,8 +1451,6 @@ class ProductInfo:
 
         structure['all_attrs'] = all_attrs
         structure['all_variables_attrs'] = all_variables_attrs
-
-
 
         dims_to_rename,new_dimensions = self.get_rename_dimensions(structure['dimensions'])
         if dims_to_rename is None:
@@ -1556,7 +1549,7 @@ class ProductInfo:
             file_in_c = f'\"{file_in}\"'
             var_to_include = extra_files[file_in]
 
-            ##renaming variables before being added
+            ##renaming variables "after" being added
             if name_in in variables_to_rename:
                 dataset_check = Dataset(file_in)
                 for vname_in in variables_to_rename[name_in]:
