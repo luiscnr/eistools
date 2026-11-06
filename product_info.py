@@ -1421,7 +1421,13 @@ class ProductInfo:
         if first_file is None:
             return [None]*2
 
+        print(type(first_file),first_file)
+        print(type(extra_files),extra_files)
+
+
         variables_to_rename = self.get_rename_variables(datehere,structure['dimensions'])
+
+        print(type(variables_to_rename),variables_to_rename)
 
         if variables_to_rename is None:
             return [None]*2
